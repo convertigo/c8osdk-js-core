@@ -1,6 +1,6 @@
 import {C8oCore} from "./c8oCore";
 import {C8oResponseListener} from "./c8oResponse";
-import {C8oUtils} from "./c8oUtilsCore";
+import {C8oUtilsCore} from "./c8oUtilsCore";
 import {C8oException} from "./Exception/c8oException";
 import {C8oExceptionMessage} from "./Exception/c8oExceptionMessage";
 import {FullSyncRequestable} from "./fullSyncRequestable";
@@ -45,11 +45,11 @@ export class C8oFullSync {
                 parameters[val] = _parameters[val];
             }
         }
-        let projectParameterValue: string = C8oUtils.peekParameterStringValue(parameters, C8oCore.ENGINE_PARAMETER_PROJECT, true);
+        let projectParameterValue: string = C8oUtilsCore.peekParameterStringValue(parameters, C8oCore.ENGINE_PARAMETER_PROJECT, true);
         if (!projectParameterValue.startsWith(C8oFullSync.FULL_SYNC_PROJECT)) {
             throw new C8oException(C8oExceptionMessage.invalidParameterValue(projectParameterValue, "its don't start with" + C8oFullSync.FULL_SYNC_PROJECT));
         }
-        let fullSyncRequestableValue: string = C8oUtils.peekParameterStringValue(parameters, C8oCore.ENGINE_PARAMETER_SEQUENCE, true);
+        let fullSyncRequestableValue: string = C8oUtilsCore.peekParameterStringValue(parameters, C8oCore.ENGINE_PARAMETER_SEQUENCE, true);
 
         //  get rid of the optional trailing #RouteHint present in the sequence
         if (fullSyncRequestableValue.indexOf("#") !== -1)
@@ -102,8 +102,8 @@ export class C8oFullSync {
      * Checks if request parameters correspond to a fullSync request.
      */
     static isFullSyncRequest(requestParameter: Object): boolean {
-        if (C8oUtils.getParameterStringValue(requestParameter, C8oCore.ENGINE_PARAMETER_PROJECT, false) !== null) {
-            return C8oUtils.getParameterStringValue(requestParameter, C8oCore.ENGINE_PARAMETER_PROJECT, false).startsWith(C8oFullSync.FULL_SYNC_PROJECT);
+        if (C8oUtilsCore.getParameterStringValue(requestParameter, C8oCore.ENGINE_PARAMETER_PROJECT, false) !== null) {
+            return C8oUtilsCore.getParameterStringValue(requestParameter, C8oCore.ENGINE_PARAMETER_PROJECT, false).startsWith(C8oFullSync.FULL_SYNC_PROJECT);
         }
         else {
             return false;

@@ -1,15 +1,16 @@
 import {C8oCore} from "./c8oCore";
 import {C8oResponseListener, C8oResponseJsonListener} from "./c8oResponse";
 import {C8oExceptionListener} from "./Exception/c8oExceptionListener";
-import {C8oFullSync, C8oFullSyncCbl} from "./c8oFullSync";
+import {C8oFullSync} from "./c8oFullSync";
 import {C8oException} from "./Exception/c8oException";
 import {C8oExceptionMessage} from "./Exception/c8oExceptionMessage";
 import {C8oLocalCache} from "./c8oLocalCache";
-import {C8oUtils} from "./c8oUtilsCore";
+import {C8oUtilsCore} from "./c8oUtilsCore";
 import {C8oLocalCacheResponse} from "./c8oLocalCacheResponse";
 import {C8oTranslator} from "./c8oTranslator";
 import {C8oHttpRequestException} from "./Exception/c8oHttpRequestException";
 import {C8oUnavailableLocalCacheException} from "./Exception/c8oUnavailableLocalCacheException";
+import {C8oFullSyncCbl} from "./c8oFullSyncCbl";
 
 export class C8oCallTask {
     private c8o: C8oCore;
@@ -65,9 +66,9 @@ export class C8oCallTask {
                     this.c8o.log._debug("Is FullSync request");
 
                     // FS_LIVE
-                    let liveid = C8oUtils.getParameterStringValue(this.parameters, C8oCore.FS_LIVE, false);
+                    let liveid = C8oUtilsCore.getParameterStringValue(this.parameters, C8oCore.FS_LIVE, false);
                     if (liveid !== null) {
-                        let dbName: string = (C8oUtils.getParameterStringValue(this.parameters, C8oCore.ENGINE_PARAMETER_PROJECT, true) as string).substring(C8oFullSync.FULL_SYNC_PROJECT.length);
+                        let dbName: string = (C8oUtilsCore.getParameterStringValue(this.parameters, C8oCore.ENGINE_PARAMETER_PROJECT, true) as string).substring(C8oFullSync.FULL_SYNC_PROJECT.length);
                         this.c8o.addLive(liveid, dbName, this);
                     }
                     await this.c8o.c8oFullSync.handleFullSyncRequest(this.parameters, this.c8oResponseListener)
@@ -94,7 +95,7 @@ export class C8oCallTask {
                         reject(new C8oException(C8oExceptionMessage.wrongListener(this.c8oResponseListener)));
                     }
                     let c8oCallRequestIdentifier: string = null;
-                    let localCache: C8oLocalCache = C8oUtils.getParameterObjectValue(this.parameters, C8oLocalCache.PARAM, false);
+                    let localCache: C8oLocalCache = C8oUtilsCore.getParameterObjectValue(this.parameters, C8oLocalCache.PARAM, false);
                     let localCacheEnabled: boolean = false;
 
                     if (localCache != null) {
@@ -103,7 +104,7 @@ export class C8oCallTask {
                             localCacheEnabled = localCache.enabled;
                             if (localCacheEnabled) {
                                 try {
-                                    c8oCallRequestIdentifier = C8oUtils.identifyC8oCallRequest(this.parameters, responseType);
+                                    c8oCallRequestIdentifier = C8oUtilsCore.identifyC8oCallRequest(this.parameters, responseType);
                                 }
                                 catch (error) {
                                     reject(new C8oException(C8oExceptionMessage.serializeC8oCallRequest(), error));

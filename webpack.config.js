@@ -26,7 +26,7 @@ module.exports = {
         publicPath: '/',
         filename: 'index.umd.js',
         libraryTarget: 'umd',
-        library: 'c8osdkangular2'
+        library: 'c8osdkjscore'
     },
 
     // require those dependencies but don't bundle them

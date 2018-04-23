@@ -12,7 +12,7 @@ import {C8oResponseJsonListener, C8oResponseListener} from "./c8oResponse";
 import {FullSyncDefaultResponse, FullSyncDocumentOperationResponse} from "./fullSyncResponse";
 import {C8oLocalCacheResponse} from "./c8oLocalCacheResponse";
 import {C8oFullSyncChangeListener} from "./c8oFullSyncChangeListener";
-import {C8oUtils} from "./c8oUtilsCore";
+import {C8oUtilsCore} from "./c8oUtilsCore";
 import {C8oBase} from "./c8oBase";
 import {C8oCore} from "./c8oCore";
 
@@ -67,7 +67,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
     handleGetAttachmentUrlRequest(fullSyncDatabaseName: string, docid: string, parameters: Object): Promise<any> {
         let fullSyncDatabase: C8oFullSyncDatabase = null;
         fullSyncDatabase = this.getOrCreateFullSyncDatabase(fullSyncDatabaseName);
-        let attachmentName = C8oUtils.getParameterStringValue(parameters, "attachment_name", false);
+        let attachmentName = C8oUtilsCore.getParameterStringValue(parameters, "attachment_name", false);
         return new Promise((resolve) => {
             fullSyncDatabase.getdatabase.getAttachment(docid, attachmentName).then((buffer) => {
                 resolve(buffer);
@@ -119,7 +119,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
         let fullSyncDatabase: C8oFullSyncDatabase = null;
 
         fullSyncDatabase = this.getOrCreateFullSyncDatabase(DatabaseName);
-        let revParameterValue: string = C8oUtils.getParameterStringValue(parameters, FullSyncDeleteDocumentParameter.REV.name, false);
+        let revParameterValue: string = C8oUtilsCore.getParameterStringValue(parameters, FullSyncDeleteDocumentParameter.REV.name, false);
         let documentRevision: string;
         if (revParameterValue === null) {
             return new Promise((resolve, reject) => {
@@ -152,7 +152,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
     handlePostDocumentRequest(databaseName: string, fullSyncPolicy: FullSyncPolicy, parameters: Object): Promise<FullSyncDocumentOperationResponse> {
         let fullSyncDatabase: C8oFullSyncDatabase;
         fullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
-        let subkeySeparatorParameterValue: string = C8oUtils.getParameterStringValue(parameters, C8oCore.FS_SUBKEY_SEPARATOR, false);
+        let subkeySeparatorParameterValue: string = C8oUtilsCore.getParameterStringValue(parameters, C8oCore.FS_SUBKEY_SEPARATOR, false);
         if (subkeySeparatorParameterValue == null) {
             subkeySeparatorParameterValue = ".";
         }
@@ -262,9 +262,9 @@ export class C8oFullSyncCbl extends C8oFullSync {
         let binary;
         let include_docs;
         if (parameters["attachments"] && window["cblite"] !== undefined) {
-            attachments = C8oUtils.getParameterStringValue(parameters, "attachments", false);
-            binary = C8oUtils.getParameterStringValue(parameters, "binary", false);
-            include_docs = C8oUtils.getParameterStringValue(parameters, "include_docs", false);
+            attachments = C8oUtilsCore.getParameterStringValue(parameters, "attachments", false);
+            binary = C8oUtilsCore.getParameterStringValue(parameters, "binary", false);
+            include_docs = C8oUtilsCore.getParameterStringValue(parameters, "include_docs", false);
         }
 
 

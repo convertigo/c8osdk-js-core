@@ -1,5 +1,5 @@
 import {C8oBase} from "./c8oBase";
-import {C8oUtils} from "./c8oUtilsCore";
+import {C8oUtilsCore} from "./c8oUtilsCore";
 import {C8oHttpInterface} from "./c8oHttpInterface";
 import {C8oLogger} from "./c8oLogger";
 import {C8oFullSync} from "./c8oFullSync";
@@ -24,7 +24,7 @@ declare var require: any;
  * To use it, you have to first initialize the C8o instance with the Convertigo endpoint, then use call methods with Convertigo variables as parameter.
  */
 
-export class C8oCore extends C8oBase {
+export abstract class C8oCore extends C8oBase {
     // Log:
     // - VERBOSE (v): methods parameters,
     // - DEBUG (d): methods calls,
@@ -123,7 +123,7 @@ export class C8oCore extends C8oBase {
     static RESPONSE_TYPE_JSON: string = "json";
 
     /* Static configuration */
-    static deviceUUID: string = C8oUtils.getNewGUIDString();
+    static deviceUUID: string = C8oUtilsCore.getNewGUIDString();
 
     /** Network **/
 
@@ -291,9 +291,7 @@ export class C8oCore extends C8oBase {
      *
      * @throws C8oException In case of invalid parameter or initialization failure.
      */
-    public init(c8oSettings?: C8oSettings): Promise<any> {
-        return null;
-    }
+    public abstract init(c8oSettings?: C8oSettings):Promise<any>;
 
     /**
      * This should be called OnPlatform Ready to remove splashscreen if necessary
@@ -334,7 +332,7 @@ export class C8oCore extends C8oBase {
     }
 
     protected extractendpoint() {
-        if (!C8oUtils.isValidUrl(this.endpoint)) {
+        if (!C8oUtilsCore.isValidUrl(this.endpoint)) {
             throw new C8oException(C8oExceptionMessage.illegalArgumentInvalidURL(this.endpoint).toString());
         }
         let matches = C8oCore.RE_ENDPOINT.exec(this.endpoint.toString());

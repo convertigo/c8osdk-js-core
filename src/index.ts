@@ -2,6 +2,7 @@ export * from "./c8o/c8oCore";
 export * from "./c8o/c8oBase";
 export * from "./c8o/c8oCallTask";
 export * from "./c8o/fullsyncpolicy";
+export * from "./c8o/c8oFullSyncChangeListener";
 export * from "./c8o/c8oFullSyncCbl";
 export * from "./c8o/fullsyncpostdocumentparameter";
 export * from "./c8o/c8oFullSync";

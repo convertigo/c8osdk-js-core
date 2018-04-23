@@ -2,10 +2,8 @@ import {inject, TestBed, async} from "@angular/core/testing";
 import { BrowserModule } from "@angular/platform-browser";
 import "rxjs/Rx";
 import any = jasmine.any;
-import {C8oSettings} from "../src/c8o/c8oSettings";
+import {C8oSettings,C8oException, C8oPromise} from "../../node_modules/c8osdkjscore/src/index";
 import {C8o} from "../src/c8o/c8oCore";
-import {C8oException} from "../src/c8o/Exception/c8oException";
-import {C8oPromise} from "../src/c8o/c8oPromise";
 import {Functions, Info, Stuff} from "./utils.help";
 import {HttpClientModule} from "@angular/common/http";
 
