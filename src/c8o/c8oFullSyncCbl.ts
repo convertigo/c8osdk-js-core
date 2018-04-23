@@ -1,125 +1,20 @@
-import {C8o, FullSyncPolicy} from "./c8o.service";
-import {C8oResponseListener, C8oResponseJsonListener} from "./c8oResponse.service";
-import {C8oUtils} from "./c8oUtils.service";
-import {C8oException} from "./Exception/c8oException.service";
-import {C8oExceptionMessage} from "./Exception/c8oExceptionMessage.service";
-import {FullSyncRequestable} from "./fullSyncRequestable.service";
-import {C8oFullSyncDatabase} from "./fullSyncDatabase.service";
-import {FullSyncDocumentOperationResponse, FullSyncDefaultResponse} from "./fullSyncResponse.service";
-import {C8oFullSyncTranslator} from "./c8oFullSyncTranslator.service";
-import {C8oRessourceNotFoundException} from "./Exception/c8oRessourceNotFoundException.service";
-import {C8oUnavailableLocalCacheException} from "./Exception/c8oUnavailableLocalCacheException.service";
-import {C8oLocalCacheResponse} from "./c8oLocalCacheResponse.service";
-import {FullSyncDeleteDocumentParameter} from "./fullSyncDeleteDocumentParameter.service";
-import {C8oCouchBaseLiteException} from "./Exception/c8oCouchBaseLiteException.service";
-import {C8oFullSyncChangeListener} from "./c8oFullSyncChangeListener.service";
-
-export class C8oFullSync {
-    private static FULL_SYNC_URL_PATH: string = "/fullsync/";
-    /**
-     * The project requestable value to execute a fullSync request.
-     */
-    public static FULL_SYNC_PROJECT: string = "fs://";
-    public static FULL_SYNC__ID: string = "_id";
-    public static FULL_SYNC__REV: string = "_rev";
-    public static FULL_SYNC__ATTACHMENTS: string = "_attachments";
-
-    c8o: C8o;
-    protected fullSyncDatabaseUrlBase: string;
-    protected localSuffix: string;
-
-    public constructor(c8o: C8o) {
-        this.c8o = c8o;
-        this.fullSyncDatabaseUrlBase = c8o.endpointConvertigo + C8oFullSync.FULL_SYNC_URL_PATH;
-        this.localSuffix = (c8o.fullSyncLocalSuffix !== null) ? c8o.fullSyncLocalSuffix : "_device";
-    }
-
-    /**
-     * Handles a fullSync request.<br/>
-     * It determines the type of the request thanks to parameters.
-     *
-     * @param _parameters
-     * @param listener
-     * @return promise<any>
-     * @throws C8oException
-     */
-    public async handleFullSyncRequest(_parameters: Object, listener: C8oResponseListener): Promise<any> {
-        let parameters = {};
-        for(let val in _parameters){
-            if(_parameters[val] instanceof Blob != true){
-                //if it's not a blob then stringify and parse the value to make some values like true case insensitive ( from string to boolean)
-                parameters[val] = JSON.parse(JSON.stringify(_parameters[val]));
-            }
-            else{
-                parameters[val] = _parameters[val];
-            }
-        }
-        let projectParameterValue: string = C8oUtils.peekParameterStringValue(parameters, C8o.ENGINE_PARAMETER_PROJECT, true);
-        if (!projectParameterValue.startsWith(C8oFullSync.FULL_SYNC_PROJECT)) {
-            throw new C8oException(C8oExceptionMessage.invalidParameterValue(projectParameterValue, "its don't start with" + C8oFullSync.FULL_SYNC_PROJECT));
-        }
-        let fullSyncRequestableValue: string = C8oUtils.peekParameterStringValue(parameters, C8o.ENGINE_PARAMETER_SEQUENCE, true);
-
-        //  get rid of the optional trailing #RouteHint present in the sequence
-        if (fullSyncRequestableValue.indexOf("#") !== -1)
-            fullSyncRequestableValue = fullSyncRequestableValue.substring(0, fullSyncRequestableValue.indexOf("#"));
-
-        let fullSyncRequestable: FullSyncRequestable = FullSyncRequestable.getFullSyncRequestable(fullSyncRequestableValue);
-        if (fullSyncRequestable === null) {
-            throw new C8oException(C8oExceptionMessage.invalidParameterValue(C8o.ENGINE_PARAMETER_PROJECT, C8oExceptionMessage.unknownValue("fullSync requestable", fullSyncRequestableValue)));
-        }
-        let databaseName: string = projectParameterValue.substring(C8oFullSync.FULL_SYNC_PROJECT.length);
-        if (databaseName.length < 1) {
-            databaseName = this.c8o.defaultDatabaseName;
-            if (databaseName === null) {
-                throw new C8oException(C8oExceptionMessage.invalidParameterValue(C8o.ENGINE_PARAMETER_PROJECT, C8oExceptionMessage.missingValue("fullSync database name")));
-            }
-        }
-
-        let response: any;
-        return new Promise((resolve, reject) => {
-            fullSyncRequestable.handleFullSyncRequest(this, databaseName, parameters, listener).then((result) => {
-                response = result;
-                if (response === null || response === undefined) {
-                    reject(new C8oException(C8oExceptionMessage.couchNullResult()));
-                }
-                resolve(this.handleFullSyncResponse(response, listener));
-            }).catch((error) => {
-                if (error instanceof C8oException) {
-                    reject(error);
-                }
-                else {
-                    reject(new C8oException(C8oExceptionMessage.FullSyncRequestFail(), error));
-                }
-            });
-        });
-    }
-
-    //noinspection JSUnusedLocalSymbols
-    /**
-     *
-     * @param response
-     * @param listener
-     * @return response
-     * @throws C8oException Failed to parse response.
-     */
-    handleFullSyncResponse(response: any, listener: C8oResponseListener): any {
-        return response;
-    }
-
-    /**
-     * Checks if request parameters correspond to a fullSync request.
-     */
-    static isFullSyncRequest(requestParameter: Object): boolean {
-        if (C8oUtils.getParameterStringValue(requestParameter, C8o.ENGINE_PARAMETER_PROJECT, false) !== null) {
-            return C8oUtils.getParameterStringValue(requestParameter, C8o.ENGINE_PARAMETER_PROJECT, false).startsWith(C8oFullSync.FULL_SYNC_PROJECT);
-        }
-        else {
-            return false;
-        }
-    }
-
-}
+import {C8oFullSyncDatabase} from "./fullSyncDatabase";
+import {FullSyncDeleteDocumentParameter} from "./fullSyncDeleteDocumentParameter";
+import {C8oUnavailableLocalCacheException} from "./Exception/c8oUnavailableLocalCacheException";
+import {C8oExceptionMessage} from "./Exception/c8oExceptionMessage";
+import {C8oException} from "./Exception/c8oException";
+import {C8oCouchBaseLiteException} from "./Exception/c8oCouchBaseLiteException";
+import {C8oFullSync} from "./c8oFullSync";
+import {C8oFullSyncTranslator} from "./c8oFullSyncTranslator";
+import {C8oRessourceNotFoundException} from "./Exception/c8oRessourceNotFoundException";
+import {FullSyncPolicy} from "./fullsyncpolicy";
+import {C8oResponseJsonListener, C8oResponseListener} from "./c8oResponse";
+import {FullSyncDefaultResponse, FullSyncDocumentOperationResponse} from "./fullSyncResponse";
+import {C8oLocalCacheResponse} from "./c8oLocalCacheResponse";
+import {C8oFullSyncChangeListener} from "./c8oFullSyncChangeListener";
+import {C8oUtils} from "./c8oUtilsCore";
+import {C8oBase} from "./c8oBase";
+import {C8oCore} from "./c8oCore";
 
 export class C8oFullSyncCbl extends C8oFullSync {
     private static ATTACHMENT_PROPERTY_KEY_CONTENT_URL: string = "content_url";
@@ -127,7 +22,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
     private fullSyncChangeListeners: Array<Array<C8oFullSyncChangeListener>> = [];
     private cblChangeListeners: Array<any> = [];
 
-    constructor(c8o: C8o) {
+    constructor(c8o: C8oCore) {
         super(c8o);
         this.fullSyncDatabases = {};
     }
@@ -257,7 +152,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
     handlePostDocumentRequest(databaseName: string, fullSyncPolicy: FullSyncPolicy, parameters: Object): Promise<FullSyncDocumentOperationResponse> {
         let fullSyncDatabase: C8oFullSyncDatabase;
         fullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
-        let subkeySeparatorParameterValue: string = C8oUtils.getParameterStringValue(parameters, C8o.FS_SUBKEY_SEPARATOR, false);
+        let subkeySeparatorParameterValue: string = C8oUtils.getParameterStringValue(parameters, C8oCore.FS_SUBKEY_SEPARATOR, false);
         if (subkeySeparatorParameterValue == null) {
             subkeySeparatorParameterValue = ".";
         }
@@ -399,7 +294,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
                     }
 
                 }).catch((error) => {
-                    reject(new C8oException(C8oExceptionMessage.couchRequestGetView(), error));
+                reject(new C8oException(C8oExceptionMessage.couchRequestGetView(), error));
             });
         });
 
@@ -504,7 +399,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
     }
 
     //noinspection JSUnusedLocalSymbols
-    getDocucmentFromDatabase(c8o: C8o, databaseName: string, documentId: string): Promise<any> {
+    getDocucmentFromDatabase(c8o: C8oCore, databaseName: string, documentId: string): Promise<any> {
         let c8oFullSyncDatabase: C8oFullSyncDatabase;
         try {
             c8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
@@ -538,15 +433,15 @@ export class C8oFullSyncCbl extends C8oFullSync {
     }
 
     async getResponseFromLocalCache(c8oCallRequestIdentifier: string): Promise<any> {
-        let fullSyncDatabase = this.getOrCreateFullSyncDatabase(C8o.LOCAL_CACHE_DATABASE_NAME);
+        let fullSyncDatabase = this.getOrCreateFullSyncDatabase(C8oCore.LOCAL_CACHE_DATABASE_NAME);
         let localCacheDocument = null;
         return new Promise((resolve, reject) => {
             fullSyncDatabase.getdatabase.get(c8oCallRequestIdentifier).then((result) => {
                 localCacheDocument = result;
 
-                let response = JSON.stringify(localCacheDocument[C8o.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE]);
-                let responseType = localCacheDocument[C8o.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE_TYPE];
-                let expirationDate = localCacheDocument[C8o.LOCAL_CACHE_DOCUMENT_KEY_EXPIRATION_DATE];
+                let response = JSON.stringify(localCacheDocument[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE]);
+                let responseType = localCacheDocument[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE_TYPE];
+                let expirationDate = localCacheDocument[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_EXPIRATION_DATE];
 
                 let responseString: string = null;
                 let responseTypeString: string = null;
@@ -595,15 +490,15 @@ export class C8oFullSyncCbl extends C8oFullSync {
     }
 
     async saveResponseToLocalCache(c8oCallRequestIdentifier: string, localCacheResponse: C8oLocalCacheResponse): Promise<any> {
-        let fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(C8o.LOCAL_CACHE_DATABASE_NAME);
+        let fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(C8oCore.LOCAL_CACHE_DATABASE_NAME);
         return new Promise((resolve) => {
             fullSyncDatabase.getdatabase.get(c8oCallRequestIdentifier).then((localCacheDocument) => {
                 let properties = {};
                 properties[C8oFullSync.FULL_SYNC__ID] = c8oCallRequestIdentifier;
-                properties[C8o.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE] = localCacheResponse.getResponse();
-                properties[C8o.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE_TYPE] = localCacheResponse.getResponseType();
+                properties[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE] = localCacheResponse.getResponse();
+                properties[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE_TYPE] = localCacheResponse.getResponseType();
                 if (localCacheResponse.getExpirationDate() > 0) {
-                    properties[C8o.LOCAL_CACHE_DOCUMENT_KEY_EXPIRATION_DATE] = localCacheResponse.getExpirationDate();
+                    properties[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_EXPIRATION_DATE] = localCacheResponse.getExpirationDate();
                 }
                 let currentRevision = localCacheDocument._rev;
                 if (currentRevision !== null) {
@@ -616,10 +511,10 @@ export class C8oFullSyncCbl extends C8oFullSync {
                 if (error.status === 404) {
                     let properties = {};
                     properties[C8oFullSync.FULL_SYNC__ID] = c8oCallRequestIdentifier;
-                    properties[C8o.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE] = localCacheResponse.getResponse();
-                    properties[C8o.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE_TYPE] = localCacheResponse.getResponseType();
+                    properties[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE] = localCacheResponse.getResponse();
+                    properties[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE_TYPE] = localCacheResponse.getResponseType();
                     if (localCacheResponse.getExpirationDate() > 0) {
-                        properties[C8o.LOCAL_CACHE_DOCUMENT_KEY_EXPIRATION_DATE] = localCacheResponse.getExpirationDate();
+                        properties[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_EXPIRATION_DATE] = localCacheResponse.getExpirationDate();
                     }
                     fullSyncDatabase.getdatabase.put(properties).then((result) => {
                         resolve(result);

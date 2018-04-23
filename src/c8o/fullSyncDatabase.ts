@@ -1,7 +1,7 @@
-import {C8oResponseProgressListener, C8oResponseListener} from "./c8oResponse.service";
-import {C8o} from "./c8o.service";
-import {C8oProgress} from "./c8oProgress.service";
-import {FullSyncReplication} from "./fullSyncreplication.service";
+import {C8oResponseProgressListener, C8oResponseListener} from "./c8oResponse";
+import {C8oCore} from "./c8oCore";
+import {C8oProgress} from "./c8oProgress";
+import {FullSyncReplication} from "./fullSyncreplication";
 
 import PouchDB from 'pouchdb-browser'
 /**
@@ -12,7 +12,7 @@ export class C8oFullSyncDatabase {
     /**
      * Used to log.
      */
-    private c8o: C8o;
+    private c8o: C8oCore;
 
     /** TAG Attributes **/
 
@@ -49,7 +49,7 @@ export class C8oFullSyncDatabase {
      * @param localSuffix
      * @throws C8oException Failed to get the fullSync database.
      */
-    constructor(c8o: C8o, databaseName: string, fullSyncDatabases: string, localSuffix: string) {
+    constructor(c8o: C8oCore, databaseName: string, fullSyncDatabases: string, localSuffix: string) {
         this.c8o = c8o;
         let header = {
             'x-convertigo-sdk': this.c8o.sdkVersion
@@ -192,7 +192,7 @@ export class C8oFullSyncDatabase {
                 }
                 progress.total = info.change.docs_read;
                 progress.current = info.change.docs_written;
-                param[C8o.ENGINE_PARAMETER_PROGRESS] = progress;
+                param[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                 (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
 
             }).on("complete", (info) => {
@@ -202,7 +202,7 @@ export class C8oFullSyncDatabase {
                 progress.current = info.push.docs_written;
                 progress.status = info.status;
                 progress.finished = true;
-                param[C8o.ENGINE_PARAMETER_PROGRESS] = progress;
+                param[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                 (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                 progress.pull = true;
                 progress.total = info.pull.docs_read;
@@ -237,7 +237,7 @@ export class C8oFullSyncDatabase {
                         }
                         progress.total = info.change.docs_read;
                         progress.current = info.change.docs_written;
-                        param[C8o.ENGINE_PARAMETER_PROGRESS] = progress;
+                        param[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                         (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                     })
                         .on("paused", function () {
@@ -403,14 +403,14 @@ export class C8oFullSyncDatabase {
                 progress.total = info.docs_read;
                 progress.current = info.docs_written;
                 progress.status = "change";
-                parameters[C8o.ENGINE_PARAMETER_PROGRESS] = progress;
+                parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                 (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
             }).on("complete", (info) => {
                 progress.finished = true;
                 progress.total = info.docs_read;
                 progress.current = info.docs_written;
                 progress.status = "complete";
-                parameters[C8o.ENGINE_PARAMETER_PROGRESS] = progress;
+                parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                 (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
                 rep.cancel();
                 if (continuous) {
@@ -424,7 +424,7 @@ export class C8oFullSyncDatabase {
                         progress.total = info.docs_read;
                         progress.current = info.docs_written;
                         progress.status = "change";
-                        parameters[C8o.ENGINE_PARAMETER_PROGRESS] = progress;
+                        parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                         (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
                     })
                         .on("error", (err) => {
@@ -452,7 +452,7 @@ export class C8oFullSyncDatabase {
                 if (err.message === "Unexpected end of JSON input") {
                     progress.finished = true;
                     progress.status = "complete";
-                    parameters[C8o.ENGINE_PARAMETER_PROGRESS] = progress;
+                    parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                     (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
                     rep.cancel();
                 }

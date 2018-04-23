@@ -1,18 +1,18 @@
-import {C8o} from "./c8o.service";
-import {C8oResponseListener, C8oResponseJsonListener} from "./c8oResponse.service";
-import {C8oExceptionListener} from "./Exception/c8oExceptionListener.service";
-import {C8oFullSync, C8oFullSyncCbl} from "./c8oFullSync.service";
-import {C8oException} from "./Exception/c8oException.service";
-import {C8oExceptionMessage} from "./Exception/c8oExceptionMessage.service";
-import {C8oLocalCache} from "./c8oLocalCache.service";
-import {C8oUtils} from "./c8oUtils.service";
-import {C8oLocalCacheResponse} from "./c8oLocalCacheResponse.service";
-import {C8oTranslator} from "./c8oTranslator.service";
-import {C8oHttpRequestException} from "./Exception/c8oHttpRequestException.service";
-import {C8oUnavailableLocalCacheException} from "./Exception/c8oUnavailableLocalCacheException.service";
+import {C8oCore} from "./c8oCore";
+import {C8oResponseListener, C8oResponseJsonListener} from "./c8oResponse";
+import {C8oExceptionListener} from "./Exception/c8oExceptionListener";
+import {C8oFullSync, C8oFullSyncCbl} from "./c8oFullSync";
+import {C8oException} from "./Exception/c8oException";
+import {C8oExceptionMessage} from "./Exception/c8oExceptionMessage";
+import {C8oLocalCache} from "./c8oLocalCache";
+import {C8oUtils} from "./c8oUtilsCore";
+import {C8oLocalCacheResponse} from "./c8oLocalCacheResponse";
+import {C8oTranslator} from "./c8oTranslator";
+import {C8oHttpRequestException} from "./Exception/c8oHttpRequestException";
+import {C8oUnavailableLocalCacheException} from "./Exception/c8oUnavailableLocalCacheException";
 
 export class C8oCallTask {
-    private c8o: C8o;
+    private c8o: C8oCore;
     private _parameters: Object;
     private c8oResponseListener: C8oResponseListener;
     private c8oExceptionListener: C8oExceptionListener;
@@ -26,7 +26,7 @@ export class C8oCallTask {
         this._parameters = value;
     }
 
-    constructor(c8o: C8o, parameters: Object, c8oResponseListener: C8oResponseListener, c8oExceptionListener: C8oExceptionListener) {
+    constructor(c8o: C8oCore, parameters: Object, c8oResponseListener: C8oResponseListener, c8oExceptionListener: C8oExceptionListener) {
         this.c8o = c8o;
         this.parameters = parameters;
         this.c8oResponseListener = c8oResponseListener;
@@ -50,8 +50,8 @@ export class C8oCallTask {
     }
 
     public executeFromLive() {
-        delete this.parameters[C8o.FS_LIVE];
-        this.parameters[C8o.ENGINE_PARAMETER_FROM_LIVE] = true;
+        delete this.parameters[C8oCore.FS_LIVE];
+        this.parameters[C8oCore.ENGINE_PARAMETER_FROM_LIVE] = true;
         this.run();
     }
 
@@ -65,9 +65,9 @@ export class C8oCallTask {
                     this.c8o.log._debug("Is FullSync request");
 
                     // FS_LIVE
-                    let liveid = C8oUtils.getParameterStringValue(this.parameters, C8o.FS_LIVE, false);
+                    let liveid = C8oUtils.getParameterStringValue(this.parameters, C8oCore.FS_LIVE, false);
                     if (liveid !== null) {
-                        let dbName: string = (C8oUtils.getParameterStringValue(this.parameters, C8o.ENGINE_PARAMETER_PROJECT, true) as string).substring(C8oFullSync.FULL_SYNC_PROJECT.length);
+                        let dbName: string = (C8oUtils.getParameterStringValue(this.parameters, C8oCore.ENGINE_PARAMETER_PROJECT, true) as string).substring(C8oFullSync.FULL_SYNC_PROJECT.length);
                         this.c8o.addLive(liveid, dbName, this);
                     }
                     await this.c8o.c8oFullSync.handleFullSyncRequest(this.parameters, this.c8oResponseListener)
@@ -88,7 +88,7 @@ export class C8oCallTask {
                 else {
                     let responseType: string = "";
                     if (this.c8oResponseListener instanceof C8oResponseJsonListener) {
-                        responseType = C8o.RESPONSE_TYPE_JSON;
+                        responseType = C8oCore.RESPONSE_TYPE_JSON;
                     } else {
                         // Return an Exception because the C8oListener used is unknown
                         reject(new C8oException(C8oExceptionMessage.wrongListener(this.c8oResponseListener)));
@@ -120,7 +120,7 @@ export class C8oCallTask {
                                             let localCacheResponse: C8oLocalCacheResponse = (result as C8oLocalCacheResponse);
 
                                             if (!localCacheResponse.isExpired()) {
-                                                if (responseType === C8o.RESPONSE_TYPE_JSON) {
+                                                if (responseType === C8oCore.RESPONSE_TYPE_JSON) {
                                                     resolve(C8oTranslator.stringToJSON(localCacheResponse.getResponse()));
                                                     return;
                                                 }
@@ -140,7 +140,7 @@ export class C8oCallTask {
                         }
                     }
                     // Get Response
-                    this.parameters[C8o.ENGINE_PARAMETER_DEVICE_UUID] = this.c8o.deviceUUID;
+                    this.parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = this.c8o.deviceUUID;
                     this.c8oCallUrl = this.c8o.endpoint + "/." + responseType;
                     let params : Object = new Object();
                     params= Object.assign(params, this.parameters)
@@ -153,7 +153,7 @@ export class C8oCallTask {
                                     (localCacheResponse: C8oLocalCacheResponse) => {
                                         try {
                                             if (!localCacheResponse.isExpired()) {
-                                                if (responseType === C8o.RESPONSE_TYPE_JSON) {
+                                                if (responseType === C8oCore.RESPONSE_TYPE_JSON) {
                                                     resolve(C8oTranslator.stringToJSON(localCacheResponse.getResponse()));
                                                 }
                                             }
@@ -172,9 +172,6 @@ export class C8oCallTask {
                         }).then(
                         async (result) => {
                             if (result !== undefined) {
-
-
-
                                     let response: any;
                                     let responseString: string;
                                     if (this.c8oResponseListener instanceof C8oResponseJsonListener) {
@@ -185,7 +182,6 @@ export class C8oCallTask {
                                             catch (error) {
                                                 reject(new C8oException(C8oExceptionMessage.parseInputStreamToString(), error));
                                             }
-
                                             response = result;
                                         }
                                         catch (error) {
@@ -195,7 +191,6 @@ export class C8oCallTask {
                                     else {
                                         reject(new C8oException(C8oExceptionMessage.wrongListener(this.c8oResponseListener)));
                                     }
-
                                     if (localCacheEnabled) {
                                         try {
                                             let expirationDate: number = -1;
@@ -213,9 +208,7 @@ export class C8oCallTask {
                                             reject(new C8oException(C8oExceptionMessage.saveResponseToLocalCache()));
                                         }
                                     }
-
                                     resolve(response);
-
                             }
                         });
                 }

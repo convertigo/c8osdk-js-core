@@ -1,5 +1,5 @@
 import {Priority} from "./priority.service";
-import {C8oException} from "./Exception/c8oException.service";
+import {C8oException} from "./Exception/c8oException";
 
 export class C8oLocalCache {
     static PARAM: string = "__localCache";

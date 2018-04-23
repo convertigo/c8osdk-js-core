@@ -1,4 +1,4 @@
-import {C8oFullSyncTranslator} from "./c8oFullSyncTranslator.service";
+import {C8oFullSyncTranslator} from "./c8oFullSyncTranslator";
 
 export class C8oProgress {
     private _changed: boolean = false;

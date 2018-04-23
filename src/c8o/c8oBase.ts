@@ -1,8 +1,5 @@
-import {Injectable}                                                   from "@angular/core";
-import {C8oLogLevel} from "./c8oLogLevel.service";
+import {C8oLogLevel} from "./c8oLogLevel";
 
-
-@Injectable()
 export class C8oBase {
     /*HTTP*/
     protected _endpointSettings: string;

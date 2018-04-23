@@ -1,4 +1,4 @@
-import {C8oException}           from "./c8oException.service";
+import {C8oException}           from "./c8oException";
 
 export class C8oCouchBaseLiteException extends C8oException {
     constructor(message: string);

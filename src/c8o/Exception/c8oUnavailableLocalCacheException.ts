@@ -1,4 +1,4 @@
-import {C8oException} from "./c8oException.service";
+import {C8oException} from "./c8oException";
 
 /**
  * This Exception is not thrown to the user, it is used to know if the requested response from the local cache is available or no.

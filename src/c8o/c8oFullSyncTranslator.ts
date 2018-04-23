@@ -1,4 +1,4 @@
-import {FullSyncDefaultResponse, FullSyncAbstractResponse} from "./fullSyncResponse.service";
+import {FullSyncDefaultResponse, FullSyncAbstractResponse} from "./fullSyncResponse";
 export class C8oFullSyncTranslator {
     static FULL_SYNC_RESPONSE_KEY_COUNT: string = "count";
     static FULL_SYNC_RESPONSE_KEY_ROWS: string = "rows";

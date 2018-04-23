@@ -1,14 +1,16 @@
-import {C8oFullSyncCbl, C8oFullSync} from "./c8oFullSync.service";
+import {C8oFullSync} from "./c8oFullSync";
+import {C8oFullSyncCbl} from "./c8oFullSyncCbl";
 import {
     C8oResponseListener,
     C8oResponseProgressListener,
     C8oResponseJsonListener
-} from "./c8oResponse.service";
-import {C8oUtils} from "./c8oUtils.service";
-import {FullSyncPolicy, FullSyncPostDocumentParameter} from "./c8o.service";
-import {FullSyncGetDocumentParameter} from "./fullSyncGetDocumentParameter.service";
-import {FullSyncAttachmentParameter} from "./fullSyncAttachmentParameter.service";
-import {FullSyncGetViewParameter} from "./fullSyncGetViewParameter.service";
+} from "./c8oResponse";
+import {C8oUtilsCore} from "./c8oUtilsCore";
+import {FullSyncPolicy} from "./fullsyncpolicy";
+import {FullSyncGetDocumentParameter} from "./fullSyncGetDocumentParameter";
+import {FullSyncAttachmentParameter} from "./fullSyncAttachmentParameter";
+import {FullSyncGetViewParameter} from "./fullSyncGetViewParameter";
+import {FullSyncPostDocumentParameter} from "./fullsyncpostdocumentparameter";
 /**
  * Created by charlesg on 10/01/2017.
  */
@@ -17,7 +19,7 @@ export class FullSyncRequestable {
     //noinspection JSUnusedLocalSymbols
     static GET: FullSyncRequestable = new FullSyncRequestable("get", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
         return new Promise((resolve) => {
-            let docid: string = C8oUtils.peekParameterStringValue(parameters, FullSyncGetDocumentParameter.DOCID.name, true);
+            let docid: string = C8oUtilsCore.peekParameterStringValue(parameters, FullSyncGetDocumentParameter.DOCID.name, true);
             resolve(c8oFullSync.handleGetDocumentRequest(databaseName, docid, parameters));
         }).catch((error) => {
             throw error;
@@ -27,7 +29,7 @@ export class FullSyncRequestable {
     //noinspection JSUnusedLocalSymbols
     static DELETE: FullSyncRequestable = new FullSyncRequestable("delete", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
         return new Promise((resolve, reject) => {
-            let docid: string = C8oUtils.peekParameterStringValue(parameters, FullSyncGetDocumentParameter.DOCID.name, true);
+            let docid: string = C8oUtilsCore.peekParameterStringValue(parameters, FullSyncGetDocumentParameter.DOCID.name, true);
             c8oFullSync.handleDeleteDocumentRequest(databaseName, docid, parameters).then((result) => {
                 resolve(result);
             }).catch((error) => {
@@ -43,7 +45,7 @@ export class FullSyncRequestable {
     static POST: FullSyncRequestable = new FullSyncRequestable("post", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
         return new Promise((resolve, reject) => {
             try {
-                let fullSyncPolicyParameter: string = C8oUtils.peekParameterStringValue(parameters, FullSyncPostDocumentParameter.POLICY.name, false);
+                let fullSyncPolicyParameter: string = C8oUtilsCore.peekParameterStringValue(parameters, FullSyncPostDocumentParameter.POLICY.name, false);
                 let fullSyncPolicy: FullSyncPolicy = FullSyncPolicy.getFullSyncPolicy(fullSyncPolicyParameter);
                 resolve(c8oFullSync.handlePostDocumentRequest(databaseName, fullSyncPolicy, parameters));
             }
@@ -60,10 +62,10 @@ export class FullSyncRequestable {
     //noinspection JSUnusedLocalSymbols
     static PUT_ATTACHMENT: FullSyncRequestable = new FullSyncRequestable("put_attachment", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
         return new Promise((resolve) => {
-            let docid: string = C8oUtils.peekParameterStringValue(parameters, FullSyncGetDocumentParameter.DOCID.name, false);
-            let name: string = C8oUtils.getParameterStringValue(parameters, FullSyncAttachmentParameter.NAME.name, false);
-            let contentType: string = C8oUtils.getParameterStringValue(parameters, FullSyncAttachmentParameter.CONTENT_TYPE.name, false);
-            let content = C8oUtils.getParameterObjectValue(parameters, FullSyncAttachmentParameter.CONTENT.name, false);
+            let docid: string = C8oUtilsCore.peekParameterStringValue(parameters, FullSyncGetDocumentParameter.DOCID.name, false);
+            let name: string = C8oUtilsCore.getParameterStringValue(parameters, FullSyncAttachmentParameter.NAME.name, false);
+            let contentType: string = C8oUtilsCore.getParameterStringValue(parameters, FullSyncAttachmentParameter.CONTENT_TYPE.name, false);
+            let content = C8oUtilsCore.getParameterObjectValue(parameters, FullSyncAttachmentParameter.CONTENT.name, false);
             resolve(c8oFullSync.handlePutAttachmentRequest(databaseName, docid, name, contentType, content));
         }).catch((error) => {
             throw error;
@@ -73,8 +75,8 @@ export class FullSyncRequestable {
     //noinspection JSUnusedLocalSymbols
     static DELETE_ATTACHMENT: FullSyncRequestable = new FullSyncRequestable("delete_attachment", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
         return new Promise((resolve) => {
-            let docid: string = C8oUtils.peekParameterStringValue(parameters, FullSyncGetDocumentParameter.DOCID.name, false);
-            let name: string = C8oUtils.getParameterStringValue(parameters, FullSyncAttachmentParameter.NAME.name, false);
+            let docid: string = C8oUtilsCore.peekParameterStringValue(parameters, FullSyncGetDocumentParameter.DOCID.name, false);
+            let name: string = C8oUtilsCore.getParameterStringValue(parameters, FullSyncAttachmentParameter.NAME.name, false);
             resolve(c8oFullSync.handleDeleteAttachmentRequest(databaseName, docid, name));
         }).catch((error) => {
             throw error;
@@ -95,8 +97,8 @@ export class FullSyncRequestable {
     //noinspection JSUnusedLocalSymbols
     static VIEW: FullSyncRequestable = new FullSyncRequestable("view", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
         return new Promise((resolve, reject) => {
-            let ddoc: string = C8oUtils.peekParameterStringValue(parameters, FullSyncGetViewParameter.DDOC.name, false);
-            let view: string = C8oUtils.peekParameterStringValue(parameters, FullSyncGetViewParameter.VIEW.name, false);
+            let ddoc: string = C8oUtilsCore.peekParameterStringValue(parameters, FullSyncGetViewParameter.DDOC.name, false);
+            let view: string = C8oUtilsCore.peekParameterStringValue(parameters, FullSyncGetViewParameter.VIEW.name, false);
             c8oFullSync.handleGetViewRequest(databaseName, ddoc, view, parameters).then((result) => {
                 resolve(result);
             }).catch((error) => {

@@ -1,7 +1,7 @@
 //noinspection TsLint
-import {C8oSettings} from "../src/c8o/c8oSettings.service";
-import {C8oLogLevel} from "../src/c8o/c8oLogLevel.service";
-import {C8o} from "../src/c8o/c8o.service";
+import {C8oSettings} from "../src/c8o/c8oSettings";
+import {C8oLogLevel} from "../src/c8o/c8oLogLevel";
+import {C8o} from "../src/c8o/c8oCore";
 export class Info {
     // if you wants to use a proxy you mast change remote host and port please change configuration in Root/config/karama.conf.js
 

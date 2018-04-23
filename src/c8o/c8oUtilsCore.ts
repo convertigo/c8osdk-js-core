@@ -1,15 +1,11 @@
-import {Injectable} from "@angular/core";
-import {Http} from "@angular/http";
 
-@Injectable()
-export class C8oUtils {
+export class C8oUtilsCore {
 
     /** FullSync parameters prefix. **/
     private static USE_PARAMETER_IDENTIFIER: string = "_use_";
     data: JSON;
 
-    public constructor(private http: Http) {
-        this.http = http;
+    public constructor() {
     }
 
     /**
@@ -64,7 +60,7 @@ export class C8oUtils {
      * @returns string
      */
     public static getParameterStringValue(parameters: Object, name: string, useName: boolean): string {
-        let parameter = C8oUtils.getParameter(parameters, name, useName);
+        let parameter = C8oUtilsCore.getParameter(parameters, name, useName);
         if (parameter != null) {
             return "" + parameter[name];
         }
@@ -74,7 +70,7 @@ export class C8oUtils {
     public static getParameterObjectValue(parameters: Object, name: string, useName: boolean = false): any {
         //noinspection UnnecessaryLocalVariableJS
         let parameters2 = parameters;
-        let parameter = C8oUtils.getParameter(parameters2, name, useName);
+        let parameter = C8oUtilsCore.getParameter(parameters2, name, useName);
         if (parameter != null) {
             return parameter[name];
         }

@@ -1,8 +1,8 @@
-import {C8oLogLevel} from "./c8oLogLevel.service";
-import {C8o} from "./c8o.service";
-import {C8oException} from "./Exception/c8oException.service";
-import {C8oExceptionMessage} from "./Exception/c8oExceptionMessage.service";
-import {Queue} from "./c8oUtils.service";
+import {C8oLogLevel} from "./c8oLogLevel";
+import {C8oCore} from "./c8oCore";
+import {C8oException} from "./Exception/c8oException";
+import {C8oExceptionMessage} from "./Exception/c8oExceptionMessage";
+import {Queue} from "./c8oUtilsCore";
 
 export class C8oLogger {
 
@@ -32,14 +32,14 @@ export class C8oLogger {
     private pending_remoteLogs: Queue<JSON>;
     private pending_remoteLogsLevel: Queue<C8oLogLevel>;
 
-    private c8o: C8o;
+    private c8o: C8oCore;
 
     private env: string;
 
-    constructor(c8o: C8o, first: boolean) {
+    constructor(c8o: C8oCore, first: boolean) {
         this.affect_val(c8o, first);
     }
-    public affect_val(c8o: C8o, first:boolean){
+    public affect_val(c8o: C8oCore, first:boolean){
         if(first){
             this.c8o = c8o;
             this.remoteLogUrl= "";
@@ -53,7 +53,7 @@ export class C8oLogger {
             this.uidRemoteLogs = Math.round((new Date().getTime() * Math.random())).toString(36);
             let obj = {};
             obj["uid"] = this.uidRemoteLogs.toUpperCase();
-            obj["uuid"] = C8o.deviceUUID.toUpperCase();
+            obj["uuid"] = C8oCore.deviceUUID.toUpperCase();
             obj["project"] = ""
             this.env = JSON.stringify(obj);
         }
@@ -70,7 +70,7 @@ export class C8oLogger {
             this.uidRemoteLogs = Math.round((new Date().getTime() * Math.random())).toString(36);
             let obj = {};
             obj["uid"] = this.uidRemoteLogs.toUpperCase();
-            obj["uuid"] = C8o.deviceUUID.toUpperCase();
+            obj["uuid"] = C8oCore.deviceUUID.toUpperCase();
             obj["project"] = encodeURIComponent(c8o.endpointProject.toString());
             this.env = JSON.stringify(obj);
         }
@@ -237,7 +237,7 @@ export class C8oLogger {
         }
         let parameters: Object = {};
         parameters[C8oLogger.JSON_KEY_LOGS.valueOf()] = JSON.stringify(logsArray);
-        parameters[C8o.ENGINE_PARAMETER_DEVICE_UUID] = this.c8o.deviceUUID;
+        parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = this.c8o.deviceUUID;
         parameters[C8oLogger.JSON_KEY_ENV] = this.env;
 
         this.c8o.httpInterface.handleRequest(this.remoteLogUrl, parameters)
@@ -292,7 +292,7 @@ export class C8oLogger {
             }
             let parameters: Object = {};
             parameters[C8oLogger.JSON_KEY_LOGS.valueOf()] = JSON.stringify(logsArray);
-            parameters[C8o.ENGINE_PARAMETER_DEVICE_UUID] = this.c8o.deviceUUID;
+            parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = this.c8o.deviceUUID;
             parameters[C8oLogger.JSON_KEY_ENV] = this.env;
 
             this.c8o.httpInterface.handleRequest(this.remoteLogUrl, parameters)

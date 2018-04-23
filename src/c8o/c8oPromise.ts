@@ -1,10 +1,10 @@
-import {C8oProgress} from "./c8oProgress.service";
-import {C8o} from "./c8o.service";
+import {C8oProgress} from "./c8oProgress";
+import {C8oCore} from "./c8oCore";
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/fromPromise';
 
 export class C8oPromise<T> {
-    private c8o: C8o;
+    private c8o: C8oCore;
     private c8oResponse: (response: T, parameters: Object) => C8oPromise<T>;
     private c8oProgress: (C8oProgress) => C8oPromise<T>;
     private c8oFail: (error: Error, parameters: Object) => C8oPromise<T>;
@@ -14,7 +14,7 @@ export class C8oPromise<T> {
     private lastFailure: Error;
     private lastParameters: Object;
 
-    constructor(c8o: C8o) {
+    constructor(c8o: C8oCore) {
         this.c8o = c8o;
     }
 
@@ -111,7 +111,7 @@ export class C8oPromise<T> {
     }
 
     onResponse(response: T, parameters: Object) {
-        if ((this.lastResponse != null || this.lastResponse !== undefined) && parameters[C8o.ENGINE_PARAMETER_FROM_LIVE] === undefined) {
+        if ((this.lastResponse != null || this.lastResponse !== undefined) && parameters[C8oCore.ENGINE_PARAMETER_FROM_LIVE] === undefined) {
             if (this.nextPromise != null || this.nextPromise !== undefined) {
                 this.nextPromise.onResponse(response, parameters);
             }

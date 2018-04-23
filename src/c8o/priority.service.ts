@@ -1,4 +1,3 @@
-import {C8o} from "./c8o.service";
 /**
  * Defines whether the response should be retrieved from local cache or from Convertigo server when the device can access the network.<br/>
  * When the device has no network access, the local cache response is used, if existing.

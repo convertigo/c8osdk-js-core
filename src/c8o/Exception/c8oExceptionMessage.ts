@@ -1,5 +1,5 @@
-import {C8oResponseListener} from "../c8oResponse.service";
-import {C8oUtils} from "../c8oUtils.service";
+import {C8oResponseListener} from "../c8oResponse";
+import {C8oUtilsCore} from "../c8oUtilsCore";
 /**
  * Contains static Functions returning the exception messages
  * in order to make simpler their modification and avoid duplication.
@@ -23,7 +23,7 @@ export class C8oExceptionMessage {
     }
 
     static wrongListener(c8oListener: C8oResponseListener): string {
-        return "The C8oListener class " + C8oUtils.getObjectClassName(c8oListener) + " is not handled";
+        return "The C8oListener class " + C8oUtilsCore.getObjectClassName(c8oListener) + " is not handled";
     }
 
     static illegalArgumentNullParameter(parameterName: string): string {
@@ -39,7 +39,7 @@ export class C8oExceptionMessage {
     }
 
     static  unknownType(variableName: string, variable: Object): string {
-        return "The " + variableName + " type " + C8oUtils.getObjectClassName(variable) + "is unknown";
+        return "The " + variableName + " type " + C8oUtilsCore.getObjectClassName(variable) + "is unknown";
     }
 
     static  ressourceNotFound(ressourceName: string): string {
@@ -283,7 +283,7 @@ export class C8oExceptionMessage {
     }
 
     static  wrongResult(result: any): string {
-        return "The response class " + C8oUtils.getObjectClassName(result) + " is not handled";
+        return "The response class " + C8oUtilsCore.getObjectClassName(result) + " is not handled";
     }
 
     static  todo(): string {

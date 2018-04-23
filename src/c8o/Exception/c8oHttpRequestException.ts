@@ -1,4 +1,4 @@
-import {C8oException} from "./c8oException.service";
+import {C8oException} from "./c8oException";
 
 /**
  * Thrown during an HTTP request.

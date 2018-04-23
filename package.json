@@ -1,7 +1,7 @@
 {
-  "name": "c8osdkangular",
+  "name": "c8osdkjscore",
   "version": "2.1.64",
-  "description": "convertigo's MBaaS client API service",
+  "description": "convertigo's sdk js core",
   "main": "bundle/index.umd.js",
   "module": "src/index.js",
   "typings": "src/index.d.ts",
@@ -14,7 +14,7 @@
     "test": "karma start",
     "test-watch": "karma start --singleRun=false --autoWatch=true --captureExceptions",
     "clean": "rimraf bundles coverage src/**/*.d.ts src/**/*.metadata.json src/**/*.js src/**/*.js.map src/**/*.ngsummary.json",
-    "prepare": "npm run clean && ngc && npm run build",
+    "prepare": "npm run clean && npm run build",
     "build": "webpack && cp bundles/index.umd.js bundles/index.js",
     "docs": "npm run typedoc -- --options typedoc.json --exclude '**/*.spec.ts' ./src/c8o/",
     "typedoc": "typedoc",
@@ -27,8 +27,6 @@
   "keywords": [
     "MBaaS",
     "TypeScript",
-    "Angular",
-    "Ionic 2",
     "Convertigo",
     "mbaas",
     "madp",
@@ -43,20 +41,9 @@
   },
   "license": "Apache License Version 2.0, January 2004",
   "dependencies": {
-    "@angular/common": "5.0.0",
-    "@angular/compiler": "5.0.0",
-    "@angular/compiler-cli": "5.0.0",
-    "@angular/core": "5.0.0",
-    "@angular/forms": "5.0.0",
-    "@angular/http": "5.0.0",
-    "@angular/platform-browser": "5.0.0",
-    "@angular/platform-browser-dynamic": "5.0.0",
-    "@types/node": "^8.5.2",
-    "@types/pouchdb": "6.3.1",
-    "pouchdb-browser": "6.3.4",
     "rxjs": "5.5.2",
-    "sw-toolbox": "3.6.0",
-    "zone.js": "0.8.18"
+    "@types/pouchdb": "6.3.1",
+    "pouchdb-browser": "6.3.4"
   },
   "devDependencies": {
     "rimraf": "2.6.1",
@@ -87,19 +74,7 @@
     "webpack": "3.10.0",
     "typescript": "2.4.2"
   },
-  "peerDependencies": {
-    "@angular/common": ">= 4.4.4 <= 5.0.3",
-    "@angular/compiler": ">= 4.4.4 <= 5.0.3",
-    "@angular/compiler-cli": ">= 4.4.4 <= 5.0.3",
-    "@angular/core": ">= 4.4.4 <= 5.0.3",
-    "@angular/forms": ">= 4.4.4 <= 5.0.3",
-    "@angular/http": ">= 4.4.4 <= 5.0.3",
-    "@angular/platform-browser": ">= 4.4.4 <= 5.0.3",
-    "@angular/platform-browser-dynamic": ">= 4.4.4 <= 5.0.3",
-    "rxjs": ">= 5.4.3 <= 5.5.2",
-    "zone.js": ">= 0.8.17 <= 0.8.18",
-    "sw-toolbox": "~3.6.0"
-  },
+  "peerDependencies": {},
   "cordovaPlatforms": [],
   "angularCompilerOptions": {
     "strictMetadataEmit": true,

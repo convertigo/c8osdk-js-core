@@ -1,5 +1,5 @@
-import {C8oBase} from "./c8oBase.service";
-import {C8oLogLevel} from "./c8oLogLevel.service";
+import {C8oBase} from "./c8oBase";
+import {C8oLogLevel} from "./c8oLogLevel";
 
 /**
  * Contains optional parameters of a C8o class instantiation.<br/>
