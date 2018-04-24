@@ -12,9 +12,8 @@ export class C8oLocalCacheResponse {
     public isExpired(): boolean {
         if (this.expirationDate <= 0) {
             return false;
-        }
-        else {
-            let currentDate = new Date().getTime();
+        } else {
+            const currentDate = new Date().getTime();
             return this.expirationDate < currentDate;
         }
     }

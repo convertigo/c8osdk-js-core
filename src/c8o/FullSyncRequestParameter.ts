@@ -6,14 +6,13 @@ export class FullSyncRequestParameter {
         this._name = name;
         this._type = type;
     }
-    public get type(){
+    public get type() {
         return this._type;
     }
 
-    public get name(){
+    public get name() {
         return this._name;
     }
-
 
     public static DESCENDING: FullSyncRequestParameter = new FullSyncRequestParameter("descending", "boolean");
     public static ENDKEY: FullSyncRequestParameter = new FullSyncRequestParameter("endkey", "Object");
@@ -31,15 +30,14 @@ export class FullSyncRequestParameter {
     public static STARTKEY: FullSyncRequestParameter = new FullSyncRequestParameter("startkey", "Object");
     public static STARTKEY_DOCID: FullSyncRequestParameter = new FullSyncRequestParameter("startkey_docid", "string");
 
-
-    public static values(): Array<FullSyncRequestParameter> {
+    public static values(): FullSyncRequestParameter[] {
         return [FullSyncRequestParameter.DESCENDING, FullSyncRequestParameter.ENDKEY, FullSyncRequestParameter.ENDKEY_DOCID, FullSyncRequestParameter.GROUP_LEVEL, FullSyncRequestParameter.INCLUDE_DELETED, FullSyncRequestParameter.INDEX_UPDATE_MODE, FullSyncRequestParameter.KEY, FullSyncRequestParameter.KEYS, FullSyncRequestParameter.LIMIT, FullSyncRequestParameter.REDUCE, FullSyncRequestParameter.GROUP, FullSyncRequestParameter.SKIP, FullSyncRequestParameter.STARTKEY, FullSyncRequestParameter.STARTKEY_DOCID, FullSyncRequestParameter.INCLUDE_DOCS];
     }
 
     //noinspection JSUnusedGlobalSymbols
     public static getFullSyncRequestParameter(name: string) {
         if (name != null) {
-            for (let fullSyncRequestParameter of FullSyncRequestParameter.values()){
+            for (const fullSyncRequestParameter of FullSyncRequestParameter.values()) {
                 if (name === fullSyncRequestParameter.name) {
                     return fullSyncRequestParameter as FullSyncRequestParameter;
                 }

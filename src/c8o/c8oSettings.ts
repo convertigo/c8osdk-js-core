@@ -36,7 +36,6 @@ export class C8oSettings extends C8oBase {
         return this;
     }
 
-
     /**
      * Sets the connection timeout to Convertigo in milliseconds. A value of zero means the timeout is not used.<br/>
      * Default is <b>0</b>.
@@ -89,8 +88,7 @@ export class C8oSettings extends C8oBase {
                 this._clientCertificateFiles = {};
             }
             this._clientCertificateFiles[anyCertificate] = password;
-        }
-        else if (typeof anyCertificate === "number") {
+        } else if (typeof anyCertificate === "number") {
             if (this._clientCertificateBinaries == null) {
                 this._clientCertificateBinaries = {};
             }
@@ -112,7 +110,6 @@ export class C8oSettings extends C8oBase {
         this._cookies[name] = value;
         return this;
     }
-
 
     /**
      * Sets a value indicating if logs are sent to the Convertigo server.<br/>

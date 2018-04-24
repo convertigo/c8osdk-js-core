@@ -1,11 +1,11 @@
-import {Priority} from "./priority.service";
 import {C8oException} from "./Exception/c8oException";
+import {Priority} from "./priority.service";
 
 export class C8oLocalCache {
-    static PARAM: string = "__localCache";
+    public static PARAM: string = "__localCache";
     public priority: Priority;
-    ttl: number;
-    enabled: boolean;
+    public ttl: number;
+    public enabled: boolean;
 
     constructor(priority: Priority, ttl: number = -1, enabled: boolean = true) {
         if (priority == null) {

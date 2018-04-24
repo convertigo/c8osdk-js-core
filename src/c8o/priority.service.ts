@@ -3,7 +3,7 @@
  * When the device has no network access, the local cache response is used, if existing.
  */
 export class Priority {
-    isAvailable: boolean;
+    public isAvailable: boolean;
 
     //noinspection JSUnusedLocalSymbols
     public static SERVER: Priority = new Priority(false);

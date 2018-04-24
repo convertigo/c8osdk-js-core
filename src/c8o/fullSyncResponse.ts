@@ -3,15 +3,15 @@ export class FullSyncResponse {
     /**
      * The response key indicating the operation status.
      */
-    static RESPONSE_KEY_OK: string = "ok";
+    public static RESPONSE_KEY_OK: string = "ok";
     /**
      * The response key indicating the document ID.
      */
-    static RESPONSE_KEY_DOCUMENT_ID: string = "id";
+    public static RESPONSE_KEY_DOCUMENT_ID: string = "id";
     /**
      * The response key indicating the document revision.
      */
-    static RESPONSE_KEY_DOCUMENT_REVISION: string = "rev";
+    public static RESPONSE_KEY_DOCUMENT_REVISION: string = "rev";
 }
 
 /**
@@ -24,8 +24,8 @@ export class FullSyncAbstractResponse {
         this.operationStatus = operationStatus;
     }
 
-    getProperties(): any {
-        let properties: Object = {};
+    public getProperties(): any {
+        const properties: Object = {};
         properties[FullSyncResponse.RESPONSE_KEY_OK] = this.operationStatus;
         return properties;
     }
@@ -44,8 +44,8 @@ export class FullSyncDefaultResponse extends FullSyncAbstractResponse {
  * Returned by a fullSync document operation without return data.
  */
 export class FullSyncDocumentOperationResponse extends FullSyncAbstractResponse {
-    documentId: string;
-    documentRevision: string;
+    public documentId: string;
+    public documentRevision: string;
 
     constructor(documentId: string, documentRevision: string, operationStatus: boolean) {
         super(operationStatus);
@@ -53,8 +53,8 @@ export class FullSyncDocumentOperationResponse extends FullSyncAbstractResponse 
         this.documentRevision = documentRevision;
     }
 
-    getProperties(): Object {
-        let properties: Object = super.getProperties();
+    public getProperties(): Object {
+        const properties: Object = super.getProperties();
         properties[FullSyncResponse.RESPONSE_KEY_DOCUMENT_ID] = this.documentId;
         properties[FullSyncResponse.RESPONSE_KEY_DOCUMENT_REVISION] = this.documentRevision;
         return properties;

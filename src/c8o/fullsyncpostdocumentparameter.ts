@@ -11,7 +11,7 @@ export class FullSyncPostDocumentParameter {
     }
 
     public static values(): FullSyncPostDocumentParameter[] {
-        let array: FullSyncPostDocumentParameter[] = [];
+        const array: FullSyncPostDocumentParameter[] = [];
         array.push(this.POLICY, this.SUBKEY_SEPARATOR);
         return array;
     }

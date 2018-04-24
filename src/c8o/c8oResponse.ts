@@ -18,9 +18,8 @@ export class C8oResponseJsonListener implements C8oResponseListener {
     }
 }
 
-
 export class C8oResponseProgressListener implements C8oResponseListener {
-    onProgressResponse: (C8oProgress, Object) => void;
+    public onProgressResponse: (C8oProgress, Object) => void;
     constructor(onProgressResponse: (C8oProgress, Object) => void) {
         this.onProgressResponse = onProgressResponse;
     }

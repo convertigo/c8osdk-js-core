@@ -25,12 +25,10 @@ export class C8oProgress {
             this._status = progress._status;
             this._taskInfo = progress._taskInfo;
             this._raw = progress._raw;
-        }
-        else {
+        } else {
             if (progress === undefined) {
                 this._raw = null;
-            }
-            else {
+            } else {
                 throw new Error(`Expected C8oProgress or empty constructor, got '${progress}'.`);
             }
 

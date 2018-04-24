@@ -1,13 +1,13 @@
+import "rxjs/add/operator/retry";
 import {C8oCore} from "./c8oCore";
-import 'rxjs/add/operator/retry';
-import { C8oResponseListener} from "./c8oResponse";
 import {C8oProgress} from "./c8oProgress";
+import { C8oResponseListener} from "./c8oResponse";
 
 export abstract class C8oHttpInterfaceCore {
-    c8o: C8oCore;
-    timeout: number;
-    firstCall: boolean = true;
-    p1: Promise<Object>;
+    public c8o: C8oCore;
+    public timeout: number;
+    public firstCall: boolean = true;
+    public p1: Promise<Object>;
     protected _isCordova = null;
 
     constructor(c8o: C8oCore) {
@@ -23,30 +23,28 @@ export abstract class C8oHttpInterfaceCore {
      * @param {Object} parameters
      * @return {number}
      */
-    abstract checkFile(parameters: Object): number;
+    public abstract checkFile(parameters: Object): number;
 
     /**
      * Url encode parameters
      * @param {Object} parameters
      * @return {string}
      */
-    abstract transformRequest(parameters: Object): string;
+    public abstract transformRequest(parameters: Object): string;
 
     /**
      * Transform FormData parameters
      * @param {Object} parameters
      * @return {FormData}
      */
-    abstract transformRequestformdata(parameters: Object): FormData ;
-
+    public abstract transformRequestformdata(parameters: Object): FormData ;
 
     /**
      * Extract file from parameters and return and array containing a file and params
      * @param {Object} parameters
      * @return {any}
      */
-    abstract transformRequestfileNative(parameters: Object): any;
-
+    public abstract transformRequestfileNative(parameters: Object): any;
 
     /**
      * Handle the request
@@ -55,7 +53,7 @@ export abstract class C8oHttpInterfaceCore {
      * @param {C8oResponseListener} c8oResponseListener
      * @return {Promise<any>}
      */
-    abstract async handleRequest(url: string, parameters: Object, c8oResponseListener?: C8oResponseListener): Promise<any>;
+    public abstract async handleRequest(url: string, parameters: Object, c8oResponseListener?: C8oResponseListener): Promise<any>;
 
     /**
      * Upload file with native plugin
@@ -64,7 +62,7 @@ export abstract class C8oHttpInterfaceCore {
      * @param {C8oResponseListener} c8oResponseListener
      * @return {Promise<any>}
      */
-    abstract uploadFilePluginNative(url: string, parameters: Object, c8oResponseListener: C8oResponseListener):Promise<any>;
+    public abstract uploadFilePluginNative(url: string, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any>;
 
     /**
      * Make an http post
@@ -72,7 +70,7 @@ export abstract class C8oHttpInterfaceCore {
      * @param {Object} parameters
      * @return {Promise<any>}
      */
-    abstract httpPost(url: string, parameters: Object): Promise<any>;
+    public abstract httpPost(url: string, parameters: Object): Promise<any>;
 
     /**
      * Upload File using an Http client
@@ -82,7 +80,7 @@ export abstract class C8oHttpInterfaceCore {
      * @param {C8oResponseListener} c8oResponseListener
      * @return {Promise<any>}
      */
-    abstract uploadFileHttp(url: string, form: FormData, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any>;
+    public abstract uploadFileHttp(url: string, form: FormData, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any>;
 
     /**
      * Handle progress
@@ -92,5 +90,5 @@ export abstract class C8oHttpInterfaceCore {
      * @param {C8oResponseListener} c8oResponseListener
      * @param {JSON} varNull
      */
-    abstract handleProgress(event: any, progress: C8oProgress, parameters: any, c8oResponseListener: C8oResponseListener, varNull: JSON): void;
+    public abstract handleProgress(event: any, progress: C8oProgress, parameters: any, c8oResponseListener: C8oResponseListener, varNull: JSON): void;
 }

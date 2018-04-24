@@ -1,9 +1,9 @@
-import {C8oResponseProgressListener, C8oResponseListener} from "./c8oResponse";
 import {C8oCore} from "./c8oCore";
 import {C8oProgress} from "./c8oProgress";
+import {C8oResponseListener, C8oResponseProgressListener} from "./c8oResponse";
 import {FullSyncReplication} from "./fullSyncReplication";
 
-import PouchDB from 'pouchdb-browser'
+import PouchDB from "pouchdb-browser";
 /**
  * Created by charlesg on 10/01/2017.
  */
@@ -51,14 +51,14 @@ export class C8oFullSyncDatabase {
      */
     constructor(c8o: C8oCore, databaseName: string, fullSyncDatabases: string, localSuffix: string) {
         this.c8o = c8o;
-        let header = {
-            'x-convertigo-sdk': this.c8o.sdkVersion
+        const header = {
+            "x-convertigo-sdk": this.c8o.sdkVersion,
         };
         Object.assign(header, this.c8o.headers);
         this.remotePouchHeader = {
             ajax: {
-                headers: header
-            }
+                headers: header,
+            },
         };
         this.c8oFullSyncDatabaseUrl = fullSyncDatabases + databaseName;
         this.databaseName = databaseName + localSuffix;
@@ -70,8 +70,7 @@ export class C8oFullSyncDatabase {
                 this.database = new PouchDB(databaseName);
                 this.c8o.log.debug("PouchDb launched normally");
             }
-        }
-        catch (error) {
+        } catch (error) {
             throw error;
         }
     }
@@ -103,77 +102,75 @@ export class C8oFullSyncDatabase {
     private startSync(fullSyncReplication: FullSyncReplication, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
         let continuous: boolean = false;
         let cancel: boolean = false;
-        let parametersObj: Object = {};
+        const parametersObj: Object = {};
 
         //stop replication if exists
-        if(fullSyncReplication.replication != null){
+        if (fullSyncReplication.replication != null) {
             fullSyncReplication.replication.cancel();
         }
 
         //check continuous flag
-        if (parameters["continuous"] != null) {
-            if (parameters["continuous"] as boolean === true) {
+        if (parameters.continuous != null) {
+            if (parameters.continuous as boolean === true) {
                 continuous = true;
-            }
-            else {
+            } else {
                 continuous = false;
             }
         }
         //check cancel flag
-        if (parameters["cancel"] != null) {
+        if (parameters.cancel != null) {
             //noinspection RedundantIfStatementJS
-            if (parameters["cancel"] as boolean === true) {
+            if (parameters.cancel as boolean === true) {
                 cancel = true;
-            }
-            else {
+            } else {
                 cancel = false;
             }
         }
         //check parameters to throw to pouchDB
-        if (parameters["retry"] != null) {
-            parametersObj["retry"] = parameters["retry"];
+        if (parameters.retry != null) {
+            parametersObj.retry = parameters.retry;
         }
-        if (parameters["filter"] != null) {
-            parametersObj["filter"] = parameters["filter"];
+        if (parameters.filter != null) {
+            parametersObj.filter = parameters.filter;
         }
-        if (parameters["doc_ids"] != null) {
-            parametersObj["doc_ids"] = parameters["doc_ids"];
+        if (parameters.doc_ids != null) {
+            parametersObj.doc_ids = parameters.doc_ids;
         }
-        if (parameters["query_params"] != null) {
-            parametersObj["query_params"] = parameters["query_params"];
+        if (parameters.query_params != null) {
+            parametersObj.query_params = parameters.query_params;
         }
-        if (parameters["view"] != null) {
-            parametersObj["view"] = parameters["view"];
+        if (parameters.view != null) {
+            parametersObj.view = parameters.view;
         }
-        if (parameters["since"] != null) {
-            parametersObj["since"] = parameters["since"];
+        if (parameters.since != null) {
+            parametersObj.since = parameters.since;
         }
-        if (parameters["heartbeat"] != null) {
-            parametersObj["heartbeat"] = parameters["heartbeat"];
+        if (parameters.heartbeat != null) {
+            parametersObj.heartbeat = parameters.heartbeat;
         }
-        if (parameters["timeout"] != null) {
-            parametersObj["timeout"] = parameters["timeout"];
+        if (parameters.timeout != null) {
+            parametersObj.timeout = parameters.timeout;
         }
-        if (parameters["batch_size"] != null) {
-            parametersObj["batch_size"] = parameters["batch_size"];
+        if (parameters.batch_size != null) {
+            parametersObj.batch_size = parameters.batch_size;
         }
-        if (parameters["batches_limit"] != null) {
-            parametersObj["batches_limit"] = parameters["batches_limit"];
+        if (parameters.batches_limit != null) {
+            parametersObj.batches_limit = parameters.batches_limit;
         }
-        if (parameters["back_off_function"] != null) {
-            parametersObj["back_off_function"] = parameters["back_off_function"];
+        if (parameters.back_off_function != null) {
+            parametersObj.back_off_function = parameters.back_off_function;
         }
-        if (parameters["checkpoint"] != null) {
-            parametersObj["checkpoint"] = parameters["checkpoint"];
+        if (parameters.checkpoint != null) {
+            parametersObj.checkpoint = parameters.checkpoint;
         }
-        if (parameters["seq_interval"] != null) {
-            parametersObj["seq_interval"] = parameters["seq_interval"];
+        if (parameters.seq_interval != null) {
+            parametersObj.seq_interval = parameters.seq_interval;
         }
 
-        let remoteDB = new PouchDB(this.c8oFullSyncDatabaseUrl, this.remotePouchHeader);
+        const remoteDB = new PouchDB(this.c8oFullSyncDatabaseUrl, this.remotePouchHeader);
         let rep = fullSyncReplication.replication = this.database.sync(remoteDB, parametersObj);
-        let param = parameters;
-        let progress: C8oProgress = new C8oProgress();
+        const param = parameters;
+        const progress: C8oProgress = new C8oProgress();
         progress.raw = rep;
         progress.continuous = false;
 
@@ -184,8 +181,7 @@ export class C8oFullSyncDatabase {
                     progress.pull = true;
                     progress.status = rep.pull.state;
                     progress.finished = rep.pull.state !== "active";
-                }
-                else if (info.direction === "push") {
+                } else if (info.direction === "push") {
                     progress.pull = false;
                     progress.status = rep.push.state;
                     progress.finished = rep.push.state !== "active";
@@ -211,7 +207,7 @@ export class C8oFullSyncDatabase {
                 rep.cancel();
 
                 if (continuous) {
-                    parametersObj["live"] = true;
+                    parametersObj.live = true;
                     rep = fullSyncReplication.replication = this.database.sync(remoteDB, parametersObj);
                     progress.continuous = true;
                     progress.raw = rep;
@@ -230,8 +226,7 @@ export class C8oFullSyncDatabase {
                         if (info.direction === "pull") {
                             progress.pull = true;
                             progress.status = rep.pull.state;
-                        }
-                        else if (info.direction === "push") {
+                        } else if (info.direction === "push") {
                             progress.pull = false;
                             progress.status = rep.push.state;
                         }
@@ -240,7 +235,7 @@ export class C8oFullSyncDatabase {
                         param[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                         (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                     })
-                        .on("paused", function () {
+                        .on("paused", function() {
                             progress.finished = true;
                             (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                             if (progress.total === 0 && progress.current === 0) {
@@ -255,19 +250,16 @@ export class C8oFullSyncDatabase {
                                 (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
                             } else {
                                 rep.cancel();
-                                if(err.code === "ETIMEDOUT" && err.status === 0){
-                                    if(parameters["force_retry"] == true){
+                                if (err.code === "ETIMEDOUT" && err.status === 0) {
+                                    if (parameters.force_retry == true) {
                                         this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Forcing Restarting replication");
                                         this.database.sync(remoteDB, {timeout: 600000, retry: true});
-                                    }
-                                    else{
+                                    } else {
                                         this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Restarting automatically replication");
                                     }
-                                }
-                                else if(err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with "){
+                                } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
                                     reject("NO_NETWORK");
-                                }
-                                else{
+                                } else {
                                     reject(err);
                                 }
                             }
@@ -282,20 +274,16 @@ export class C8oFullSyncDatabase {
                     (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
                     rep.cancel();
 
-                }
-                else if(err.code === "ETIMEDOUT" && err.status === 0){
-                    if(parameters["force_retry"] == true){
+                } else if (err.code === "ETIMEDOUT" && err.status === 0) {
+                    if (parameters.force_retry == true) {
                         this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Forcing Restarting replication");
                         this.database.sync(remoteDB, {timeout: 600000, retry: true});
-                    }
-                    else{
+                    } else {
                         this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Restarting automatically replication");
                     }
-                }
-                else if(err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with "){
+                } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
                     reject("NO_NETWORK");
-                }
-                else{
+                } else {
                     reject(err);
                 }
             });
@@ -325,75 +313,73 @@ export class C8oFullSyncDatabase {
     private startReplication(fullSyncReplication: FullSyncReplication, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
         let continuous: boolean = false;
         let cancel: boolean = false;
-        let parametersObj: Object = {};
+        const parametersObj: Object = {};
         //stop replication if exists
-        if(fullSyncReplication.replication != null){
+        if (fullSyncReplication.replication != null) {
             fullSyncReplication.replication.cancel();
         }
         //check continuous flag
-        if (parameters["continuous"] != null) {
-            if (parameters["continuous"] as boolean === true) {
+        if (parameters.continuous != null) {
+            if (parameters.continuous as boolean === true) {
                 continuous = true;
-            }
-            else {
+            } else {
                 continuous = false;
             }
         }
         //check cancel flag
-        if (parameters["cancel"] != null) {
+        if (parameters.cancel != null) {
             //noinspection RedundantIfStatementJS
-            if (parameters["cancel"] as boolean === true) {
+            if (parameters.cancel as boolean === true) {
                 cancel = true;
-            }
-            else {
+            } else {
                 cancel = false;
             }
         }
         //check parameters to throw to pouchDB
-        if (parameters["retry"] != null) {
-            parametersObj["retry"] = parameters["retry"];
+        if (parameters.retry != null) {
+            parametersObj.retry = parameters.retry;
         }
-        if (parameters["filter"] != null) {
-            parametersObj["filter"] = parameters["filter"];
+        if (parameters.filter != null) {
+            parametersObj.filter = parameters.filter;
         }
-        if (parameters["doc_ids"] != null) {
-            parametersObj["doc_ids"] = parameters["doc_ids"];
+        if (parameters.doc_ids != null) {
+            parametersObj.doc_ids = parameters.doc_ids;
         }
-        if (parameters["query_params"] != null) {
-            parametersObj["query_params"] = parameters["query_params"];
+        if (parameters.query_params != null) {
+            parametersObj.query_params = parameters.query_params;
         }
-        if (parameters["view"] != null) {
-            parametersObj["view"] = parameters["view"];
+        if (parameters.view != null) {
+            parametersObj.view = parameters.view;
         }
-        if (parameters["since"] != null) {
-            parametersObj["since"] = parameters["since"];
+        if (parameters.since != null) {
+            parametersObj.since = parameters.since;
         }
-        if (parameters["heartbeat"] != null) {
-            parametersObj["heartbeat"] = parameters["heartbeat"];
+        if (parameters.heartbeat != null) {
+            parametersObj.heartbeat = parameters.heartbeat;
         }
-        if (parameters["timeout"] != null) {
-            parametersObj["timeout"] = parameters["timeout"];
+        if (parameters.timeout != null) {
+            parametersObj.timeout = parameters.timeout;
         }
-        if (parameters["batch_size"] != null) {
-            parametersObj["batch_size"] = parameters["batch_size"];
+        if (parameters.batch_size != null) {
+            parametersObj.batch_size = parameters.batch_size;
         }
-        if (parameters["batches_limit"] != null) {
-            parametersObj["batches_limit"] = parameters["batches_limit"];
+        if (parameters.batches_limit != null) {
+            parametersObj.batches_limit = parameters.batches_limit;
         }
-        if (parameters["back_off_function"] != null) {
-            parametersObj["back_off_function"] = parameters["back_off_function"];
+        if (parameters.back_off_function != null) {
+            parametersObj.back_off_function = parameters.back_off_function;
         }
-        if (parameters["checkpoint"] != null) {
-            parametersObj["checkpoint"] = parameters["checkpoint"];
+        if (parameters.checkpoint != null) {
+            parametersObj.checkpoint = parameters.checkpoint;
         }
-        if (parameters["seq_interval"] != null) {
-            parametersObj["seq_interval"] = parameters["seq_interval"];
+        if (parameters.seq_interval != null) {
+            parametersObj.seq_interval = parameters.seq_interval;
         }
 
-        let remoteDB = new PouchDB(this.c8oFullSyncDatabaseUrl, this.remotePouchHeader);
+        const remoteDB = new PouchDB(this.c8oFullSyncDatabaseUrl, this.remotePouchHeader);
         let rep = fullSyncReplication.replication = fullSyncReplication.pull ? this.database.replicate.from(remoteDB, parametersObj) : this.database.replicate.to(remoteDB, parametersObj);
 
-        let progress: C8oProgress = new C8oProgress();
+        const progress: C8oProgress = new C8oProgress();
         progress.raw = rep;
         progress.pull = fullSyncReplication.pull;
         progress.continuous = false;
@@ -414,7 +400,7 @@ export class C8oFullSyncDatabase {
                 (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
                 rep.cancel();
                 if (continuous) {
-                    parametersObj["live"] = true;
+                    parametersObj.live = true;
                     rep = fullSyncReplication.replication = fullSyncReplication.pull ? this.database.replicate.from(remoteDB, parametersObj) : this.database.replicate.to(remoteDB, parametersObj);
                     progress.continuous = true;
                     progress.raw = rep;
@@ -433,16 +419,13 @@ export class C8oFullSyncDatabase {
                                 progress.status = "live";
                                 (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
 
-
                             } else {
                                 rep.cancel();
-                                if(err.code === "ETIMEDOUT" && err.status === 0){
+                                if (err.code === "ETIMEDOUT" && err.status === 0) {
                                     reject("TIMEOUT");
-                                }
-                                else if(err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with "){
+                                } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
                                     reject("NO_NETWORK");
-                                }
-                                else{
+                                } else {
                                     reject(err);
                                 }
                             }
@@ -455,14 +438,11 @@ export class C8oFullSyncDatabase {
                     parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                     (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
                     rep.cancel();
-                }
-                else if(err.code === "ETIMEDOUT" && err.status === 0){
+                } else if (err.code === "ETIMEDOUT" && err.status === 0) {
                     reject("TIMEOUT");
-                }
-                else if(err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with "){
+                } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
                     reject("NO_NETWORK");
-                }
-                else{
+                } else {
                     reject(err);
                 }
             });
@@ -483,7 +463,6 @@ export class C8oFullSyncDatabase {
 
     }
 
-
     //noinspection JSUnusedGlobalSymbols
     public get getdatabseName(): string {
         return this.databaseName;
@@ -493,7 +472,7 @@ export class C8oFullSyncDatabase {
         return this.database;
     }
 
-    deleteDB(): Promise<any> {
+    public deleteDB(): Promise<any> {
         return new Promise((resolve, reject) => {
             if (this.database != null) {
                 this.database.destroy().then((response) => {

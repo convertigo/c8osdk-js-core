@@ -1,7 +1,7 @@
-import {C8oProgress} from "./c8oProgress";
+import "rxjs/add/observable/fromPromise";
+import { Observable } from "rxjs/Observable";
 import {C8oCore} from "./c8oCore";
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/fromPromise';
+import {C8oProgress} from "./c8oProgress";
 
 export class C8oPromise<T> {
     private c8o: C8oCore;
@@ -18,8 +18,8 @@ export class C8oPromise<T> {
         this.c8o = c8o;
     }
 
-    async(): Promise<any> {
-        return new Promise((resolve, reject)=>{
+    public async(): Promise<any> {
+        return new Promise((resolve, reject) => {
             this.then((response, parameters) => {
                 resolve(response);
                 return null;
@@ -29,15 +29,14 @@ export class C8oPromise<T> {
         });
     }
 
-    toObservable() : Observable<any> {
+    public toObservable(): Observable<any> {
         return Observable.fromPromise(this.async());
     }
 
-    then(c8oOnResponse: (response: T, parameters: Object) => C8oPromise<T>) {
+    public then(c8oOnResponse: (response: T, parameters: Object) => C8oPromise<T>) {
         if (this.nextPromise != null) {
             return this.nextPromise.then(c8oOnResponse);
-        }
-        else {
+        } else {
             this.c8oResponse = c8oOnResponse;
             this.nextPromise = new C8oPromise<T>(this.c8o);
             if (this.lastFailure != null) {
@@ -53,22 +52,20 @@ export class C8oPromise<T> {
 
     }
 
-    progress(c8oOnProgress: (C8oProgress: C8oProgress) => C8oPromise<T>) {
+    public progress(c8oOnProgress: (C8oProgress: C8oProgress) => C8oPromise<T>) {
         if (this.nextPromise != null) {
             return this.nextPromise.progress(c8oOnProgress);
-        }
-        else {
+        } else {
             this.c8oProgress = c8oOnProgress;
             this.nextPromise = new C8oPromise<T>(this.c8o);
             return this.nextPromise;
         }
     }
 
-    fail(c8oOnFail: (error: Error, parameters: Object) => C8oPromise<T>) {
+    public fail(c8oOnFail: (error: Error, parameters: Object) => C8oPromise<T>) {
         if (this.nextPromise != null) {
             return this.nextPromise.fail(c8oOnFail);
-        }
-        else {
+        } else {
             this.c8oFail = c8oOnFail;
             this.nextPromise = new C8oPromise<T>(this.c8o);
             if (this.lastFailure != null) {
@@ -78,11 +75,10 @@ export class C8oPromise<T> {
         }
     }
 
-
     private _onResponse() {
         try {
             if (this.c8oResponse != null) {
-                let promise: C8oPromise<T>[] = new Array<C8oPromise<T>>(0);
+                const promise: Array<C8oPromise<T>> = new Array<C8oPromise<T>>(0);
                 promise.push(this.c8oResponse(this.lastResponse, this.lastParameters));
                 if (promise[0] != null) {
                     if (this.nextPromise != null) {
@@ -93,46 +89,40 @@ export class C8oPromise<T> {
                         lastPromise.nextPromise = this.nextPromise;
                     }
                     this.nextPromise = promise[0];
-                }
-                else if (this.nextPromise != null) {
+                } else if (this.nextPromise != null) {
                     this.nextPromise.onResponse(this.lastResponse, this.lastParameters);
                 }
-            }
-            else if (this.nextPromise != null) {
+            } else if (this.nextPromise != null) {
                 this.nextPromise.onResponse(this.lastResponse, this.lastParameters);
-            }
-            else {
+            } else {
                 // Response received and no handler
             }
-        }
-        catch (error) {
+        } catch (error) {
             this.onFailure(error, this.lastParameters);
         }
     }
 
-    onResponse(response: T, parameters: Object) {
+    public onResponse(response: T, parameters: Object) {
         if ((this.lastResponse != null || this.lastResponse !== undefined) && parameters[C8oCore.ENGINE_PARAMETER_FROM_LIVE] === undefined) {
             if (this.nextPromise != null || this.nextPromise !== undefined) {
                 this.nextPromise.onResponse(response, parameters);
             }
-        }
-        else {
+        } else {
             this.lastResponse = response;
             this.lastParameters = parameters;
             this._onResponse();
         }
     }
 
-    onProgress(progress: C8oProgress) {
+    public onProgress(progress: C8oProgress) {
         if (this.c8oProgress != null) {
             this.c8oProgress(progress);
-        }
-        else if (this.nextPromise != null) {
+        } else if (this.nextPromise != null) {
             this.nextPromise.onProgress(progress);
         }
     }
 
-    onFailure(error: Error, parameters: Object) {
+    public onFailure(error: Error, parameters: Object) {
 
         this.lastFailure = error;
         this.lastParameters = parameters;

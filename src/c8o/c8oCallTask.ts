@@ -1,15 +1,15 @@
 import {C8oCore} from "./c8oCore";
-import {C8oResponseListener, C8oResponseJsonListener} from "./c8oResponse";
-import {C8oExceptionListener} from "./Exception/c8oExceptionListener";
 import {C8oFullSync, C8oFullSyncCbl} from "./c8oFullSync";
-import {C8oException} from "./Exception/c8oException";
-import {C8oExceptionMessage} from "./Exception/c8oExceptionMessage";
 import {C8oLocalCache} from "./c8oLocalCache";
-import {C8oUtilsCore} from "./c8oUtilsCore";
 import {C8oLocalCacheResponse} from "./c8oLocalCacheResponse";
+import {C8oResponseJsonListener, C8oResponseListener} from "./c8oResponse";
 import {C8oTranslator} from "./c8oTranslator";
+import {C8oUtilsCore} from "./c8oUtilsCore";
+import {C8oException} from "./Exception/c8oException";
+import {C8oExceptionListener} from "./Exception/c8oExceptionListener";
+import {C8oExceptionMessage} from "./Exception/c8oExceptionMessage";
 import {C8oHttpRequestException} from "./Exception/c8oHttpRequestException";
-import {C8oUnavailableLocalCacheException} from "./Exception/c8oUnavailableLocalCacheException"
+import {C8oUnavailableLocalCacheException} from "./Exception/c8oUnavailableLocalCacheException";
 
 export class C8oCallTask {
     private c8o: C8oCore;
@@ -43,8 +43,7 @@ export class C8oCallTask {
             }).catch((error) => {
                 this.c8oExceptionListener.onException(error, this.parameters);
             });
-        }
-        catch (error) {
+        } catch (error) {
             this.c8oExceptionListener.onException(error, this.parameters);
         }
     }
@@ -55,19 +54,17 @@ export class C8oCallTask {
         this.run();
     }
 
-
-
-    async handleRequest(): Promise<any> {
+    public async handleRequest(): Promise<any> {
         return new Promise(async (resolve, reject) => {
             try {
-                let isFullSyncRequest: boolean = C8oFullSync.isFullSyncRequest(this.parameters);
+                const isFullSyncRequest: boolean = C8oFullSync.isFullSyncRequest(this.parameters);
                 if (isFullSyncRequest) {
                     this.c8o.log._debug("Is FullSync request");
 
                     // FS_LIVE
-                    let liveid = C8oUtilsCore.getParameterStringValue(this.parameters, C8oCore.FS_LIVE, false);
+                    const liveid = C8oUtilsCore.getParameterStringValue(this.parameters, C8oCore.FS_LIVE, false);
                     if (liveid !== null) {
-                        let dbName: string = (C8oUtilsCore.getParameterStringValue(this.parameters, C8oCore.ENGINE_PARAMETER_PROJECT, true) as string).substring(C8oFullSync.FULL_SYNC_PROJECT.length);
+                        const dbName: string = (C8oUtilsCore.getParameterStringValue(this.parameters, C8oCore.ENGINE_PARAMETER_PROJECT, true) as string).substring(C8oFullSync.FULL_SYNC_PROJECT.length);
                         this.c8o.addLive(liveid, dbName, this);
                     }
                     await this.c8o.c8oFullSync.handleFullSyncRequest(this.parameters, this.c8oResponseListener)
@@ -79,13 +76,11 @@ export class C8oCallTask {
                             (error) => {
                                 if (error instanceof C8oException) {
                                     reject(error);
-                                }
-                                else {
+                                } else {
                                     reject(new C8oException(C8oExceptionMessage.handleFullSyncRequest(), error));
                                 }
                             });
-                }
-                else {
+                } else {
                     let responseType: string = "";
                     if (this.c8oResponseListener instanceof C8oResponseJsonListener) {
                         responseType = C8oCore.RESPONSE_TYPE_JSON;
@@ -94,7 +89,7 @@ export class C8oCallTask {
                         reject(new C8oException(C8oExceptionMessage.wrongListener(this.c8oResponseListener)));
                     }
                     let c8oCallRequestIdentifier: string = null;
-                    let localCache: C8oLocalCache = C8oUtilsCore.getParameterObjectValue(this.parameters, C8oLocalCache.PARAM, false);
+                    const localCache: C8oLocalCache = C8oUtilsCore.getParameterObjectValue(this.parameters, C8oLocalCache.PARAM, false);
                     let localCacheEnabled: boolean = false;
 
                     if (localCache != null) {
@@ -104,20 +99,18 @@ export class C8oCallTask {
                             if (localCacheEnabled) {
                                 try {
                                     c8oCallRequestIdentifier = C8oUtilsCore.identifyC8oCallRequest(this.parameters, responseType);
-                                }
-                                catch (error) {
+                                } catch (error) {
                                     reject(new C8oException(C8oExceptionMessage.serializeC8oCallRequest(), error));
                                 }
                                 // here we are not testing if localcahe is available.
                                 // if connection is not available this will generates an exception that will be caught
-                                if(localCache.priority.isAvailable) {
+                                if (localCache.priority.isAvailable) {
                                     try {
-                                        let result = await (this.c8o.c8oFullSync as C8oFullSyncCbl).getResponseFromLocalCache(c8oCallRequestIdentifier);
+                                        const result = await (this.c8o.c8oFullSync as C8oFullSyncCbl).getResponseFromLocalCache(c8oCallRequestIdentifier);
                                         if (result instanceof C8oUnavailableLocalCacheException) {
                                             // no entry
-                                        }
-                                        else {
-                                            let localCacheResponse: C8oLocalCacheResponse = (result as C8oLocalCacheResponse);
+                                        } else {
+                                            const localCacheResponse: C8oLocalCacheResponse = (result as C8oLocalCacheResponse);
 
                                             if (!localCacheResponse.isExpired()) {
                                                 if (responseType === C8oCore.RESPONSE_TYPE_JSON) {
@@ -126,12 +119,10 @@ export class C8oCallTask {
                                                 }
                                             }
                                         }
-                                    }
-                                    catch (error) {
+                                    } catch (error) {
                                         if (error instanceof C8oUnavailableLocalCacheException) {
                                             // no entry
-                                        }
-                                        else {
+                                        } else {
                                             reject(error);
                                         }
                                     }
@@ -142,13 +133,13 @@ export class C8oCallTask {
                     // Get Response
                     this.parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = this.c8o.deviceUUID;
                     this.c8oCallUrl = this.c8o.endpoint + "/." + responseType;
-                    let params : Object = new Object();
-                    params= Object.assign(params, this.parameters)
-                    await this.c8o.httpInterface.handleRequest(this.c8oCallUrl, params, this.c8oResponseListener
+                    let params: Object = new Object();
+                    params = Object.assign(params, this.parameters);
+                    await this.c8o.httpInterface.handleRequest(this.c8oCallUrl, params, this.c8oResponseListener,
                     ).catch(
                         async (error) => {
                             if (localCacheEnabled) {
-                                await (this.c8o.c8oFullSync as C8oFullSyncCbl).getResponseFromLocalCache(c8oCallRequestIdentifier
+                                await (this.c8o.c8oFullSync as C8oFullSyncCbl).getResponseFromLocalCache(c8oCallRequestIdentifier,
                                 ).then(
                                     (localCacheResponse: C8oLocalCacheResponse) => {
                                         try {
@@ -157,16 +148,14 @@ export class C8oCallTask {
                                                     resolve(C8oTranslator.stringToJSON(localCacheResponse.getResponse()));
                                                 }
                                             }
-                                        }
-                                        catch (error) {
+                                        } catch (error) {
                                             // no entry
                                         }
                                     });
                             }
-                            if (error["status"] === 0) {
+                            if (error.status === 0) {
                                 reject(new C8oHttpRequestException("ERR_INTERNET_DISCONNECTED", error));
-                            }
-                            else {
+                            } else {
                                 reject(new C8oException(C8oExceptionMessage.handleC8oCallRequest(), error, true));
                             }
                         }).then(
@@ -178,17 +167,14 @@ export class C8oCallTask {
                                         try {
                                             try {
                                                 responseString = result;
-                                            }
-                                            catch (error) {
+                                            } catch (error) {
                                                 reject(new C8oException(C8oExceptionMessage.parseInputStreamToString(), error));
                                             }
                                             response = result;
-                                        }
-                                        catch (error) {
+                                        } catch (error) {
                                             reject(error);
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         reject(new C8oException(C8oExceptionMessage.wrongListener(this.c8oResponseListener)));
                                     }
                                     if (localCacheEnabled) {
@@ -197,14 +183,13 @@ export class C8oCallTask {
                                             if (localCache.ttl > 0) {
                                                 expirationDate = localCache.ttl + (new Date).getTime();
                                             }
-                                            let localCacheResponse: C8oLocalCacheResponse = new C8oLocalCacheResponse(responseString, responseType, expirationDate);
-                                            let p1 = await (this.c8o.c8oFullSync as C8oFullSyncCbl).saveResponseToLocalCache(c8oCallRequestIdentifier, localCacheResponse);
+                                            const localCacheResponse: C8oLocalCacheResponse = new C8oLocalCacheResponse(responseString, responseType, expirationDate);
+                                            const p1 = await (this.c8o.c8oFullSync as C8oFullSyncCbl).saveResponseToLocalCache(c8oCallRequestIdentifier, localCacheResponse);
                                             Promise.all([p1])
                                                 .then(() => {
                                                     resolve(response);
                                                 });
-                                        }
-                                        catch (error) {
+                                        } catch (error) {
                                             reject(new C8oException(C8oExceptionMessage.saveResponseToLocalCache()));
                                         }
                                     }
@@ -212,12 +197,10 @@ export class C8oCallTask {
                             }
                         });
                 }
-            }
-            catch (error) {
+            } catch (error) {
                 reject(error);
             }
         });
-
 
     }
 
@@ -225,19 +208,15 @@ export class C8oCallTask {
         try {
             if (this.c8oResponseListener === null) {
                 return;
-            }
-            else if (result instanceof Error || result instanceof C8oException) {
+            } else if (result instanceof Error || result instanceof C8oException) {
                 this.c8o.handleCallException(this.c8oExceptionListener, this.parameters, result);
-            }
-            else if (result instanceof Object) {
+            } else if (result instanceof Object) {
                 this.c8o.log.logC8oCallJSONResponse(result, this.c8oCallUrl, this.parameters);
                 (this.c8oResponseListener as C8oResponseJsonListener).onJsonResponse(result, this.parameters);
-            }
-            else {
+            } else {
                 this.c8o.handleCallException(this.c8oExceptionListener, this.parameters, new C8oException(C8oExceptionMessage.wrongResult(result)));
             }
-        }
-        catch (error) {
+        } catch (error) {
             this.c8o.handleCallException(this.c8oExceptionListener, this.parameters, error);
         }
     }

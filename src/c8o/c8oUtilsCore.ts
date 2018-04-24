@@ -3,7 +3,7 @@ export class C8oUtilsCore {
 
     /** FullSync parameters prefix. **/
     private static USE_PARAMETER_IDENTIFIER: string = "_use_";
-    data: JSON;
+    public data: JSON;
 
     public constructor() {
     }
@@ -14,15 +14,13 @@ export class C8oUtilsCore {
      * @param object
      * @returns string
      */
-    static getObjectClassName(object: any) {
+    public static getObjectClassName(object: any) {
         return typeof object;
     }
-
 
     public static isValidUrl(url: string): boolean {
         return /^(http|https):\/\/[^ "]+$/.test(url.toString());
     }
-
 
     public static getNewGUIDString(): string {
         let d = new Date().getTime();
@@ -30,7 +28,7 @@ export class C8oUtilsCore {
             d += performance.now(); // use high-precision timer if available
         }
         return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-            let r = (d + Math.random() * 16) % 16 | 0;
+            const r = (d + Math.random() * 16) % 16 | 0;
             d = Math.floor(d / 16);
             return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
         });
@@ -40,9 +38,9 @@ export class C8oUtilsCore {
 
     public static getParameter(parameters: Object, name: string, useName: boolean): any {
         for (let _i = 0; _i < Object.keys(parameters).length; _i++) {
-            let parameterName = Object.keys(parameters)[_i];
+            const parameterName = Object.keys(parameters)[_i];
             if ((name === parameterName) || (useName && name === this.USE_PARAMETER_IDENTIFIER + parameterName)) {
-                let obj = {};
+                const obj = {};
                 obj[Object.keys(parameters)[_i]] = parameters[Object.keys(parameters)[_i]];
                 return obj;
             }
@@ -60,7 +58,7 @@ export class C8oUtilsCore {
      * @returns string
      */
     public static getParameterStringValue(parameters: Object, name: string, useName: boolean): string {
-        let parameter = C8oUtilsCore.getParameter(parameters, name, useName);
+        const parameter = C8oUtilsCore.getParameter(parameters, name, useName);
         if (parameter != null) {
             return "" + parameter[name];
         }
@@ -69,12 +67,11 @@ export class C8oUtilsCore {
 
     public static getParameterObjectValue(parameters: Object, name: string, useName: boolean = false): any {
         //noinspection UnnecessaryLocalVariableJS
-        let parameters2 = parameters;
-        let parameter = C8oUtilsCore.getParameter(parameters2, name, useName);
+        const parameters2 = parameters;
+        const parameter = C8oUtilsCore.getParameter(parameters2, name, useName);
         if (parameter != null) {
             return parameter[name];
-        }
-        else {
+        } else {
             return null;
         }
 
@@ -82,28 +79,26 @@ export class C8oUtilsCore {
 
     public static peekParameterStringValue(parameters: Object, name: string, exceptionIfMissing: boolean): string {
         //noinspection UnnecessaryLocalVariableJS
-        let parameters2 = parameters;
-        let value: string = this.getParameterStringValue(parameters2, name, false);
+        const parameters2 = parameters;
+        const value: string = this.getParameterStringValue(parameters2, name, false);
         if (value == null) {
             if (exceptionIfMissing) {
                 throw new Error("The parameter '" + name + "' is missing");
             }
-        }
-        else {
+        } else {
             delete parameters[name];
         }
         return value;
     }
 
     public static peekParameterObjectValue(parameters: Object, name: string, exceptionIfMissing: boolean): string {
-        let parameters2 = parameters;
-        let value: string = this.getParameterObjectValue(parameters2, name, false);
+        const parameters2 = parameters;
+        const value: string = this.getParameterObjectValue(parameters2, name, false);
         if (value == null) {
             if (exceptionIfMissing) {
                 throw new Error("The parameter '" + name + "' is missing");
             }
-        }
-        else {
+        } else {
             delete parameters2[name];
         }
         return value;
@@ -117,24 +112,23 @@ export class C8oUtilsCore {
      * @returns string
      * @throws C8oException
      */
-    static identifyC8oCallRequest(parameters: Object, responseType: string): string {
+    public static identifyC8oCallRequest(parameters: Object, responseType: string): string {
         return responseType + JSON.stringify(parameters);
     }
 }
 
 export class Queue<T> {
-    _store: T[] = [];
+    public _store: T[] = [];
 
-    push(val: T) {
+    public push(val: T) {
         this._store.push(val);
     }
 
-    pop(): T {
+    public pop(): T {
         return this._store.shift();
     }
 
-    count(): number {
+    public count(): number {
         return this._store.length;
     }
 }
-
