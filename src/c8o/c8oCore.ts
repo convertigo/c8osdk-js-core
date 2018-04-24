@@ -263,7 +263,9 @@ export abstract class C8oCore extends C8oBase {
         return this._http;
     }
 
-    public get sdkVersion(): string {
+    public abstract get sdkVersion(): string;
+
+    public get coreVersion(): string {
         return require("../../package.json").version;
     }
 
