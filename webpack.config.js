@@ -16,7 +16,7 @@ module.exports = {
     devtool: 'inline-source-map',
 
     resolve: {
-        extensions: ['.ts', '.js']
+        extensions: ['.ts','.tsx', '.js']
     },
 
     entry: helpers.root('src/index.ts'),
@@ -35,7 +35,7 @@ module.exports = {
     module: {
         rules: [{
             enforce: 'pre',
-            test: /\.ts$/,
+            test: /\.ts(x?)$/,
             loader: 'tslint-loader',
             exclude: [helpers.root('node_modules')]
         }, {

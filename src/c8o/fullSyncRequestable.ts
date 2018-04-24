@@ -1,16 +1,14 @@
-import {C8oFullSync} from "./c8oFullSync";
-import {C8oFullSyncCbl} from "./c8oFullSyncCbl";
+import {C8oFullSync, C8oFullSyncCbl} from "./c8oFullSync";
 import {
     C8oResponseListener,
     C8oResponseProgressListener,
     C8oResponseJsonListener
 } from "./c8oResponse";
 import {C8oUtilsCore} from "./c8oUtilsCore";
-import {FullSyncPolicy} from "./fullsyncpolicy";
+import {FullSyncPolicy, FullSyncPostDocumentParameter} from "./c8oCore";
 import {FullSyncGetDocumentParameter} from "./fullSyncGetDocumentParameter";
 import {FullSyncAttachmentParameter} from "./fullSyncAttachmentParameter";
 import {FullSyncGetViewParameter} from "./fullSyncGetViewParameter";
-import {FullSyncPostDocumentParameter} from "./fullsyncpostdocumentparameter";
 /**
  * Created by charlesg on 10/01/2017.
  */

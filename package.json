@@ -1,6 +1,6 @@
 {
   "name": "c8osdkjscore",
-  "version": "2.1.64",
+  "version": "0.0.0-beta7",
   "description": "convertigo's sdk js core",
   "main": "bundle/index.umd.js",
   "module": "src/index.js",
@@ -14,7 +14,7 @@
     "test": "karma start",
     "test-watch": "karma start --singleRun=false --autoWatch=true --captureExceptions",
     "clean": "rimraf bundles coverage src/**/*.d.ts src/**/*.metadata.json src/**/*.js src/**/*.js.map src/**/*.ngsummary.json",
-    "prepare": "npm run clean && npm run build",
+    "prepare": "npm run clean && tsc -p . && npm run build",
     "build": "webpack && cp bundles/index.umd.js bundles/index.js",
     "docs": "npm run typedoc -- --options typedoc.json --exclude '**/*.spec.ts' ./src/c8o/",
     "typedoc": "typedoc",
@@ -30,6 +30,10 @@
     "nosql",
     "couchdb"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/convertigo/c8osdk-js-core"
+  },
   "author": {
     "name": "Convertigo",
     "email": "info@convertigo.com",
@@ -38,8 +42,8 @@
   "license": "Apache License Version 2.0, January 2004",
   "dependencies": {
     "rxjs": "5.5.2",
-    "@types/pouchdb": "6.3.1",
-    "pouchdb-browser": "6.3.4",
+    "@types/pouchdb": "6.3.2",
+    "pouchdb-browser": "6.4.3",
     "zone.js": "0.8.26"
   },
   "devDependencies": {
@@ -64,17 +68,12 @@
     "reflect-metadata": "0.1.10",
     "source-map-loader": "0.2.3",
     "ts-helpers": "1.1.2",
-    "tsify": "3.0.4",
-    "tslint": "5.8.0",
-    "tslint-loader": "3.5.3",
+    "tsify": "4.0.0",
+    "tslint": "5.9.1",
+    "tslint-loader": "3.6.0",
     "typedoc": "0.9.0",
     "webpack": "3.10.0",
-    "typescript": "2.4.2"
-  },
-  "peerDependencies": {},
-  "cordovaPlatforms": [],
-  "angularCompilerOptions": {
-    "strictMetadataEmit": true,
-    "skipTemplateCodegen": true
+    "typescript": "2.6.2",
+    "browserify": "16.2.0"
   }
 }

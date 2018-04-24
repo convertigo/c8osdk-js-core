@@ -1,7 +1,7 @@
 import {C8oCore} from "./c8oCore";
 import {C8oResponseListener, C8oResponseJsonListener} from "./c8oResponse";
 import {C8oExceptionListener} from "./Exception/c8oExceptionListener";
-import {C8oFullSync} from "./c8oFullSync";
+import {C8oFullSync, C8oFullSyncCbl} from "./c8oFullSync";
 import {C8oException} from "./Exception/c8oException";
 import {C8oExceptionMessage} from "./Exception/c8oExceptionMessage";
 import {C8oLocalCache} from "./c8oLocalCache";
@@ -9,8 +9,7 @@ import {C8oUtilsCore} from "./c8oUtilsCore";
 import {C8oLocalCacheResponse} from "./c8oLocalCacheResponse";
 import {C8oTranslator} from "./c8oTranslator";
 import {C8oHttpRequestException} from "./Exception/c8oHttpRequestException";
-import {C8oUnavailableLocalCacheException} from "./Exception/c8oUnavailableLocalCacheException";
-import {C8oFullSyncCbl} from "./c8oFullSyncCbl";
+import {C8oUnavailableLocalCacheException} from "./Exception/c8oUnavailableLocalCacheException"
 
 export class C8oCallTask {
     private c8o: C8oCore;

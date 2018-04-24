@@ -1,7 +1,7 @@
 import {C8oResponseProgressListener, C8oResponseListener} from "./c8oResponse";
 import {C8oCore} from "./c8oCore";
 import {C8oProgress} from "./c8oProgress";
-import {FullSyncReplication} from "./fullSyncreplication";
+import {FullSyncReplication} from "./fullSyncReplication";
 
 import PouchDB from 'pouchdb-browser'
 /**
