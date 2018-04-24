@@ -178,8 +178,8 @@ export class C8oFullSyncCbl extends C8oFullSync {
         let fullSyncDatabase: C8oFullSyncDatabase = null;
         let dictDoc: Object = {};
         let param: Object;
-        param = parameters.attachments ? {attachments: true} : {};
-        parameters.binary ? param.binary = true : {};
+        param = parameters["attachments"] ? {attachments: true} : {};
+        parameters["binary"] ? param["binary"] = true : {};
 
         fullSyncDatabase = this.getOrCreateFullSyncDatabase(fullSyncDatabaseName);
         return new Promise((resolve, reject) => {
@@ -354,7 +354,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
         let attachments;
         let binary;
         let include_docs;
-        if (parameters.attachments && window.cblite !== undefined) {
+        if (parameters["attachments"] && window["cblite"] !== undefined) {
             attachments = C8oUtilsCore.getParameterStringValue(parameters, "attachments", false);
             binary = C8oUtilsCore.getParameterStringValue(parameters, "binary", false);
             include_docs = C8oUtilsCore.getParameterStringValue(parameters, "include_docs", false);
@@ -624,14 +624,14 @@ export class C8oFullSyncCbl extends C8oFullSync {
                     const docs: Object[] = [];
                     // docs["isExternal"] = false;
                     const doc: Object = {};
-                    doc.id = change.doc._id;
-                    doc.rev = change.doc._rev;
-                    doc.isConflict = change.doc._conflicts;
+                    doc["id"] = change.doc._id;
+                    doc["rev"] = change.doc._rev;
+                    doc["isConflict"] = change.doc._conflicts;
                     if (change.source != null) {
-                        doc.sourceUrl = change.source;
+                        doc["sourceUrl"] = change.source;
                     }
                     docs.push(doc);
-                    changes.changes = docs;
+                    changes["changes"] = docs;
                     for (const handler of listeners[0]) {
                         if (handler !== undefined) {
                             handler.onChange(changes);

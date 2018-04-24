@@ -304,15 +304,15 @@ export abstract class C8oCore extends C8oBase {
                  * Looking for splashScreen timeOut
                  */
                 if (this._automaticRemoveSplashsCreen) {
-                    if (navigator.splashscreen !== undefined) {
-                        navigator.splashscreen.hide();
+                    if (navigator["splashscreen"] !== undefined) {
+                        navigator["splashscreen"].hide();
                     }
                 }
                 /**
                  * Looking for cblite
                  */
-                if (window.cblite != undefined) {
-                    window.cblite.getURL((err, url) => {
+                if (window["cblite"] != undefined) {
+                    window["cblite"].getURL((err, url) => {
                         if (err) {
                             resolve();
                         } else {
@@ -606,14 +606,14 @@ export class FullSyncPolicy {
             } else {
                 return new Promise((resolve, reject) => {
                     database.get(documentId).then((doc) => {
-                        newProperties._id = documentId;
-                        newProperties._rev = doc._rev;
+                        newProperties["_id"] = documentId;
+                        newProperties["_rev"] = doc._rev;
                         return database.put(newProperties);
                     }).then((createdDocument) => {
                         resolve(createdDocument);
                     }).catch((error) => {
                             if (error.status === "404" || error.status === 404) {
-                                newProperties._id = documentId;
+                                newProperties["_id"] = documentId;
                                 return database.post(newProperties);
                             } else {
                                 reject(error);

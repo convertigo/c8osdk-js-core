@@ -52,9 +52,9 @@ export class C8oLogger {
             this.startTimeRemoteLog = new Date().getTime();
             this.uidRemoteLogs = Math.round((new Date().getTime() * Math.random())).toString(36);
             const obj = {};
-            obj.uid = this.uidRemoteLogs.toUpperCase();
-            obj.uuid = C8oCore.deviceUUID.toUpperCase();
-            obj.project = "";
+            obj["uid"] = this.uidRemoteLogs.toUpperCase();
+            obj["uuid"] = C8oCore.deviceUUID.toUpperCase();
+            obj["project"] = "";
             this.env = JSON.stringify(obj);
         } else {
             this.c8o = c8o;
@@ -68,9 +68,9 @@ export class C8oLogger {
             this.startTimeRemoteLog = new Date().getTime();
             this.uidRemoteLogs = Math.round((new Date().getTime() * Math.random())).toString(36);
             const obj = {};
-            obj.uid = this.uidRemoteLogs.toUpperCase();
-            obj.uuid = C8oCore.deviceUUID.toUpperCase();
-            obj.project = encodeURIComponent(c8o.endpointProject.toString());
+            obj["uid"] = this.uidRemoteLogs.toUpperCase();
+            obj["uuid"] = C8oCore.deviceUUID.toUpperCase();
+            obj["project"] = encodeURIComponent(c8o.endpointProject.toString());
             this.env = JSON.stringify(obj);
         }
 
@@ -218,7 +218,7 @@ export class C8oLogger {
             const mvar = this.pending_remoteLogs.pop();
 
             if (this.isLoggableConsole(logLvl)) {
-                console.log("(" + mvar.time + ") [" + logLvl.name + "] " + mvar.msg);
+                console.log("(" + mvar["time"] + ") [" + logLvl.name + "] " + mvar["msg"]);
             }
             if (this.isLoggableRemote(logLvl)) {
                 logsArray.push(mvar);
