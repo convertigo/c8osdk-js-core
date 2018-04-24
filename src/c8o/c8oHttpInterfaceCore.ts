@@ -72,10 +72,10 @@ export abstract class C8oHttpInterfaceCore {
      * @param {Object} parameters
      * @return {Promise<any>}
      */
-    abstract HttpPost(url: string, parameters: Object): Promise<any>;
+    abstract httpPost(url: string, parameters: Object): Promise<any>;
 
     /**
-     * Upload File using HttpClient Request
+     * Upload File using an Http client
      * @param {string} url
      * @param {FormData} form
      * @param {Object} parameters
