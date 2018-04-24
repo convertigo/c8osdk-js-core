@@ -8,7 +8,7 @@ export abstract class C8oHttpInterfaceCore {
     timeout: number;
     firstCall: boolean = true;
     p1: Promise<Object>;
-    private _isCordova = null;
+    protected _isCordova = null;
 
     constructor(c8o: C8oCore) {
         this.c8o = c8o;
@@ -64,15 +64,15 @@ export abstract class C8oHttpInterfaceCore {
      * @param {C8oResponseListener} c8oResponseListener
      * @return {Promise<any>}
      */
-    abstract uploadfilePluginNative(url: string, parameters: Object, c8oResponseListener: C8oResponseListener):Promise<any>;
+    abstract uploadFilePluginNative(url: string, parameters: Object, c8oResponseListener: C8oResponseListener):Promise<any>;
 
     /**
-     * Upload file using Http Client
+     * Make an http post
      * @param {string} url
      * @param {Object} parameters
      * @return {Promise<any>}
      */
-    abstract uplaodfilesHttpClient(url: string, parameters: Object): Promise<any>;
+    abstract HttpPost(url: string, parameters: Object): Promise<any>;
 
     /**
      * Upload File using HttpClient Request
@@ -82,7 +82,7 @@ export abstract class C8oHttpInterfaceCore {
      * @param {C8oResponseListener} c8oResponseListener
      * @return {Promise<any>}
      */
-    abstract uploadfilesHttpClientRequest(url: string, form: FormData, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any>;
+    abstract uploadFileHttp(url: string, form: FormData, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any>;
 
     /**
      * Handle progress
