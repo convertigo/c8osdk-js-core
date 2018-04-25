@@ -11,8 +11,6 @@
     "tsconfig.json"
   ],
   "scripts": {
-    "publish:beta": "npm publish --tag beta",
-    "publish": "npm publish",
     "clean": "rimraf bundles coverage src/**/*.d.ts src/**/*.metadata.json src/**/*.js src/**/*.js.map src/**/*.ngsummary.json",
     "prepare": "npm run clean && tsc -p . && npm run build",
     "build": "webpack && cp bundles/index.umd.js bundles/index.js",

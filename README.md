@@ -1,4 +1,4 @@
-[![npm version](https://img.shields.io/npm/v/c8osdkvuejs.svg)](https://www.npmjs.com/package/c8osdkvuejs)
+[![npm version](https://img.shields.io/npm/v/c8osdkjscore.svg)](https://www.npmjs.com/package/c8osdkjscore)
 
 # C8oSDKJScore #
 
