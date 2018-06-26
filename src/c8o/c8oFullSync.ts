@@ -55,7 +55,7 @@ export class C8oFullSync {
             }
         }
         const projectParameterValue: string = C8oUtilsCore.peekParameterStringValue(parameters, C8oCore.ENGINE_PARAMETER_PROJECT, true);
-        if (!projectParameterValue.startsWith(C8oFullSync.FULL_SYNC_PROJECT)) {
+        if (projectParameterValue.indexOf(C8oFullSync.FULL_SYNC_PROJECT) !== 0) {
             throw new C8oException(C8oExceptionMessage.invalidParameterValue(projectParameterValue, "its don't start with" + C8oFullSync.FULL_SYNC_PROJECT));
         }
         let fullSyncRequestableValue: string = C8oUtilsCore.peekParameterStringValue(parameters, C8oCore.ENGINE_PARAMETER_SEQUENCE, true);
@@ -112,7 +112,7 @@ export class C8oFullSync {
      */
     public static isFullSyncRequest(requestParameter: Object): boolean {
         if (C8oUtilsCore.getParameterStringValue(requestParameter, C8oCore.ENGINE_PARAMETER_PROJECT, false) !== null) {
-            return C8oUtilsCore.getParameterStringValue(requestParameter, C8oCore.ENGINE_PARAMETER_PROJECT, false).startsWith(C8oFullSync.FULL_SYNC_PROJECT);
+            return C8oUtilsCore.getParameterStringValue(requestParameter, C8oCore.ENGINE_PARAMETER_PROJECT, false).indexOf(C8oFullSync.FULL_SYNC_PROJECT) === 0;
         } else {
             return false;
         }
@@ -255,7 +255,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
         const newProperties = {};
         for (let i = 0; i < Object.keys(parameters).length; i++) {
             let parameterName: string = Object.keys(parameters)[i];
-            if (!parameterName.startsWith("__") && !parameterName.startsWith("_use_")) {
+            if (parameterName.indexOf("__") !== 0 && parameterName.indexOf("_use_") !== 0) {
                 let objectParameterValue: any = parameters[Object.keys(parameters)[i]];
                 const paths: string[] = parameterName.split(subkeySeparatorParameterValue);
                 if (paths.length > 1) {
