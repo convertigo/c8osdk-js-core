@@ -480,8 +480,14 @@ export class C8oFullSyncDatabase {
                     this.database = null;
                     resolve(response);
                 }).catch((error) => {
-                    this.c8o.log.debug("Failed to close DB: ", error.message);
-                    reject(error);
+                    this.c8o.log.debug("Failed to close DB, will retry: ", error.message);
+                    this.database.destroy().then((response) => {
+                        this.database = null;
+                        resolve(response);
+                    }).catch((error) => {
+                        this.c8o.log.debug("Failed to close DB, second attempt has failed ", error.message);
+                        reject(error);
+                    });
                 });
             }
         });
