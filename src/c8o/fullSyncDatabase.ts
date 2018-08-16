@@ -339,7 +339,8 @@ export class C8oFullSyncDatabase {
             }
         }
         //check parameters to throw to pouchDB
-        //check parameters to throw to pouchDB
+        // Set retry true by default...
+        parametersObj["retry"] = true;
         if (parameters["retry"] != null) {
             parametersObj["retry"] = parameters["retry"];
         }
