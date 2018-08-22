@@ -28,4 +28,20 @@ export class C8oException extends Error {
     public get cause(): Error{
         return this._cause;
     }
+
+    public toJSON(){
+        var alt = {};
+        Object.getOwnPropertyNames(this).forEach(function (key) {
+            alt[key] = this[key];
+        }, this);
+        return alt;
+    }
+    
+    public toString(){
+        var alt = {};
+        Object.getOwnPropertyNames(this).forEach(function (key) {
+            alt[key] = this[key];
+        }, this);
+        return alt;
+    }
 }

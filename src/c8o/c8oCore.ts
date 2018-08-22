@@ -366,7 +366,7 @@ export abstract class C8oCore extends C8oBase {
             }
 
             const regex = C8oCore.RE_REQUESTABLE.exec(requestable);
-            if (regex[0] === null || regex === undefined) {
+            if (regex === null || regex === undefined) {
                 //noinspection ExceptionCaughtLocallyJS
                 throw new C8oException(C8oExceptionMessage.InvalidArgumentInvalidEndpoint(this._endpoint));
             }
