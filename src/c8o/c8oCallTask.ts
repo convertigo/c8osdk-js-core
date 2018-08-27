@@ -156,7 +156,7 @@ export class C8oCallTask {
                             if (error.status === 0) {
                                 reject(new C8oHttpRequestException("ERR_INTERNET_DISCONNECTED", error));
                             } else {
-                                reject(new C8oException(C8oExceptionMessage.handleC8oCallRequest(), error, true));
+                                reject(error);
                             }
                         }).then(
                         async (result) => {
