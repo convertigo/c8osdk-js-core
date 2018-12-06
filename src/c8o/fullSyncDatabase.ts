@@ -4,6 +4,8 @@ import {C8oResponseListener, C8oResponseProgressListener} from "./c8oResponse";
 import {FullSyncReplication} from "./fullSyncReplication";
 
 import PouchDB from "pouchdb-browser";
+import * as PouchDBLoad from "pouchdb-load";
+
 /**
  * Created by charlesg on 10/01/2017.
  */
@@ -67,6 +69,7 @@ export class C8oFullSyncDatabase {
                 this.database = new PouchDB(c8o.couchUrl + "/" + databaseName);
                 this.c8o.log.debug("PouchDb launched on couchbaselite");
             } else {
+                PouchDB.plugin(PouchDBLoad)
                 this.database = new PouchDB(databaseName);
                 this.c8o.log.debug("PouchDb launched normally");
             }
