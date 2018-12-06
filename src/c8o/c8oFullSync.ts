@@ -423,7 +423,9 @@ export class C8oFullSyncCbl extends C8oFullSync {
     public handleBulkRequest(databaseName: string, parameters: Object): Promise<FullSyncDefaultResponse> {
         const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
         return new Promise((resolve, reject) => {
-            fullSyncDatabase.getdatabase.load(parameters["data"]).then((response)=> {
+            fullSyncDatabase.getdatabase.load(parameters["data"],  {
+                proxy: this.c8o.endpointConvertigo + "/fullsync/" + fullSyncDatabase.getdatabseName
+            }).then((response)=> {
                 // this.c8o.log.debug("Loaded the " + parameters["data"] + " database resource")
                 resolve(new FullSyncDefaultResponse(true));
             }).catch((err)=>{
