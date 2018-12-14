@@ -46,10 +46,6 @@ export class C8oExceptionMessage {
         return "The " + ressourceName + " was not found";
     }
 
-    static  toDo(): string {
-        return "TODO";
-    }
-
     /** TAG Illegal argument */
 
     static  illegalArgumentInvalidFullSyncDatabaseUrl(fullSyncDatabaseUrlStr: string): string {
@@ -286,9 +282,6 @@ export class C8oExceptionMessage {
         return "The response class " + C8oUtilsCore.getObjectClassName(result) + " is not handled";
     }
 
-    static  todo(): string {
-        return "todo";
-    }
 
     static  unhandledFullSyncRequestable(fullSyncRequestableValue: string): string {
         return "The fullSync requestable '" + fullSyncRequestableValue + "' is not handled";

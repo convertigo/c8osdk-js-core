@@ -222,7 +222,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
             return new Promise((resolve, reject) => {
                 fullSyncDatabase.getdatabase.get(docid).then((doc) => {
                     if (doc === null) {
-                        throw new C8oRessourceNotFoundException(C8oExceptionMessage.toDo());
+                        throw new C8oRessourceNotFoundException("Cannot find document");
                     }
                     documentRevision = doc._rev;
                     return fullSyncDatabase.getdatabase.remove(doc);
@@ -304,7 +304,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
                         throw new C8oCouchBaseLiteException("Unable to put the attachment " + attachmentName + " to the document " + docid + ".", err);
                     });
                 } else {
-                    throw new C8oRessourceNotFoundException(C8oExceptionMessage.toDo());
+                    throw new C8oRessourceNotFoundException("Cannot find document");
                 }
 
             });
@@ -316,7 +316,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
         let document: any = null;
         const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
 
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             fullSyncDatabase.getdatabase.get(docid).then((result) => {
                 document = result;
             }).then(() => {
@@ -325,10 +325,13 @@ export class C8oFullSyncCbl extends C8oFullSync {
                         throw new C8oCouchBaseLiteException("Unable to delete the attachment " + attachmentName + " to the document " + docid + ".", err);
                     });
                 } else {
-                    throw new C8oRessourceNotFoundException(C8oExceptionMessage.toDo());
+                    throw new C8oRessourceNotFoundException("Document do not exists");
                 }
                 resolve(new FullSyncDocumentOperationResponse(document._id, document._rev, true));
-            });
+            })
+            .catch((err)=>{
+                reject(new C8oException(err.message, err));
+            })
         });
     }
 
@@ -342,8 +345,8 @@ export class C8oFullSyncCbl extends C8oFullSync {
                 .then((res) => {
                     resolve(res);
                 })
-                .catch(() => {
-                    reject(new C8oException("TODO"));
+                .catch((err) => {
+                    reject(new C8oException(err.stack));
                 });
         });
     }
@@ -444,7 +447,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
                 }
                 resolve(new FullSyncDefaultResponse(response.ok));
             }).catch((err) => {
-                reject(new C8oException("TODO", err));
+                reject(new C8oException(err.message, err));
             });
         });
     }
@@ -522,8 +525,9 @@ export class C8oFullSyncCbl extends C8oFullSync {
             throw new C8oException(C8oExceptionMessage.fullSyncGetOrCreateDatabase(databaseName));
         }
 
-        c8oFullSyncDatabase.getdatabase().put(properties).catch(() => {
-            throw new C8oException("TODO");
+        c8oFullSyncDatabase.getdatabase().put(properties)
+        .catch((err) => {
+            throw new C8oException(err.message, err);
         });
 
     }
