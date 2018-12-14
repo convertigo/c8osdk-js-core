@@ -197,6 +197,18 @@ export class FullSyncRequestable {
     });
 
     //noinspection JSUnusedLocalSymbols,JSUnusedLocalSymbols
+    public static BULK: FullSyncRequestable = new FullSyncRequestable("bulk", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
+        return new Promise((resolve) => {
+            resolve(c8oFullSync.handleBulkRequest(databaseName, parameters));
+        }).catch((error) => {
+            throw error;
+        });
+    });
+
+    
+
+
+    //noinspection JSUnusedLocalSymbols,JSUnusedLocalSymbols
     public static DESTROY: FullSyncRequestable = new FullSyncRequestable("destroy", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
         return new Promise((resolve, reject) => {
             c8oFullSync.handleDestroyDatabaseRequest(databaseName).then((response) => {
@@ -239,7 +251,7 @@ export class FullSyncRequestable {
     }
 
     public static values(): FullSyncRequestable[] {
-        return [this.GET, this.DELETE, this.POST, this.ALL, this.VIEW, this.SYNC, this.REPLICATE_PULL, this.REPLICATE_PUSH, this.RESET, this.CREATE, this.DESTROY, this.PUT_ATTACHMENT, this.DELETE_ATTACHMENT];
+        return [this.GET, this.DELETE, this.POST, this.ALL, this.VIEW, this.SYNC, this.REPLICATE_PULL, this.REPLICATE_PUSH, this.RESET, this.CREATE, this.DESTROY, this.PUT_ATTACHMENT, this.DELETE_ATTACHMENT, this.BULK];
 
     }
 }
