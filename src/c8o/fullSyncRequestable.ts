@@ -205,7 +205,13 @@ export class FullSyncRequestable {
         });
     });
 
-    
+    public static INFO: FullSyncRequestable = new FullSyncRequestable("info", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
+        return new Promise((resolve) => {
+            resolve(c8oFullSync.handleInfoRequest(databaseName));
+        }).catch((error) => {
+            throw error;
+        });
+    });    
 
 
     //noinspection JSUnusedLocalSymbols,JSUnusedLocalSymbols
@@ -251,7 +257,7 @@ export class FullSyncRequestable {
     }
 
     public static values(): FullSyncRequestable[] {
-        return [this.GET, this.DELETE, this.POST, this.ALL, this.VIEW, this.SYNC, this.REPLICATE_PULL, this.REPLICATE_PUSH, this.RESET, this.CREATE, this.DESTROY, this.PUT_ATTACHMENT, this.DELETE_ATTACHMENT, this.BULK];
+        return [this.GET, this.DELETE, this.POST, this.ALL, this.VIEW, this.SYNC, this.REPLICATE_PULL, this.REPLICATE_PUSH, this.RESET, this.CREATE, this.DESTROY, this.PUT_ATTACHMENT, this.DELETE_ATTACHMENT, this.BULK, this.ALL];
 
     }
 }

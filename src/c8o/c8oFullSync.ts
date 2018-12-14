@@ -437,6 +437,19 @@ export class C8oFullSyncCbl extends C8oFullSync {
         })
     }
 
+    public handleInfoRequest(databaseName:string): Promise<FullSyncDefaultResponse> {
+        const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
+        return new Promise((resolve, reject) => {
+            fullSyncDatabase.getdatabase.info()
+            .then((response)=> {
+                resolve(response);
+            }).catch((err)=>{
+                //this.c8o.log.error("Error loading the " + parameters["data"] + " database resource" + JSON.stringify(err, Object.getOwnPropertyNames(err)))
+                reject(new C8oException("Get info failed", err));
+            })
+        })
+    }
+
     public handleDestroyDatabaseRequest(databaseName: string): Promise<FullSyncDefaultResponse> {
         return new Promise((resolve, reject) => {
             const localDatabaseName = databaseName + this.localSuffix;
