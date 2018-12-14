@@ -205,6 +205,8 @@ export class FullSyncRequestable {
         });
     });
 
+    
+
 
     //noinspection JSUnusedLocalSymbols,JSUnusedLocalSymbols
     public static DESTROY: FullSyncRequestable = new FullSyncRequestable("destroy", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
