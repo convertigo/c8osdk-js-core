@@ -257,7 +257,7 @@ export class FullSyncRequestable {
     }
 
     public static values(): FullSyncRequestable[] {
-        return [this.GET, this.DELETE, this.POST, this.ALL, this.VIEW, this.SYNC, this.REPLICATE_PULL, this.REPLICATE_PUSH, this.RESET, this.CREATE, this.DESTROY, this.PUT_ATTACHMENT, this.DELETE_ATTACHMENT, this.BULK, this.ALL];
+        return [this.GET, this.DELETE, this.POST, this.ALL, this.VIEW, this.SYNC, this.REPLICATE_PULL, this.REPLICATE_PUSH, this.RESET, this.CREATE, this.DESTROY, this.PUT_ATTACHMENT, this.DELETE_ATTACHMENT, this.BULK, this.ALL, this.INFO];
 
     }
 }
