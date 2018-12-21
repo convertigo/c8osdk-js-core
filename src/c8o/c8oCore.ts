@@ -429,15 +429,18 @@ export abstract class C8oCore extends C8oBase {
     public callJsonObject(requestable: string, parameters: Object): C8oPromise<JSON> {
         const promise: C8oPromise<JSON> = new C8oPromise<JSON>(this);
         this.call(requestable, parameters, new C8oResponseJsonListener((response: any, requestParameters: Object) => {
-                if (response == null && requestParameters[C8oCore.ENGINE_PARAMETER_PROGRESS]) {
-                    promise.onProgress(requestParameters[C8oCore.ENGINE_PARAMETER_PROGRESS]);
-                } else {
-                    promise.onResponse(response, requestParameters);
-                }
-            }),
-            new C8oExceptionListener((exception: C8oException, data: Object) => {
-                promise.onFailure(exception, data);
-            }));
+            if(requestParameters == null){
+                requestParameters = {};
+            }
+            if (response == null && requestParameters[C8oCore.ENGINE_PARAMETER_PROGRESS]) {
+                promise.onProgress(requestParameters[C8oCore.ENGINE_PARAMETER_PROGRESS]);
+            } else {
+                promise.onResponse(response, requestParameters);
+            }
+        }),
+        new C8oExceptionListener((exception: C8oException, data: Object) => {
+            promise.onFailure(exception, data);
+        }));
         return promise;
     }
 
