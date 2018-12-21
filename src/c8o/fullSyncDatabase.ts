@@ -299,7 +299,11 @@ export class C8oFullSyncDatabase {
                     rep.cancel();
                     progress.finished = true;
                     if (c8oResponseListener != null && c8oResponseListener instanceof C8oResponseProgressListener) {
-                        c8oResponseListener.onProgressResponse(progress, parameters);
+                        let resp =  progress;
+                        if(resp == null){
+                            let resp = {'ok': true};
+                        }
+                        c8oResponseListener.onProgressResponse(resp, parameters);
                     }
                 }
             }
@@ -460,7 +464,11 @@ export class C8oFullSyncDatabase {
                     rep.cancel();
                     progress.finished = true;
                     if (c8oResponseListener != null && c8oResponseListener instanceof C8oResponseProgressListener) {
-                        c8oResponseListener.onProgressResponse(progress, parameters);
+                        let resp =  progress;
+                        if(resp == null){
+                            let resp = {'ok': true};
+                        }
+                        c8oResponseListener.onProgressResponse(resp, parameters);
                     }
                 }
             }
