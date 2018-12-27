@@ -299,11 +299,7 @@ export class C8oFullSyncDatabase {
                     rep.cancel();
                     progress.finished = true;
                     if (c8oResponseListener != null && c8oResponseListener instanceof C8oResponseProgressListener) {
-                        let resp =  progress;
-                        if(resp == null){
-                            let resp = {'ok': true};
-                        }
-                        c8oResponseListener.onProgressResponse(resp, parameters);
+                        c8oResponseListener.onProgressResponse(progress, parameters);
                     }
                 }
             }
@@ -330,7 +326,7 @@ export class C8oFullSyncDatabase {
         }
         //check continuous flag
         if (parameters["continuous"] != null) {
-            if (parameters["continuous"] as boolean === true) {
+            if (parameters["continuous"] as boolean == true) {
                 continuous = true;
             } else {
                 continuous = false;
@@ -339,7 +335,7 @@ export class C8oFullSyncDatabase {
         //check cancel flag
         if (parameters["cancel"] != null) {
             //noinspection RedundantIfStatementJS
-            if (parameters["cancel"] as boolean === true) {
+            if (parameters["cancel"] as boolean == true) {
                 cancel = true;
             } else {
                 cancel = false;
@@ -464,11 +460,7 @@ export class C8oFullSyncDatabase {
                     rep.cancel();
                     progress.finished = true;
                     if (c8oResponseListener != null && c8oResponseListener instanceof C8oResponseProgressListener) {
-                        let resp =  progress;
-                        if(resp == null){
-                            let resp = {'ok': true};
-                        }
-                        c8oResponseListener.onProgressResponse(resp, parameters);
+                        c8oResponseListener.onProgressResponse(progress, parameters);
                     }
                 }
             }
