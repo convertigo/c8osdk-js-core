@@ -1,4 +1,5 @@
 import "rxjs/add/observable/fromPromise";
+import { fromPromise } from 'rxjs/observable/fromPromise';
 import { Observable } from "rxjs/Observable";
 import {C8oCore} from "./c8oCore";
 import {C8oProgress} from "./c8oProgress";
@@ -30,7 +31,7 @@ export class C8oPromise<T> {
     }
 
     public toObservable(): Observable<any> {
-        return Observable.fromPromise(this.async());
+        return fromPromise(this.async());
     }
 
     public then(c8oOnResponse: (response: T, parameters: Object) => C8oPromise<T>) {
