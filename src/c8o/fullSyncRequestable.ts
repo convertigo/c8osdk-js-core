@@ -12,6 +12,7 @@ import {FullSyncGetViewParameter} from "./fullSyncGetViewParameter";
 /**
  * Created by charlesg on 10/01/2017.
  */
+// @dynamic
 export class FullSyncRequestable {
 
     //noinspection JSUnusedLocalSymbols

@@ -3,7 +3,7 @@ import {C8oProgress} from "./c8oProgress";
 import {C8oResponseListener, C8oResponseProgressListener} from "./c8oResponse";
 import {FullSyncReplication} from "./fullSyncReplication";
 
-import PouchDB from "pouchdb-browser";
+import * as PouchDB from "pouchdb-browser";
 import * as PouchDBLoad from "pouchdb-load";
 
 /**

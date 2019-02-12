@@ -1,4 +1,4 @@
-
+// @dynamic
 export class C8oUtilsCore {
 
     /** FullSync parameters prefix. **/

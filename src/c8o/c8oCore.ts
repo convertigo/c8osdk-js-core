@@ -24,6 +24,7 @@ declare var require: any;
  * To use it, you have to first initialize the C8o instance with the Convertigo endpoint, then use call methods with Convertigo variables as parameter.
  */
 
+// @dynamic
 export abstract class C8oCore extends C8oBase {
     // Log:
     // - VERBOSE (v): methods parameters,
@@ -564,6 +565,7 @@ export abstract class C8oCore extends C8oBase {
         });
 }
 
+// @dynamic
 export class FullSyncPolicy {
 
     public static NONE: FullSyncPolicy = new FullSyncPolicy(C8oCore.FS_POLICY_NONE, (database: any, newProperties: Object) => {
