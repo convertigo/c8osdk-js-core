@@ -32,8 +32,20 @@ export class C8oBase {
     //noinspection JSUnusedGlobalSymbols
     protected _trustStorePassword: string;
 
+    //Dates
+    protected _normalizeParameters;
+
     protected _headers: Object = {};
     /** Getters **/
+
+    /**
+     * Gets if normalize parameters.<br/>
+     * Default is <b>false</b>.
+     * @returns The timeout.
+     */
+    public get normalizeParameters(): boolean {
+        return this._normalizeParameters;
+    }
 
     /**
      * Gets the connection timeout to Convertigo in milliseconds. A value of zero means the timeout is not used.<br/>
@@ -155,6 +167,9 @@ export class C8oBase {
             this._fullSyncUsername = c8oBase.fullSyncUsername;
             this._fullSyncPassword = c8oBase.fullSyncPassword;
             this._headers = c8oBase._headers;
+
+            /** Date **/
+            this._normalizeParameters = c8oBase._normalizeParameters;
         }
     }
 }

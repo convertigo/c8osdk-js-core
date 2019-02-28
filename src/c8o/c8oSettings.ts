@@ -27,6 +27,16 @@ export class C8oSettings extends C8oBase {
     }
 
     /**
+     * Sets the normalizeParameters. define if we normalize parameters of every calls using JSON.parse(JSON.stringify(parameters))<br/>
+     * @param endpoint The endpoint.
+     * @returns The current <b>C8oSettings</b>, for chaining.
+     */
+    public setNormalizeParameters(normalize: boolean): C8oSettings {
+        this._normalizeParameters = normalize;
+        return this;
+    }
+
+    /**
      * Sets the endpoint (override env.json).<br/>
      * @param endpoint The endpoint.
      * @returns The current <b>C8oSettings</b>, for chaining.

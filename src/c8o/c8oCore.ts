@@ -363,7 +363,15 @@ export abstract class C8oCore extends C8oBase {
             if (parameters === null || parameters === undefined) {
                 parameters = {};
             } else {
-                //parameters = (JSON.parse(JSON.stringify(parameters)));
+                if(this._normalizeParameters == true){
+                    try {
+                        parameters = (JSON.parse(JSON.stringify(parameters)));
+                    }
+                    catch(error){
+                        this.log.debug("[C8o] can't normalize parameters due to cyclic error. We will use parameters non normalized");
+                    }
+                   
+                } 
             }
 
             const regex = C8oCore.RE_REQUESTABLE.exec(requestable);
@@ -403,7 +411,14 @@ export abstract class C8oCore extends C8oBase {
                 if (parameters == null) {
                     parameters = {};
                 } else {
-                    //parameters = (JSON.parse(JSON.stringify(parameters)));
+                    if(this._normalizeParameters == true){
+                        try {
+                            parameters = (JSON.parse(JSON.stringify(parameters)));
+                        }
+                        catch(error){
+                            this.log.debug("[C8o] can't normalize parameters due to cyclic error. We will use parameters non normalized");
+                        }
+                    }  
                 }
                 const task: C8oCallTask = new C8oCallTask(this, parameters, c8oResponseListener, c8oExceptionListener);
                 task.run();
