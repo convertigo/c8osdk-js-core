@@ -33,7 +33,9 @@ export class C8oBase {
     protected _trustStorePassword: string;
 
     //Dates
-    protected _normalizeParameters;
+    protected _normalizeParameters: boolean;
+
+    protected _keepSessionAlive: boolean = true;
 
     protected _headers: Object = {};
     /** Getters **/
@@ -45,6 +47,14 @@ export class C8oBase {
      */
     public get normalizeParameters(): boolean {
         return this._normalizeParameters;
+    }
+    /**
+     * Gets if session has to be keep alive.<br/>
+     * Default is <b>true</b>.
+     * @returns The timeout.
+     */
+    public get keepSessionAlive(): boolean {
+        return this._keepSessionAlive;
     }
 
     /**
@@ -170,6 +180,9 @@ export class C8oBase {
 
             /** Date **/
             this._normalizeParameters = c8oBase._normalizeParameters;
+
+            /**Keep ALive */
+            this._keepSessionAlive = c8oBase._keepSessionAlive;
         }
     }
 }

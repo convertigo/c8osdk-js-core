@@ -28,11 +28,21 @@ export class C8oSettings extends C8oBase {
 
     /**
      * Sets the normalizeParameters. define if we normalize parameters of every calls using JSON.parse(JSON.stringify(parameters))<br/>
-     * @param endpoint The endpoint.
+     * @param normalize boolean.
      * @returns The current <b>C8oSettings</b>, for chaining.
      */
     public setNormalizeParameters(normalize: boolean): C8oSettings {
         this._normalizeParameters = normalize;
+        return this;
+    }
+
+    /**
+     * Sets the if session has to be maintain alive<br/>
+     * @param keepAlive if session has to be keep Alive
+     * @returns The current <b>C8oSettings</b>, for chaining.
+     */
+    public setKeepSessionAlive(keepAlive: boolean): C8oSettings {
+        this._keepSessionAlive = keepAlive;
         return this;
     }
 
