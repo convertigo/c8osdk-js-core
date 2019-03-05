@@ -31,7 +31,25 @@ export class C8oPromise<T> {
     }
 
     public toObservable(): Observable<any> {
-        return fromPromise(this.async());
+        return new Observable(
+            (observer)=> {
+                this.then((response, parameters) => {
+                    if(parameters["__live"] == true || parameters["continuous"] == true){
+                        observer.next({response: response, parameters: parameters});
+                    }
+                    else{
+                        observer.next({response: response, parameters: parameters});
+                        observer.complete()
+                    }
+                    return null;
+                })
+                .progress((progress)=>{
+                    observer.next(progress);
+                })
+                .fail((error: Error, parameters: Object) => {
+                    observer.error(error);
+                });
+            });
     }
 
     public then(c8oOnResponse: (response: T, parameters: Object) => C8oPromise<T>) {
