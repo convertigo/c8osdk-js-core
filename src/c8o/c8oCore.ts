@@ -298,45 +298,7 @@ export abstract class C8oCore extends C8oBase {
      * This should be called OnPlatform Ready to remove splashscreen if necessary
      *
      */
-    public finalizeInit(): Promise<any> {
-        this.promiseFinInit = new Promise((resolve) => {
-            Promise.all([this.promiseInit]).then(() => {
-                /**
-                 * Looking for splashScreen timeOut
-                 */
-                if (this._automaticRemoveSplashsCreen) {
-                    if (navigator["splashscreen"] !== undefined) {
-                        navigator["splashscreen"].hide();
-                    }
-                }
-                /**
-                 * Looking for wkWebView
-                 */
-                if (window["wkWebView"] != undefined) {
-                    window["wkWebView"].injectCookie(this.endpointConvertigo)
-                    this.log.debug("[C8O] wkWebView detected: We will inject Cookie for endpoint: "+ this.endpointConvertigo);
-                }
-
-                /**
-                 * Looking for cblite
-                 */
-                if (window["cblite"] != undefined) {
-                    window["cblite"].getURL((err, url) => {
-                        if (err) {
-                            resolve();
-                        } else {
-                            url = url.replace(new RegExp("/$"), "");
-                            this.couchUrl = url;
-                            resolve();
-                        }
-                    });
-                } else {
-                    resolve();
-                }
-            });
-        });
-        return this.promiseFinInit;
-    }
+    public abstract finalizeInit(): Promise<any>;
 
     protected extractendpoint() {
         if (!C8oUtilsCore.isValidUrl(this.endpoint)) {
