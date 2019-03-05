@@ -1,6 +1,6 @@
 {
   "name": "c8osdkjscore",
-  "version": "1.0.7-beta4",
+  "version": "1.0.7-beta5",
   "description": "convertigo's sdk js core",
   "main": "bundle/index.umd.js",
   "module": "src/index.js",
