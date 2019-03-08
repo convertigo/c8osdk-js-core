@@ -59,9 +59,13 @@ export class C8oFullSyncDatabase {
         };
         Object.assign(header, this.c8o.headers);
         this.remotePouchHeader = {
-            ajax: {
-                headers: header,
-            },
+            fetch: (url, opts)=> {
+                opts.credentials = 'include';
+                for(let key in header){
+                    opts.headers.set(key, header[key]);
+                }
+                return PouchDB.fetch(url, opts);
+            }
         };
         this.c8oFullSyncDatabaseUrl = fullSyncDatabases + databaseName;
         this.databaseName = databaseName + localSuffix;
