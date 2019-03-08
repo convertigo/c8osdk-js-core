@@ -1,20 +1,20 @@
-import {C8oBase} from "./c8oBase";
-import {C8oHttpInterfaceCore} from "./c8oHttpInterfaceCore";
-import {C8oLogger} from "./c8oLogger";
-import {C8oLogLevel} from "./c8oLogLevel";
-import {C8oSettings} from "./c8oSettings";
-import {C8oUtilsCore} from "./c8oUtilsCore";
+import { C8oBase } from "./c8oBase";
+import { C8oHttpInterfaceCore } from "./c8oHttpInterfaceCore";
+import { C8oLogger } from "./c8oLogger";
+import { C8oLogLevel } from "./c8oLogLevel";
+import { C8oSettings } from "./c8oSettings";
+import { C8oUtilsCore } from "./c8oUtilsCore";
 
-import {C8oFullSync, C8oFullSyncCbl} from "./c8oFullSync";
-import {C8oResponseJsonListener, C8oResponseListener} from "./c8oResponse";
-import {C8oExceptionMessage} from "./Exception/c8oExceptionMessage";
+import { C8oFullSync, C8oFullSyncCbl } from "./c8oFullSync";
+import { C8oResponseJsonListener, C8oResponseListener } from "./c8oResponse";
+import { C8oExceptionMessage } from "./Exception/c8oExceptionMessage";
 
-import {C8oCallTask} from "./c8oCallTask";
-import {C8oFullSyncChangeListener} from "./c8oFullSyncChangeListener";
-import {C8oPromise} from "./c8oPromise";
-import {C8oCouchBaseLiteException} from "./Exception/c8oCouchBaseLiteException";
-import {C8oException} from "./Exception/c8oException";
-import {C8oExceptionListener} from "./Exception/c8oExceptionListener";
+import { C8oCallTask } from "./c8oCallTask";
+import { C8oFullSyncChangeListener } from "./c8oFullSyncChangeListener";
+import { C8oPromise } from "./c8oPromise";
+import { C8oCouchBaseLiteException } from "./Exception/c8oCouchBaseLiteException";
+import { C8oException } from "./Exception/c8oException";
+import { C8oExceptionListener } from "./Exception/c8oExceptionListener";
 
 declare var require: any;
 /**
@@ -265,7 +265,7 @@ export abstract class C8oCore extends C8oBase {
     public abstract get sdkVersion(): string;
 
     public get coreVersion(): string {
-        return  "1.0.7";//require("../../package.json").version;
+        return "1.0.7";//require("../../package.json").version;
     }
 
     /**
@@ -333,17 +333,16 @@ export abstract class C8oCore extends C8oBase {
             if (parameters === null || parameters === undefined) {
                 parameters = {};
             } else {
-                if(this._normalizeParameters == true){
+                if (this._normalizeParameters == true) {
                     try {
                         parameters = (JSON.parse(JSON.stringify(parameters)));
                     }
-                    catch(error){
+                    catch (error) {
                         this.log.debug("[C8o] can't normalize parameters due to cyclic error. We will use parameters non normalized");
                     }
-                   
-                } 
-            }
 
+                }
+            }
             const regex = C8oCore.RE_REQUESTABLE.exec(requestable);
             if (regex === null || regex === undefined) {
                 //noinspection ExceptionCaughtLocallyJS
@@ -381,14 +380,14 @@ export abstract class C8oCore extends C8oBase {
                 if (parameters == null) {
                     parameters = {};
                 } else {
-                    if(this._normalizeParameters == true){
+                    if (this._normalizeParameters == true) {
                         try {
                             parameters = (JSON.parse(JSON.stringify(parameters)));
                         }
-                        catch(error){
+                        catch (error) {
                             this.log.debug("[C8o] can't normalize parameters due to cyclic error. We will use parameters non normalized");
                         }
-                    }  
+                    }
                 }
                 const task: C8oCallTask = new C8oCallTask(this, parameters, c8oResponseListener, c8oExceptionListener);
                 task.run();
@@ -415,7 +414,7 @@ export abstract class C8oCore extends C8oBase {
     public callJsonObject(requestable: string, parameters: Object): C8oPromise<JSON> {
         const promise: C8oPromise<JSON> = new C8oPromise<JSON>(this);
         this.call(requestable, parameters, new C8oResponseJsonListener((response: any, requestParameters: Object) => {
-            if(requestParameters == null){
+            if (requestParameters == null) {
                 requestParameters = {};
             }
             if (response == null && requestParameters[C8oCore.ENGINE_PARAMETER_PROGRESS]) {
@@ -424,9 +423,9 @@ export abstract class C8oCore extends C8oBase {
                 promise.onResponse(response, requestParameters);
             }
         }),
-        new C8oExceptionListener((exception: C8oException, data: Object) => {
-            promise.onFailure(exception, data);
-        }));
+            new C8oExceptionListener((exception: C8oException, data: Object) => {
+                promise.onFailure(exception, data);
+            }));
         return promise;
     }
 
@@ -568,33 +567,30 @@ export class FullSyncPolicy {
     });
 
     public static CREATE: FullSyncPolicy = new FullSyncPolicy(C8oCore.FS_POLICY_CREATE, (database: any, newProperties: Object) => {
-        try {
-            delete newProperties[C8oFullSync.FULL_SYNC__ID];
-            delete newProperties[C8oFullSync.FULL_SYNC__REV];
-            return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
+            try {
+                delete newProperties[C8oFullSync.FULL_SYNC__ID];
+                delete newProperties[C8oFullSync.FULL_SYNC__REV];
                 database.post(newProperties).then((createdDocument) => {
                     resolve(createdDocument);
                 });
-            });
-        } catch (error) {
-            throw new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error);
-        }
+            } catch (error) {
+                reject(new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error));
+            }
+        });
     });
 
     public static OVERRIDE: FullSyncPolicy = new FullSyncPolicy(C8oCore.FS_POLICY_OVERRIDE, (database: any, newProperties: Object) => {
-        try {
-            const documentId: string = C8oUtilsCore.getParameterStringValue(newProperties, C8oFullSync.FULL_SYNC__ID, false);
-            delete newProperties[C8oFullSync.FULL_SYNC__ID];
-            delete newProperties[C8oFullSync.FULL_SYNC__REV];
-
-            if (documentId == null) {
-                return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
+            try {
+                const documentId: string = C8oUtilsCore.getParameterStringValue(newProperties, C8oFullSync.FULL_SYNC__ID, false);
+                delete newProperties[C8oFullSync.FULL_SYNC__ID];
+                delete newProperties[C8oFullSync.FULL_SYNC__REV];
+                if (documentId == null) {
                     database.post(newProperties).then((createdDocument) => {
                         resolve(createdDocument);
                     });
-                });
-            } else {
-                return new Promise((resolve, reject) => {
+                } else {
                     database.get(documentId).then((doc) => {
                         newProperties["_id"] = documentId;
                         newProperties["_rev"] = doc._rev;
@@ -602,40 +598,37 @@ export class FullSyncPolicy {
                     }).then((createdDocument) => {
                         resolve(createdDocument);
                     }).catch((error) => {
-                            if (error.status === "404" || error.status === 404) {
-                                newProperties["_id"] = documentId;
-                                return database.post(newProperties);
-                            } else {
-                                reject(error);
-                            }
-                        },
+                        if (error.status === "404" || error.status === 404) {
+                            newProperties["_id"] = documentId;
+                            return database.post(newProperties);
+                        } else {
+                            reject(error);
+                        }
+                    },
                     ).then((createdDocument) => {
                         resolve(createdDocument);
                     });
-                });
+                }
+            } catch (error) {
+                reject(new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error));
             }
-        } catch (error) {
-            throw new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error);
-        }
+        });
     });
 
     public static MERGE: FullSyncPolicy = new FullSyncPolicy(C8oCore.FS_POLICY_MERGE, (database: any, newProperties: Object) => {
-        try {
-            const documentId: string = C8oUtilsCore.getParameterStringValue(newProperties, C8oFullSync.FULL_SYNC__ID, false);
-            // delete newProperties[C8oFullSync.FULL_SYNC__ID];
-            delete newProperties[C8oFullSync.FULL_SYNC__REV];
+        return new Promise((resolve, reject) => {
+            try {
+                const documentId: string = C8oUtilsCore.getParameterStringValue(newProperties, C8oFullSync.FULL_SYNC__ID, false);
+                // delete newProperties[C8oFullSync.FULL_SYNC__ID];
+                delete newProperties[C8oFullSync.FULL_SYNC__REV];
 
-            if (documentId == null) {
-                return new Promise((resolve, reject) => {
-
+                if (documentId == null) {
                     database.put(newProperties).then((createdDocument) => {
                         resolve(createdDocument);
                     }).catch((error) => {
                         reject(new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error));
                     });
-                });
-            } else {
-                return new Promise((resolve, reject) => {
+                } else {
                     database.get(documentId).then((doc) => {
                         C8oFullSyncCbl.mergeProperties(newProperties, doc);
                         database.put(newProperties).then((createdDocument) => {
@@ -656,11 +649,11 @@ export class FullSyncPolicy {
                             reject(new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error));
                         }
                     });
-                });
+                }
+            } catch (error) {
+                reject(new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error));
             }
-        } catch (error) {
-            throw new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error);
-        }
+        });
     });
 
     public value: string;
