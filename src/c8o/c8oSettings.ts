@@ -1,5 +1,6 @@
 import {C8oBase} from "./c8oBase";
 import {C8oLogLevel} from "./c8oLogLevel";
+import { Subject } from 'rxjs';
 
 /**
  * Contains optional parameters of a C8o class instantiation.<br/>
@@ -245,4 +246,31 @@ export class C8oSettings extends C8oBase {
         this._useEncryption = useEncryption;
         return this;
     }
+}
+
+export interface InfoEvents {
+    online: boolean;
+    loggedin: boolean;
+    replicationsActive:boolean;
+    timeBettweenCheckSession:boolean;
+    timeToChecksession:boolean;
+}
+export interface topicEvents {
+    code: number;
+    description: string;
+    response: boolean;
+}  
+
+
+export class C8oEvents  {
+
+    public info :InfoEvents;
+    public topic: topicEvents;
+    public subect :Subject<C8oEvents>;
+
+    constructor() {
+        
+    }
+
+
 }

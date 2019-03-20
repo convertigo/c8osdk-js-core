@@ -121,16 +121,81 @@ export class C8oFullSync {
     }
 
 }
-
+import {ReplicationState} from "./fullSyncDatabase"
 export class C8oFullSyncCbl extends C8oFullSync {
     private static ATTACHMENT_PROPERTY_KEY_CONTENT_URL: string = "content_url";
     private fullSyncDatabases: Object;
     private fullSyncChangeListeners: C8oFullSyncChangeListener[][] = [];
     private cblChangeListeners: any[] = [];
+    public replicationsToRestart: Array<ReplicationState>  = [];
+    public canceled = false;
 
     constructor(c8o: C8oCore) {
         super(c8o);
         this.fullSyncDatabases = {};
+    }
+
+    /**
+     * Get all actives replications, cancel and store them 
+     */
+    public cancelActiveReplications(){
+        this.replicationsToRestart = [];
+        for(let db in this.fullSyncDatabases){
+            if(!(this.fullSyncDatabases[db] as C8oFullSyncDatabase).pullState == false && (this.fullSyncDatabases[db] as C8oFullSyncDatabase).pullState != "cancelled"){
+                let rState: ReplicationState = (this.fullSyncDatabases[db] as C8oFullSyncDatabase).cancelPullReplication();
+                rState.database = this.fullSyncDatabases[db];
+                this.replicationsToRestart.push(rState);
+                this.c8o.log.debug("[C8o][cancelActiveReplications] stopping replication " + rState.database.getdatabseName + ".replicate_pull " + (rState.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
+            }
+            if(!(this.fullSyncDatabases[db] as C8oFullSyncDatabase).pushState == false && (this.fullSyncDatabases[db] as C8oFullSyncDatabase).pushState != "cancelled"){
+                let rState: ReplicationState = (this.fullSyncDatabases[db] as C8oFullSyncDatabase).cancelPushReplication();
+                rState.database = this.fullSyncDatabases[db];
+                this.replicationsToRestart.push(rState);
+                this.c8o.log.debug("[C8o][cancelActiveReplications] stopping replication for database " + rState.database.getdatabseName + ".replicate_push" + (rState.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
+            }
+            if(!(this.fullSyncDatabases[db] as C8oFullSyncDatabase).syncState == false && (this.fullSyncDatabases[db] as C8oFullSyncDatabase).syncState != "cancelled"){
+                let rState: ReplicationState = (this.fullSyncDatabases[db] as C8oFullSyncDatabase).cancelSyncReplication();
+                rState.database = this.fullSyncDatabases[db];
+                this.replicationsToRestart.push(rState);
+                this.c8o.log.debug("[C8o][cancelActiveReplications] stopping replication for database " + rState.database.getdatabseName + ".sync" + (rState.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
+            }
+        }
+        this.canceled == true;
+    }
+    /**
+     * Get all paused replications, (due to offline or session losses) and restart them 
+     */
+    public restartStoppedReplications(){
+        this.canceled == false;
+        for(let el of this.replicationsToRestart){
+            switch(el.type){
+                case "sync":
+                    this.c8o.log.debug("[C8o][restartStoppedReplications] restarting replication for database " + el.database.getdatabseName + " and verb sync " + (el.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
+                    el.database.startAllReplications(el.parameters, el.listener);
+                break;
+                case "push":
+                    this.c8o.log.debug("[C8o][restartStoppedReplications] restarting replication for database " + el.database.getdatabseName + " and verb push " + (el.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
+                    el.database.startPushReplication(el.parameters, el.listener);
+                break;
+                case "pull":
+                    this.c8o.log.debug("[C8o][restartStoppedReplications] restarting replication for database " + el.database.getdatabseName + " and verb pull " + (el.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
+                    el.database.startPullReplication(el.parameters, el.listener);
+                break;
+            }
+        }
+        let nb = this.replicationsToRestart.length;
+        let str = "";
+        if(nb == 0 || nb == undefined){
+            str = "There is no replication to restart";
+        }
+        else if(nb == 1){
+            str  = " "+ nb +" replication has been restarted"
+        }
+        else if(nb > 1){
+            str  = " "+ nb +" replications has been restarted"
+        }
+        this.c8o.log.debug("[C8o][restartStoppedReplications] "+ str);
+        this.replicationsToRestart = [];
     }
 
     /**

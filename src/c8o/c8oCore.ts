@@ -2,7 +2,7 @@ import { C8oBase } from "./c8oBase";
 import { C8oHttpInterfaceCore } from "./c8oHttpInterfaceCore";
 import { C8oLogger } from "./c8oLogger";
 import { C8oLogLevel } from "./c8oLogLevel";
-import { C8oSettings } from "./c8oSettings";
+import { C8oSettings, C8oEvents } from "./c8oSettings";
 import { C8oUtilsCore } from "./c8oUtilsCore";
 
 import { C8oFullSync, C8oFullSyncCbl } from "./c8oFullSync";
@@ -15,6 +15,8 @@ import { C8oPromise } from "./c8oPromise";
 import { C8oCouchBaseLiteException } from "./Exception/c8oCouchBaseLiteException";
 import { C8oException } from "./Exception/c8oException";
 import { C8oExceptionListener } from "./Exception/c8oExceptionListener";
+import { Observable, Subject } from 'rxjs';
+import { reject } from 'q';
 
 declare var require: any;
 /**
@@ -156,12 +158,18 @@ export abstract class C8oCore extends C8oBase {
     public lives: C8oCallTask[] = [];
     public livesDb: string[] = [];
 
+    public subscriber_session: Subject<C8oEvents>;
+    protected subscriberC8oEvents: Subject<C8oEvents>;
+
+    private _reply = new Subject<any>();
+
     protected data: any;
     protected _http: any;
     protected _couchUrl: string = null;
     protected promiseConstructor: Promise<any>;
     protected promiseInit: Promise<any>;
     protected promiseFinInit: Promise<any>;
+
 
     public get couchUrl(): string {
         return this._couchUrl;
@@ -281,6 +289,8 @@ export abstract class C8oCore extends C8oBase {
         super();
         this.data = null;
         this.c8oLogger = new C8oLogger(this, true);
+        this.subscriber_session = new Subject<C8oEvents>();
+        this.subscriberC8oEvents = new Subject<C8oEvents>();
     }
     /**
      * This is the base object representing a Convertigo Server end point. This object should be instantiated
@@ -314,6 +324,7 @@ export abstract class C8oCore extends C8oBase {
         this.endpointPort = matches[3];
         this.endpointProject = matches[4];
     }
+
 
     /**
      * Makes a c8o call with c8o requestable out of parameters.<br/>
@@ -473,6 +484,57 @@ export abstract class C8oCore extends C8oBase {
         if (c8oExceptionListener != null) {
             c8oExceptionListener.onException(exception, requestParameters);
         }
+    }
+
+    /**
+     * Return an subject that call next if session has been lost
+     */
+    public handleSessionLost(): Subject<any> {
+        //new
+        /*this.subscriberC8oEvents.subscribe((c8oEvent: C8oEvents)=>{
+            if(c8oEvent.topic.response == true){
+                switch(c8oEvent.topic.code){
+                    case 1:
+                        this.
+                    break;
+                    case 1:
+                    
+                    break;
+                    case 1:
+                    
+                    break;
+                    case 1:
+                    
+                    break;
+                    case 1:
+                    
+                    break;
+                }
+            }
+            
+
+        });*/
+
+
+
+        //fnew
+
+
+
+        this.subscriber_session.subscribe((res)=>{
+            this.c8oLogger.warn("Handle a session lost");
+            /*if(res.abc != undefined){
+                console.log(res.abc);
+            }*/
+        });
+        return this.subscriber_session;
+    }
+
+    public reply(): Subject<any>{
+        this._reply.subscribe((res)=>{
+            console.log(res);
+        });
+        return this._reply;
     }
 
     /**

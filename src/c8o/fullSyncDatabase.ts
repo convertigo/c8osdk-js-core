@@ -6,6 +6,7 @@ import {FullSyncReplication} from "./fullSyncReplication";
 import PouchDB from "pouchdb-browser";
 
 import * as PouchDBLoad from "pouchdb-load";
+import { repeat } from 'rxjs/operators';
 
 /**
  * Created by charlesg on 10/01/2017.
@@ -32,14 +33,17 @@ export class C8oFullSyncDatabase {
      * Used to make pull replication (uploads changes from the local database to the remote one).
      */
     private pullFullSyncReplication: FullSyncReplication = new FullSyncReplication(true);
+    private pullFullSyncReplicationState: ReplicationState = {listener:null, database:null, parameters: null, type:"pull"};
     /**
      * Used to make push replication (downloads changes from the remote database to the local one).
      */
     private pushFullSyncReplication: FullSyncReplication = new FullSyncReplication(false);
+    private pushFullSyncReplicationState: ReplicationState = {listener:null, database:null, parameters: null, type:"push"};
     /**
      * Used to make pull replication (uploads changes from the local database to the remote one).
      */
     private syncFullSyncReplication: FullSyncReplication = new FullSyncReplication();
+    private syncFullSyncReplicationState: ReplicationState = {listener:null, database:null, parameters: null, type:"sync"};
 
     private remotePouchHeader;
 
@@ -88,6 +92,9 @@ export class C8oFullSyncDatabase {
      * @returns Promise<any>
      */
     public startAllReplications(parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
+        this.syncFullSyncReplicationState.listener = c8oResponseListener;
+        this.syncFullSyncReplicationState.parameters = parameters;
+        this.pullFullSyncReplicationState.type = "sync";
         return this.startSync(this.syncFullSyncReplication, parameters, c8oResponseListener);
     }
 
@@ -96,6 +103,9 @@ export class C8oFullSyncDatabase {
      * @returns Promise<any>
      */
     public startPullReplication(parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
+        this.pullFullSyncReplicationState.listener = c8oResponseListener;
+        this.pullFullSyncReplicationState.parameters = parameters;
+        this.pullFullSyncReplicationState.type = "pull";
         return this.startReplication(this.pullFullSyncReplication, parameters, c8oResponseListener);
     }
 
@@ -104,6 +114,9 @@ export class C8oFullSyncDatabase {
      * @returns Promise<any>
      */
     public startPushReplication(parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
+        this.pushFullSyncReplicationState.listener = c8oResponseListener;
+        this.pushFullSyncReplicationState.parameters = parameters;
+        this.pushFullSyncReplicationState.type = "push"
         return this.startReplication(this.pushFullSyncReplication, parameters, c8oResponseListener);
     }
 
@@ -504,4 +517,71 @@ export class C8oFullSyncDatabase {
             }
         });
     }
+
+    /**
+     * cancel Pull Replication
+     */
+    public cancelPullReplication():ReplicationState{
+        this.pullFullSyncReplication.replication.cancel();
+        return this.pullFullSyncReplicationState;
+    }
+
+    /**
+     * cancel Push Replication
+     */
+    public cancelPushReplication():ReplicationState{
+        this.pushFullSyncReplication.replication.cancel();
+        return this.pushFullSyncReplicationState;
+    }
+
+    /**
+     * cancel Sync Replication
+     */
+    public cancelSyncReplication():ReplicationState{
+        this.syncFullSyncReplication.replication.cancel();
+        return this.syncFullSyncReplicationState;
+    }
+
+    /**
+     * return current pull replication state or false if replication does not exists
+     */
+    public get pullState(){
+        if(this.pullFullSyncReplication.replication != null){
+            return this.pullFullSyncReplication.replication.state;
+        }
+        else{
+            return false;
+        }
+    }
+
+    /**
+     * return current push replication State or false if replication does not exists
+     */
+    public get pushState(){
+        if(this.pushFullSyncReplication.replication != null){
+            return this.pushFullSyncReplication.replication.state;
+        }
+        else{
+            return false;
+        }
+    }
+
+    /**
+     * return current sync replication State or false if replication does not exists
+     */
+    public get syncState(){
+        if(this.syncFullSyncReplication.replication != null){
+            return this.syncFullSyncReplication.replication.pull.state;
+        }
+        else{
+            return false;
+        }
+    }
+}
+
+export interface ReplicationState{
+    listener:any;
+    parameters:any;
+    type:any;
+    database: C8oFullSyncDatabase;
 }
