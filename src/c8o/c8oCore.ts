@@ -2,7 +2,7 @@ import { C8oBase } from "./c8oBase";
 import { C8oHttpInterfaceCore } from "./c8oHttpInterfaceCore";
 import { C8oLogger } from "./c8oLogger";
 import { C8oLogLevel } from "./c8oLogLevel";
-import { C8oSettings, C8oEvents } from "./c8oSettings";
+import { C8oSettings } from "./c8oSettings";
 import { C8oUtilsCore } from "./c8oUtilsCore";
 
 import { C8oFullSync, C8oFullSyncCbl } from "./c8oFullSync";
@@ -158,8 +158,7 @@ export abstract class C8oCore extends C8oBase {
     public lives: C8oCallTask[] = [];
     public livesDb: string[] = [];
 
-    public subscriber_session: Subject<C8oEvents>;
-    protected subscriberC8oEvents: Subject<C8oEvents>;
+    public subscriber_session: Subject<any>;
 
     private _reply = new Subject<any>();
 
@@ -289,8 +288,7 @@ export abstract class C8oCore extends C8oBase {
         super();
         this.data = null;
         this.c8oLogger = new C8oLogger(this, true);
-        this.subscriber_session = new Subject<C8oEvents>();
-        this.subscriberC8oEvents = new Subject<C8oEvents>();
+        this.subscriber_session = new Subject<any>();
     }
     /**
      * This is the base object representing a Convertigo Server end point. This object should be instantiated
@@ -490,42 +488,8 @@ export abstract class C8oCore extends C8oBase {
      * Return an subject that call next if session has been lost
      */
     public handleSessionLost(): Subject<any> {
-        //new
-        /*this.subscriberC8oEvents.subscribe((c8oEvent: C8oEvents)=>{
-            if(c8oEvent.topic.response == true){
-                switch(c8oEvent.topic.code){
-                    case 1:
-                        this.
-                    break;
-                    case 1:
-                    
-                    break;
-                    case 1:
-                    
-                    break;
-                    case 1:
-                    
-                    break;
-                    case 1:
-                    
-                    break;
-                }
-            }
-            
-
-        });*/
-
-
-
-        //fnew
-
-
-
         this.subscriber_session.subscribe((res)=>{
-            this.c8oLogger.warn("Handle a session lost");
-            /*if(res.abc != undefined){
-                console.log(res.abc);
-            }*/
+            this.c8oLogger.debug("[C8o][handleSessionLost] Handle a session lost");
         });
         return this.subscriber_session;
     }

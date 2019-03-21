@@ -247,30 +247,3 @@ export class C8oSettings extends C8oBase {
         return this;
     }
 }
-
-export interface InfoEvents {
-    online: boolean;
-    loggedin: boolean;
-    replicationsActive:boolean;
-    timeBettweenCheckSession:boolean;
-    timeToChecksession:boolean;
-}
-export interface topicEvents {
-    code: number;
-    description: string;
-    response: boolean;
-}  
-
-
-export class C8oEvents  {
-
-    public info :InfoEvents;
-    public topic: topicEvents;
-    public subect :Subject<C8oEvents>;
-
-    constructor() {
-        
-    }
-
-
-}
