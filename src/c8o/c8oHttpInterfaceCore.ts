@@ -168,49 +168,66 @@ export abstract class C8oHttpInterfaceCore {
         Object.assign(headersObject, this.c8o.headers);
         let headers = this.getHeaders(headersObject);
         if (this.firstCall) {
-            //this.checkSessionR(headers, 0, true);
             this.p1 = new Promise((resolve, reject) => {
                 this.firstCall = false;
-                //parameters['observe'] = 'response';
-                this.httpPostObservable(url, parameters, {
-                    headers: headers,
-                    withCredentials: true,
-                    observe: 'response'
-                })
-                    .retry(1)
-                    .subscribe(
-                        response =>{
-                            this.triggerSessionCheck(response, headers);                 
-                            resolve(response.body)
-                        },
-                        error => {resolve({"error" : (new C8oHttpRequestException(C8oExceptionMessage.runHttpRequest(), error))}); }
-                    );
+                this.execHttpPosts(url, parameters, headers, resolve, reject);
             });
             return this.p1;
         }
         else {
             return new Promise((resolve, reject) => {
                 Promise.all([this.p1]).then(() => {
-                    //parameters['observe'] = 'response';
-                    this.httpPostObservable(url, parameters, {
-                        headers: headers,
-                        withCredentials: true,
-                        observe: 'response'
-                    })
-                        .retry(1)
-                        .subscribe(
-                            response =>{
-                                this.triggerSessionCheck(response, headers);        
-                                resolve(response.body)
-                            },
-                            error => { reject((new C8oHttpRequestException(C8oExceptionMessage.runHttpRequest(), error))); }
-                        );
-
+                    this.execHttpPosts(url, parameters, headers, resolve, reject);
                 }).catch((error) => {
                     reject(error);
                 });
             });
         }
+    }
+    
+    /**
+     * Execute http Posts 
+     * @param url 
+     * @param parameters 
+     * @param headers 
+     * @param resolve 
+     * @param reject 
+     */
+    private execHttpPosts(url:string, parameters:any, headers:any, resolve, reject){
+        this.httpPostObservable(url, parameters, {
+            headers: headers,
+            withCredentials: true,
+            observe: 'response'
+        })
+        .retry(1)
+        .subscribe(
+            response =>{
+                this.handleResponseHttpPost(response, headers, resolve);
+            },
+            error => {
+                this.handleErrorHttpPost(error, reject);
+            }
+        );
+    }
+
+    /**
+     * Handle response of http Posts
+     * @param response 
+     * @param headers 
+     * @param resolve 
+     */
+    private handleResponseHttpPost(response:any, headers:any , resolve:any){
+        this.triggerSessionCheck(response, headers);                 
+        resolve(response.body)
+    }
+
+    /**
+     * Handle errors of http Posts
+     * @param error 
+     * @param reject 
+     */
+    private handleErrorHttpPost(error:any, reject:any){
+        reject((new C8oHttpRequestException(C8oExceptionMessage.runHttpRequest(), error)));
     }
 
     /**
@@ -450,17 +467,62 @@ export abstract class C8oHttpInterfaceCore {
         if (this.firstCall) {
             this.p1 = new Promise((resolve) => {
                 this.firstCall = false;
-                this.getuploadRequester(url, form, headersObject,progress,parameters,c8oResponseListener,varNull,resolve);
+                this.getuploadRequester(url, form, headersObject)
+                .subscribe(
+                    event=>{
+                        this.handleResponseFileUpload(event, progress, parameters, c8oResponseListener, varNull, resolve); 
+                    },
+                    error => { 
+                        this.handleErrorFileUpload(error, resolve);
+                    });
             });
             return this.p1;
         }
         else {
             return new Promise((resolve, reject) => {
                 Promise.all([this.p1]).then(() => {
-                    this.getuploadRequester(url, form, headersObject,progress,parameters,c8oResponseListener,varNull,resolve);
+                    this.getuploadRequester(url, form, headersObject)
+                    .subscribe(
+                        event=>{
+                            this.handleResponseFileUpload(event, progress, parameters, c8oResponseListener, varNull, resolve);      
+                        },
+                        error => { 
+                            this.handleErrorFileUpload(error, resolve);
+                        });
                 });
             });
         }
+    }
+
+    /**
+     * handle FileuploadResponses
+     * @param event 
+     * @param progress 
+     * @param parameters 
+     * @param c8oResponseListener 
+     * @param varNull 
+     * @param resolve 
+     */
+    public handleResponseFileUpload(event:any, progress: C8oProgress, parameters: Object, c8oResponseListener: C8oResponseListener, varNull:any, resolve):void{
+        if(!this.js){
+            if (event.type === 1) {
+                this.handleProgress(event, progress, parameters, c8oResponseListener, varNull);
+            } else if (this.isHttpResponse(event)) {
+                resolve(event);
+            }
+        }
+        else{
+            console.error("MUST BE DONE");
+        }
+    }
+
+    /**
+     * Handle errors for file upload
+     * @param error 
+     * @param resolve 
+     */
+    private handleErrorFileUpload(error:any, resolve:any): void {
+        resolve({"error": (new C8oHttpRequestException(C8oExceptionMessage.runHttpRequest(), error))});
     }
 
     /**
@@ -492,15 +554,16 @@ export abstract class C8oHttpInterfaceCore {
     public abstract getHeaders(object):any;
 
     /**
-     * Angular implementation to post with progress
+     * Post with progress
      * @param url the url to post
      * @param form the form data to post
      * @param headersObject Headers to use
-     * @param progress C8oprogress object
-     * @param parameters Given parameters
-     * @param c8oResponseListener ResponseListener
-     * @param varNull null var
-     * @param resolve parents header
      */
-    public abstract getuploadRequester(url:string, form: FormData, headersObject:any, progress: C8oProgress, parameters: Object, c8oResponseListener: C8oResponseListener, varNull:any, resolve:any): void;
+    public abstract getuploadRequester(url:string, form: FormData, headersObject:any): Observable<any>;
+
+    /**
+     * test type of response
+     * @param event any
+     */
+    public abstract isHttpResponse(event:any):boolean;
 }
