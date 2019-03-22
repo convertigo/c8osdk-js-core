@@ -332,7 +332,13 @@ export class C8oLogger {
                 for (const param of parameters) {
                     let paramStr = "null";
                     if (parameters != null) {
-                        paramStr = JSON.stringify(param);
+                        try{
+                            paramStr = JSON.stringify(param);
+                        }
+                        catch(error){
+                            paramStr = "cannot view value due to circular reference";
+                        }
+                        
                     }
                     methodCallLogMessage += "\n" + paramStr + ", ";
                 }
