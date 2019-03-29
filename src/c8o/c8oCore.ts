@@ -169,7 +169,15 @@ export abstract class C8oCore extends C8oBase {
     protected promiseInit: Promise<any>;
     protected promiseFinInit: Promise<any>;
     protected replicationsToRestart : Array<any>;
+    private _loggedin: boolean;
 
+    public get loggedin(): boolean {
+        return this._loggedin;
+    }
+
+    public set loggedin(value: boolean) {
+        this._loggedin = value;
+    }
 
     public get couchUrl(): string {
         return this._couchUrl;
@@ -290,6 +298,7 @@ export abstract class C8oCore extends C8oBase {
         this.data = null;
         this.c8oLogger = new C8oLogger(this, true);
         this.subscriber_session = new Subject<any>();
+        this.loggedin = false;
     }
 
     protected extractendpoint() {
@@ -569,40 +578,22 @@ export abstract class C8oCore extends C8oBase {
             this.c8oLogger.info("[C8o] Network offline detected");
             this.c8oLogger.info("[C8o] Setting remote logs to false");
             (this.c8oFullSync as C8oFullSyncCbl).cancelActiveReplications();
-
-
-
         }, false);
     }
+    
     /**
      * Listen online status to restart replications check for authenticated status and active log remote
      */
     protected listenOnLine(){
         window.addEventListener("online", () => {
+            this.log.info("Network online");
             this.httpInterface.firstcheckSessionR  = false;
             if (this._initialLogRemote && !this.logRemote) {
                 this.logRemote = true;
-                this.log.info("[C8o][online] Notwork online Setting remote logs to true");
+                this.log.info("[C8o][online] setting remote logs to true");
             }
             this.log.info("[C8o][online] We will check for an existing session");
-            this.httpInterface.checkSession()
-            .retry(1)
-            .subscribe(
-                response => {
-                    if(!response["authenticated"]){
-                        this.log.debug("[C8o][online][checkSession] Session has been dropped");
-                        this.subscriber_session.next();
-                    }
-                    else{
-                        this.log.debug("[C8o][online][checkSession] Session still Alive we will restart replications");
-                        (this.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
-                    }
-                },
-                error => {
-                    this.log.error("[C8o][online][checkSession][online] error happened pooling session", error);
-                }
-            );
-            this.log.info("Network online");
+            this.httpInterface.checkSessionOnce();
         }, false);
     }
 

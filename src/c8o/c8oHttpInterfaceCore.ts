@@ -100,6 +100,7 @@ export abstract class C8oHttpInterfaceCore {
                             let timeR = +response['maxInactive'] * 0.85 * 1000;
                             this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Pooling for session, next check will be in " +timeR + "ms");
                             this._timeout = this.checkSessionR(headers, timeR, session);
+                            (this.c8o.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
                         }
                     },
                     error => {
@@ -107,6 +108,27 @@ export abstract class C8oHttpInterfaceCore {
                      }
                 );
         }, time)
+    }
+
+    public checkSessionOnce(){
+        this.checkSession()
+            .retry(1)
+            .subscribe(
+                response => {
+                    if(!response["authenticated"]){
+                        this.c8o.log.debug("[C8o][online][checkSession] Session has been dropped");
+                        this.c8o.subscriber_session.next();
+                        
+                    }
+                    else{
+                        this.c8o.log.debug("[C8o][online][checkSession] Session still Alive we will restart replications");
+                        (this.c8o.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
+                    }
+                },
+                error => {
+                    this.c8o.log.error("[C8o][online][checkSession][online] error happened pooling session", error);
+                }
+            );
     }
 
     /**

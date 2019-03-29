@@ -92,10 +92,15 @@ export class C8oFullSyncDatabase {
      * @returns Promise<any>
      */
     public startAllReplications(parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
-        this.syncFullSyncReplicationState.listener = c8oResponseListener;
-        this.syncFullSyncReplicationState.parameters = parameters;
-        this.pullFullSyncReplicationState.type = "sync";
-        return this.startSync(this.syncFullSyncReplication, parameters, c8oResponseListener);
+        this.assignState(c8oResponseListener,parameters,"sync");
+        if(this.checkState()){
+            return this.startSync(this.syncFullSyncReplication, parameters, c8oResponseListener);
+        }
+        else{
+            this.c8o.log.debug("[C8O][fullsyncDatabase] waiting for network to start replication");
+            return new Promise(()=>{});
+        }
+        
     }
 
     /**
@@ -103,10 +108,14 @@ export class C8oFullSyncDatabase {
      * @returns Promise<any>
      */
     public startPullReplication(parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
-        this.pullFullSyncReplicationState.listener = c8oResponseListener;
-        this.pullFullSyncReplicationState.parameters = parameters;
-        this.pullFullSyncReplicationState.type = "pull";
-        return this.startReplication(this.pullFullSyncReplication, parameters, c8oResponseListener);
+        this.assignState(c8oResponseListener,parameters,"pull");
+        if(this.checkState()){
+            return this.startReplication(this.pullFullSyncReplication, parameters, c8oResponseListener);
+        }
+        else{
+            this.c8o.log.debug("[C8O][fullsyncDatabase] waiting for network to start replication");
+            return new Promise(()=>{});
+        }
     }
 
     /**
@@ -114,10 +123,39 @@ export class C8oFullSyncDatabase {
      * @returns Promise<any>
      */
     public startPushReplication(parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
+        this.assignState(c8oResponseListener,parameters,"push");
+        this.assignState(c8oResponseListener,parameters,"pull");
+        if(this.checkState()){
+            return this.startReplication(this.pushFullSyncReplication, parameters, c8oResponseListener);
+        }
+        else{
+            this.c8o.log.debug("[C8O][fullsyncDatabase] waiting for network to start replication");
+            return new Promise(()=>{});
+        }
+    }
+
+    /**
+     * Save state for a given replication
+     * @param c8oResponseListener 
+     * @param parameters 
+     * @param type 
+     */
+    public assignState(c8oResponseListener: C8oResponseListener, parameters: Object, type: string){
         this.pushFullSyncReplicationState.listener = c8oResponseListener;
         this.pushFullSyncReplicationState.parameters = parameters;
-        this.pushFullSyncReplicationState.type = "push"
-        return this.startReplication(this.pushFullSyncReplication, parameters, c8oResponseListener);
+        this.pushFullSyncReplicationState.type = type;
+    }
+
+    /**
+     * Check network status before starting a replication
+     */
+    private checkState(): boolean{
+        if(navigator != undefined){
+            if(navigator["onLine"] == false){
+                return false;
+            }
+        }
+        return true;
     }
 
     private startSync(fullSyncReplication: FullSyncReplication, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
@@ -522,7 +560,9 @@ export class C8oFullSyncDatabase {
      * cancel Pull Replication
      */
     public cancelPullReplication():ReplicationState{
-        this.pullFullSyncReplication.replication.cancel();
+        if(this.pullFullSyncReplication.replication != undefined){
+            this.pullFullSyncReplication.replication.cancel();
+        }
         return this.pullFullSyncReplicationState;
     }
 
@@ -530,7 +570,9 @@ export class C8oFullSyncDatabase {
      * cancel Push Replication
      */
     public cancelPushReplication():ReplicationState{
-        this.pushFullSyncReplication.replication.cancel();
+        if(this.pushFullSyncReplication.replication != undefined){
+            this.pushFullSyncReplication.replication.cancel();
+        }
         return this.pushFullSyncReplicationState;
     }
 
@@ -538,7 +580,9 @@ export class C8oFullSyncDatabase {
      * cancel Sync Replication
      */
     public cancelSyncReplication():ReplicationState{
-        this.syncFullSyncReplication.replication.cancel();
+        if(this.pushFullSyncReplication.replication != undefined){
+            this.syncFullSyncReplication.replication.cancel();
+        }
         return this.syncFullSyncReplicationState;
     }
 

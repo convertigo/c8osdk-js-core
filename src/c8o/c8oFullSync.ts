@@ -135,6 +135,8 @@ export class C8oFullSyncCbl extends C8oFullSync {
         this.fullSyncDatabases = {};
     }
 
+    saveState
+
     /**
      * Get all actives replications, cancel and store them 
      */
@@ -461,9 +463,32 @@ export class C8oFullSyncCbl extends C8oFullSync {
 
     }
 
+    /**
+     * Check network status before starting a replication
+     */
+    private checkState(): boolean{
+        if(navigator != undefined){
+            if(navigator["onLine"] == false){
+                return false;
+            }
+        }
+        return true;
+    }
+
     public handleSyncRequest(databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
         const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
-        return fullSyncDatabase.startAllReplications(parameters, c8oResponseListener);
+        if(this.checkState()){
+            return fullSyncDatabase.startAllReplications(parameters, c8oResponseListener);
+        }
+        else{
+            fullSyncDatabase.assignState(c8oResponseListener,parameters,"push");
+            fullSyncDatabase.assignState(c8oResponseListener,parameters,"pull");
+            let rState: ReplicationState = {listener:c8oResponseListener, database:fullSyncDatabase, parameters: parameters, type:"sync"};
+            rState.database = fullSyncDatabase;
+            this.replicationsToRestart.push(rState);
+            this.c8o.log.debug("[C8O][c8ofullsync] waiting for network to start replication");
+            return new Promise(()=>{});
+        }
     }
 
     public handleReplicatePullRequest(databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
