@@ -2,10 +2,13 @@ import "rxjs/add/operator/retry";
 import {C8oCore} from "./c8oCore";
 import {C8oProgress} from "./c8oProgress";
 import { C8oResponseListener, C8oResponseJsonListener} from "./c8oResponse";
-import { Observable, from } from 'rxjs';
 import { C8oFullSyncCbl } from "./c8oFullSync";
 import { C8oHttpRequestException } from "./Exception/c8oHttpRequestException";
+
 import { C8oExceptionMessage } from "./Exception/c8oExceptionMessage";
+import { Observable } from "rxjs";
+
+declare const require: any;
 export abstract class C8oHttpInterfaceCore {
     public c8o: C8oCore;
     public timeout: number;
@@ -16,8 +19,25 @@ export abstract class C8oHttpInterfaceCore {
     private js = false;
     private session = "";
     private _timeout : any;
+    private from: any;
 
     constructor(c8o: C8oCore) {
+        //import { Observable, from } from 'rxjs';
+        let rxjs = require('rxjs');
+        if(rxjs !=  undefined){
+            if(rxjs.from != undefined){
+                this.from  = rxjs.from;
+                c8o.log.debug("[C8oHttpInterfaceCore] Detect rxjs 6.x")
+            }
+            else{
+                rxjs = require('rxjs/observable/fromPromise');
+                c8o.log.debug("[C8oHttpInterfaceCore] Detect rxjs 5.x")
+                if(rxjs != undefined){
+                    this.from = rxjs.fromPromise;
+                }
+            }
+        }
+        
         this.c8o = c8o;
         this.timeout = this.c8o.timeout;
         this.firstcheckSessionR = false;
@@ -32,7 +52,7 @@ export abstract class C8oHttpInterfaceCore {
      */
     public httpGetObservable(uri, param1, param2){
         if(this.js){
-            return from(this.c8o.httpPublic.get(uri, param1, param2));
+            return this.from(this.c8o.httpPublic.get(uri, param1, param2));
         }
         else{
             return this.c8o.httpPublic.get(uri, param1, param2);
@@ -45,7 +65,7 @@ export abstract class C8oHttpInterfaceCore {
      */
     public httpPostObservable(uri, param1, param2){
         if(this.js){
-            return from(this.c8o.httpPublic.post(uri, param1, param2));
+            return this.from(this.c8o.httpPublic.post(uri, param1, param2));
         }
         else{
             return this.c8o.httpPublic.post(uri, param1, param2);
