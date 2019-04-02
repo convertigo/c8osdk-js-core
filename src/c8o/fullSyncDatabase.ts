@@ -33,17 +33,17 @@ export class C8oFullSyncDatabase {
      * Used to make pull replication (uploads changes from the local database to the remote one).
      */
     private pullFullSyncReplication: FullSyncReplication = new FullSyncReplication(true);
-    private pullFullSyncReplicationState: ReplicationState = {listener:null, database:null, parameters: null, type:"pull"};
+    private pullFullSyncReplicationState: ReplicationState = {listener:null, database:null, parameters: null, type:"pull", stopped:false};
     /**
      * Used to make push replication (downloads changes from the remote database to the local one).
      */
     private pushFullSyncReplication: FullSyncReplication = new FullSyncReplication(false);
-    private pushFullSyncReplicationState: ReplicationState = {listener:null, database:null, parameters: null, type:"push"};
+    private pushFullSyncReplicationState: ReplicationState = {listener:null, database:null, parameters: null, type:"push", stopped:false};
     /**
      * Used to make pull replication (uploads changes from the local database to the remote one).
      */
     private syncFullSyncReplication: FullSyncReplication = new FullSyncReplication();
-    private syncFullSyncReplicationState: ReplicationState = {listener:null, database:null, parameters: null, type:"sync"};
+    private syncFullSyncReplicationState: ReplicationState = {listener:null, database:null, parameters: null, type:"sync", stopped:false};
 
     private remotePouchHeader;
 
@@ -93,14 +93,7 @@ export class C8oFullSyncDatabase {
      */
     public startAllReplications(parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
         this.assignState(c8oResponseListener,parameters,"sync");
-        if(this.checkState()){
-            return this.startSync(this.syncFullSyncReplication, parameters, c8oResponseListener);
-        }
-        else{
-            this.c8o.log.debug("[C8O][fullsyncDatabase] waiting for network to start replication");
-            return new Promise(()=>{});
-        }
-        
+        return this.startSync(this.syncFullSyncReplication, parameters, c8oResponseListener);        
     }
 
     /**
@@ -109,13 +102,8 @@ export class C8oFullSyncDatabase {
      */
     public startPullReplication(parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
         this.assignState(c8oResponseListener,parameters,"pull");
-        if(this.checkState()){
-            return this.startReplication(this.pullFullSyncReplication, parameters, c8oResponseListener);
-        }
-        else{
-            this.c8o.log.debug("[C8O][fullsyncDatabase] waiting for network to start replication");
-            return new Promise(()=>{});
-        }
+        return this.startReplication(this.pullFullSyncReplication, parameters, c8oResponseListener);
+        
     }
 
     /**
@@ -124,14 +112,8 @@ export class C8oFullSyncDatabase {
      */
     public startPushReplication(parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
         this.assignState(c8oResponseListener,parameters,"push");
-        this.assignState(c8oResponseListener,parameters,"pull");
-        if(this.checkState()){
-            return this.startReplication(this.pushFullSyncReplication, parameters, c8oResponseListener);
-        }
-        else{
-            this.c8o.log.debug("[C8O][fullsyncDatabase] waiting for network to start replication");
-            return new Promise(()=>{});
-        }
+        return this.startReplication(this.pushFullSyncReplication, parameters, c8oResponseListener);
+        
     }
 
     /**
@@ -141,9 +123,24 @@ export class C8oFullSyncDatabase {
      * @param type 
      */
     public assignState(c8oResponseListener: C8oResponseListener, parameters: Object, type: string){
-        this.pushFullSyncReplicationState.listener = c8oResponseListener;
-        this.pushFullSyncReplicationState.parameters = parameters;
-        this.pushFullSyncReplicationState.type = type;
+        switch(type){
+            case "sync":
+                this.syncFullSyncReplicationState.listener = c8oResponseListener;
+                this.syncFullSyncReplicationState.parameters = parameters;
+                this.syncFullSyncReplicationState.type = type;
+            break;
+            case "pull":
+                this.pullFullSyncReplicationState.listener = c8oResponseListener;
+                this.pullFullSyncReplicationState.parameters = parameters;
+                this.pullFullSyncReplicationState.type = type;
+            break;
+            case "push":
+                this.pushFullSyncReplicationState.listener = c8oResponseListener;
+                this.pushFullSyncReplicationState.parameters = parameters;
+                this.pushFullSyncReplicationState.type = type;
+            break;
+        }
+        
     }
 
     /**
@@ -238,35 +235,40 @@ export class C8oFullSyncDatabase {
 
         return new Promise((resolve, reject) => {
             rep.on("change", (info) => {
-                progress.finished = false;
-                if (info.direction === "pull") {
-                    progress.pull = true;
-                    progress.status = rep.pull.state;
-                    progress.finished = rep.pull.state !== "active";
-                } else if (info.direction === "push") {
-                    progress.pull = false;
-                    progress.status = rep.push.state;
-                    progress.finished = rep.push.state !== "active";
+                if(!this.syncFullSyncReplicationState.stopped){
+                    progress.finished = false;
+                    if (info.direction === "pull") {
+                        progress.pull = true;
+                        progress.status = rep.pull.state;
+                        progress.finished = rep.pull.state !== "active";
+                    } else if (info.direction === "push") {
+                        progress.pull = false;
+                        progress.status = rep.push.state;
+                        progress.finished = rep.push.state !== "active";
+                    }
+                    progress.total = info.change.docs_read;
+                    progress.current = info.change.docs_written;
+                    param[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
+                    (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                 }
-                progress.total = info.change.docs_read;
-                progress.current = info.change.docs_written;
-                param[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
-                (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
+               
 
             }).on("complete", (info) => {
-                progress.finished = true;
-                progress.pull = false;
-                progress.total = info.push.docs_read;
-                progress.current = info.push.docs_written;
-                progress.status = info.status;
-                progress.finished = true;
-                param[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
-                (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
-                progress.pull = true;
-                progress.total = info.pull.docs_read;
-                progress.current = info.pull.docs_written;
-                (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
-                rep.cancel();
+                if(!this.syncFullSyncReplicationState.stopped){
+                    progress.finished = true;
+                    progress.pull = false;
+                    progress.total = info.push.docs_read;
+                    progress.current = info.push.docs_written;
+                    progress.status = info.status;
+                    progress.finished = true;
+                    param[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
+                    (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
+                    progress.pull = true;
+                    progress.total = info.pull.docs_read;
+                    progress.current = info.pull.docs_written;
+                    (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
+                    rep.cancel();
+                }
 
                 if (continuous) {
                     parametersObj["live"] = true;
@@ -284,69 +286,77 @@ export class C8oFullSyncDatabase {
                     progress.pull = false;
                     (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                     rep.on("change", (info) => {
-                        progress.finished = false;
-                        if (info.direction === "pull") {
-                            progress.pull = true;
-                            progress.status = rep.pull.state;
-                        } else if (info.direction === "push") {
-                            progress.pull = false;
-                            progress.status = rep.push.state;
+                        if(!this.syncFullSyncReplicationState.stopped){
+                            progress.finished = false;
+                            if (info.direction === "pull") {
+                                progress.pull = true;
+                                progress.status = rep.pull.state;
+                            } else if (info.direction === "push") {
+                                progress.pull = false;
+                                progress.status = rep.push.state;
+                            }
+                            progress.total = info.change.docs_read;
+                            progress.current = info.change.docs_written;
+                            param[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
+                            (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                         }
-                        progress.total = info.change.docs_read;
-                        progress.current = info.change.docs_written;
-                        param[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
-                        (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                     })
                         .on("paused", function() {
-                            progress.finished = true;
-                            (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
-                            if (progress.total === 0 && progress.current === 0) {
-                                progress.pull = !progress.pull;
+                            if(!this.syncFullSyncReplicationState.stopped){
+                                progress.finished = true;
                                 (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
+                                if (progress.total === 0 && progress.current === 0) {
+                                    progress.pull = !progress.pull;
+                                    (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
+                                }
                             }
                         })
                         .on("error", (err) => {
-                            if (err.message === "Unexpected end of JSON input") {
-                                progress.finished = true;
-                                progress.status = "live";
-                                (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
-                            } else {
-                                rep.cancel();
-                                if (err.code === "ETIMEDOUT" && err.status === 0) {
-                                    if (parameters["force_retry"] == true) {
-                                        this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Forcing Restarting replication");
-                                        this.database.sync(remoteDB, {timeout: 600000, retry: true});
-                                    } else {
-                                        this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Restarting automatically replication");
-                                    }
-                                } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
-                                    reject("NO_NETWORK");
+                            if(!this.syncFullSyncReplicationState.stopped){
+                                if (err.message === "Unexpected end of JSON input") {
+                                    progress.finished = true;
+                                    progress.status = "live";
+                                    (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
                                 } else {
-                                    reject(err);
+                                    rep.cancel();
+                                    if (err.code === "ETIMEDOUT" && err.status === 0) {
+                                        if (parameters["force_retry"] == true) {
+                                            this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Forcing Restarting replication");
+                                            this.database.sync(remoteDB, {timeout: 600000, retry: true});
+                                        } else {
+                                            this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Restarting automatically replication");
+                                        }
+                                    } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
+                                        reject("NO_NETWORK");
+                                    } else {
+                                        reject(err);
+                                    }
                                 }
                             }
                         });
 
                 }
             }).on("error", (err) => {
-                rep.cancel();
-                if (err.message === "Unexpected end of JSON input") {
-                    progress.finished = true;
-                    progress.status = "Complete";
-                    (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
+                if(!this.syncFullSyncReplicationState.stopped){
                     rep.cancel();
+                    if (err.message === "Unexpected end of JSON input") {
+                        progress.finished = true;
+                        progress.status = "Complete";
+                        (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
+                        rep.cancel();
 
-                } else if (err.code === "ETIMEDOUT" && err.status === 0) {
-                    if (parameters["force_retry"] == true) {
-                        this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Forcing Restarting replication");
-                        this.database.sync(remoteDB, {timeout: 600000, retry: true});
+                    } else if (err.code === "ETIMEDOUT" && err.status === 0) {
+                        if (parameters["force_retry"] == true) {
+                            this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Forcing Restarting replication");
+                            this.database.sync(remoteDB, {timeout: 600000, retry: true});
+                        } else {
+                            this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Restarting automatically replication");
+                        }
+                    } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
+                        reject("NO_NETWORK");
                     } else {
-                        this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Restarting automatically replication");
+                        reject(err);
                     }
-                } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
-                    reject("NO_NETWORK");
-                } else {
-                    reject(err);
                 }
             });
 
@@ -448,21 +458,24 @@ export class C8oFullSyncDatabase {
         progress.pull = fullSyncReplication.pull;
         progress.continuous = false;
         return new Promise((resolve, reject) => {
-
             rep.on("change", (info) => {
-                progress.total = info.docs_read;
-                progress.current = info.docs_written;
-                progress.status = "change";
-                parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
-                (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
+                if((fullSyncReplication.pull && !this.pullFullSyncReplicationState.stopped) ||(!fullSyncReplication.pull && !this.pushFullSyncReplicationState.stopped)){
+                    progress.total = info.docs_read;
+                    progress.current = info.docs_written;
+                    progress.status = "change";
+                    parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
+                    (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
+                }
             }).on("complete", (info) => {
-                progress.finished = true;
-                progress.total = info.docs_read;
-                progress.current = info.docs_written;
-                progress.status = "complete";
-                parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
-                (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
-                rep.cancel();
+                if((fullSyncReplication.pull && !this.pullFullSyncReplicationState.stopped) ||(!fullSyncReplication.pull && !this.pushFullSyncReplicationState.stopped)){
+                    progress.finished = true;
+                    progress.total = info.docs_read;
+                    progress.current = info.docs_written;
+                    progress.status = "complete";
+                    parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
+                    (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
+                    rep.cancel();
+                }
                 if (continuous) {
                     parametersObj["live"] = true;
                     rep = fullSyncReplication.replication = fullSyncReplication.pull ? this.database.replicate.from(remoteDB, parametersObj) : this.database.replicate.to(remoteDB, parametersObj);
@@ -470,44 +483,50 @@ export class C8oFullSyncDatabase {
                     progress.raw = rep;
                     progress.taskInfo = "n/a";
                     rep.on("change", (info) => {
-                        progress.finished = false;
-                        progress.total = info.docs_read;
-                        progress.current = info.docs_written;
-                        progress.status = "change";
-                        parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
-                        (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
+                        if((fullSyncReplication.pull && !this.pullFullSyncReplicationState.stopped) ||(!fullSyncReplication.pull && !this.pushFullSyncReplicationState.stopped)){
+                            progress.finished = false;
+                            progress.total = info.docs_read;
+                            progress.current = info.docs_written;
+                            progress.status = "change";
+                            parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
+                            (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
+                        }
                     })
                         .on("error", (err) => {
-                            if (err.message === "Unexpected end of JSON input") {
-                                progress.finished = true;
-                                progress.status = "live";
-                                (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
+                            if((fullSyncReplication.pull && !this.pullFullSyncReplicationState.stopped) ||(!fullSyncReplication.pull && !this.pushFullSyncReplicationState.stopped)){
+                                if (err.message === "Unexpected end of JSON input") {
+                                    progress.finished = true;
+                                    progress.status = "live";
+                                    (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
 
-                            } else {
-                                rep.cancel();
-                                if (err.code === "ETIMEDOUT" && err.status === 0) {
-                                    reject("TIMEOUT");
-                                } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
-                                    reject("NO_NETWORK");
                                 } else {
-                                    reject(err);
+                                    rep.cancel();
+                                    if (err.code === "ETIMEDOUT" && err.status === 0) {
+                                        reject("TIMEOUT");
+                                    } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
+                                        reject("NO_NETWORK");
+                                    } else {
+                                        reject(err);
+                                    }
                                 }
                             }
                         });
                 }
             }).on("error", (err) => {
-                if (err.message === "Unexpected end of JSON input") {
-                    progress.finished = true;
-                    progress.status = "complete";
-                    parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
-                    (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
-                    rep.cancel();
-                } else if (err.code === "ETIMEDOUT" && err.status === 0) {
-                    reject("TIMEOUT");
-                } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
-                    reject("NO_NETWORK");
-                } else {
-                    reject(err);
+                if((fullSyncReplication.pull && !this.pullFullSyncReplicationState.stopped) ||(!fullSyncReplication.pull && !this.pushFullSyncReplicationState.stopped)){
+                    if (err.message === "Unexpected end of JSON input") {
+                        progress.finished = true;
+                        progress.status = "complete";
+                        parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
+                        (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
+                        rep.cancel();
+                    } else if (err.code === "ETIMEDOUT" && err.status === 0) {
+                        reject("TIMEOUT");
+                    } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
+                        reject("NO_NETWORK");
+                    } else {
+                        reject(err);
+                    }
                 }
             });
 
@@ -580,9 +599,6 @@ export class C8oFullSyncDatabase {
      * cancel Sync Replication
      */
     public cancelSyncReplication():ReplicationState{
-        if(this.pushFullSyncReplication.replication != undefined){
-            this.syncFullSyncReplication.replication.cancel();
-        }
         return this.syncFullSyncReplicationState;
     }
 
@@ -628,4 +644,5 @@ export interface ReplicationState{
     parameters:any;
     type:any;
     database: C8oFullSyncDatabase;
+    stopped: Boolean
 }

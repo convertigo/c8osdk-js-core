@@ -27,11 +27,11 @@ export abstract class C8oHttpInterfaceCore {
         if(rxjs !=  undefined){
             if(rxjs.from != undefined){
                 this.from  = rxjs.from;
-                c8o.log.debug("[C8oHttpInterfaceCore] Detect rxjs 6.x")
+                c8o.log.trace("[C8oHttpInterfaceCore] Detect rxjs 6.x")
             }
             else{
                 rxjs = require('rxjs/observable/fromPromise');
-                c8o.log.debug("[C8oHttpInterfaceCore] Detect rxjs 5.x")
+                c8o.log.trace("[C8oHttpInterfaceCore] Detect rxjs 5.x")
                 if(rxjs != undefined){
                     this.from = rxjs.fromPromise;
                 }
