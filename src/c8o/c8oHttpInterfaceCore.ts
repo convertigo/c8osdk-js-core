@@ -7,6 +7,7 @@ import { C8oHttpRequestException } from "./Exception/c8oHttpRequestException";
 
 import { C8oExceptionMessage } from "./Exception/c8oExceptionMessage";
 import { Observable } from "rxjs";
+import { url } from 'inspector';
 
 declare const require: any;
 export abstract class C8oHttpInterfaceCore {
@@ -20,9 +21,15 @@ export abstract class C8oHttpInterfaceCore {
     private session = "";
     private _timeout : any;
     private from: any;
+    private requestLogin: any;
+    private _loggedinSession: boolean;
 
     constructor(c8o: C8oCore) {
-        //import { Observable, from } from 'rxjs';
+        /**
+         * As we must support Angular 5.x, 6.x and 7.x, they need as peerDependencies diffrent versions of Rxjs.
+         * We alson need rxjs, but switch version of rxjs methods and paths to import are diffrents.
+         * So we test presence or not of module in some paths into rxjs to define in which version we are and execute the good import.
+        */
         let rxjs = require('rxjs');
         if(rxjs !=  undefined){
             if(rxjs.from != undefined){
@@ -41,6 +48,11 @@ export abstract class C8oHttpInterfaceCore {
         this.c8o = c8o;
         this.timeout = this.c8o.timeout;
         this.firstcheckSessionR = false;
+
+        /**
+         *  As this package will be used in two diffrent library, wee need to test in which platform we are,
+         *  to perform diffrent platform specific actions.
+         */
         if(this.c8o.httpPublic.constructor.name !== "HttpClient"){
             this.js = true;
         }
@@ -130,6 +142,10 @@ export abstract class C8oHttpInterfaceCore {
         }, time)
     }
 
+    /**
+     * checkSessionOnce
+     * We test session status and perform actions from its result
+     */
     public checkSessionOnce(){
         this.checkSession()
             .retry(1)
@@ -137,7 +153,21 @@ export abstract class C8oHttpInterfaceCore {
                 response => {
                     if(!response["authenticated"]){
                         this.c8o.log.debug("[C8o][online][checkSession] Session has been dropped");
-                        this.c8o.subscriber_session.next();
+                        if(this.requestLogin !=  undefined){
+                            let resolve = (response)=>{
+                                this.c8o.log.debug("[C8o] Auto Logins works");
+                            }
+                            let reject = (err)=>{
+                                this.c8o.log.debug("[C8o] Auto Logins failed");
+                                this.c8o.subscriber_session.next();
+                            }
+                            this.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject);
+                        
+                        }
+                        else{
+                            this.c8o.subscriber_session.next();
+                        }
+                        
                         
                     }
                     else{
@@ -156,10 +186,12 @@ export abstract class C8oHttpInterfaceCore {
      * @param response 
      * @param headers 
      */
-    public triggerSessionCheck(response: any, headers: any){
+    public triggerSessionCheck(response: any, headers: any, urlReq, parametersReq, headersReq){
         if(!this.firstcheckSessionR && this.c8o.keepSessionAlive == true){
             var val = response.headers.get("x-convertigo-authenticated");
             if(val != null){
+                this._loggedinSession = true;
+                this.requestLogin = {url: urlReq, parameters: parametersReq, headers: headersReq};
                 this.session = val;
                 this.firstcheckSessionR = true;
                 (this.c8o.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
@@ -244,7 +276,7 @@ export abstract class C8oHttpInterfaceCore {
         .retry(1)
         .subscribe(
             response =>{
-                this.handleResponseHttpPost(response, headers, resolve);
+                this.handleResponseHttpPost(response, headers, resolve, url, parameters, headers);
             },
             error => {
                 this.handleErrorHttpPost(error, reject);
@@ -258,8 +290,8 @@ export abstract class C8oHttpInterfaceCore {
      * @param headers 
      * @param resolve 
      */
-    private handleResponseHttpPost(response:any, headers:any , resolve:any){
-        this.triggerSessionCheck(response, headers);                 
+    private handleResponseHttpPost(response:any, headers:any , resolve:any, urlReq: string, parametersReq: any, headersReq: any){
+        this.triggerSessionCheck(response, headers, urlReq, parametersReq, headersReq);                 
         resolve(response.body)
     }
 

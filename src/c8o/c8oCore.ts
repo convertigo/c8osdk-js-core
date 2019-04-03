@@ -169,15 +169,6 @@ export abstract class C8oCore extends C8oBase {
     protected promiseInit: Promise<any>;
     protected promiseFinInit: Promise<any>;
     protected replicationsToRestart : Array<any>;
-    private _loggedin: boolean;
-
-    public get loggedin(): boolean {
-        return this._loggedin;
-    }
-
-    public set loggedin(value: boolean) {
-        this._loggedin = value;
-    }
 
     public get couchUrl(): string {
         return this._couchUrl;
@@ -298,7 +289,6 @@ export abstract class C8oCore extends C8oBase {
         this.data = null;
         this.c8oLogger = new C8oLogger(this, true);
         this.subscriber_session = new Subject<any>();
-        this.loggedin = false;
     }
 
     protected extractendpoint() {

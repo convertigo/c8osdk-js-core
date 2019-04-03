@@ -161,9 +161,6 @@ export class C8oFullSyncCbl extends C8oFullSync {
                 let rState: ReplicationState = (this.fullSyncDatabases[db] as C8oFullSyncDatabase).cancelSyncReplication();
                 rState.database = this.fullSyncDatabases[db];
                 rState.stopped = true;
-                let params = rState.parameters;
-                params["cancel"] = true;
-                rState.database.startAllReplications(params, rState.listener);
                 this.replicationsToRestart.push(rState);
                 this.c8o.log.debug("[C8o][cancelActiveReplications] stopping replication for database " + rState.database.getdatabseName + ".sync" + (rState.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
             }
