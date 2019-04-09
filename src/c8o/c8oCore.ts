@@ -159,6 +159,7 @@ export abstract class C8oCore extends C8oBase {
     public livesDb: string[] = [];
 
     public subscriber_session: Subject<any>;
+    public subscriber_network: Subject<any>;
 
     private _reply = new Subject<any>();
 
@@ -475,6 +476,16 @@ export abstract class C8oCore extends C8oBase {
             this.c8oLogger.debug("[C8o][handleSessionLost] Handle a session lost");
         });
         return this.subscriber_session;
+    }
+
+    /**
+     * Return an subject that call next if session has been lost
+     */
+    public handleNetworkEvents(): Subject<any> {
+        this.subscriber_network.subscribe((res)=>{
+            this.c8oLogger.debug("[C8o][handleNetworkEvents] Handle a network event lost" + res);
+        });
+        return this.subscriber_network;
     }
 
     public reply(): Subject<any>{

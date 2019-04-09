@@ -167,8 +167,6 @@ export abstract class C8oHttpInterfaceCore {
                         else{
                             this.c8o.subscriber_session.next();
                         }
-                        
-                        
                     }
                     else{
                         this.c8o.log.debug("[C8o][online][checkSession] Session still Alive we will restart replications");
@@ -187,45 +185,75 @@ export abstract class C8oHttpInterfaceCore {
      * @param headers 
      */
     public triggerSessionCheck(response: any, headers: any, urlReq, parametersReq, headersReq){
+        // if we had still not bee loggedin and we want to keep alive session
         if(!this.firstcheckSessionR && this.c8o.keepSessionAlive == true){
             var val = response.headers.get("x-convertigo-authenticated");
+            // if headers response contains x-convertigo-authenticated 
             if(val != null){
+                // Define that we have been loggedIn for the first time
                 this._loggedinSession = true;
+                // Save that request as it's the one that will allow us to perform auto login
                 this.requestLogin = {url: urlReq, parameters: parametersReq, headers: headersReq};
+                // Save session id for further uses
                 this.session = val;
+                // Define that we have done the first checksession  
                 this.firstcheckSessionR = true;
+                // Restart stopped replications
                 (this.c8o.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
+                // If we have already a recursive check for the session cancel it
                 if(this._timeout != null){
                     clearTimeout(this._timeout);
                     this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Remove ChecksessionR for older session");
                 }
+                // Launch a new check Session recursive
                 this.checkSessionR(headers, 0, val);
             }
         }
-        else{
-            if(!this.firstcheckSessionR){
-                this.firstcheckSessionR = true;
-                this.checkSession()
-                .retry(1)
-                .subscribe(
-                    response => {
-                        if(!response["authenticated"]){
-                            this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Session dropped");
-                            this.firstcheckSessionR = false;
-                            this.c8o.subscriber_session.next();
-                        }
-                        else{
-                            let timeR = +response['maxInactive'] * 0.85 * 1000;
-                            setTimeout(()=>{
-                                this.c8o.log.debug("[C8o][triggerSessionCheck] session will be down");
+        // if we had still not bee loggedin and don't want to keep alive sessions 
+        else if(!this.firstcheckSessionR && this.c8o.keepSessionAlive == false){
+            
+                var val = response.headers.get("x-convertigo-authenticated");
+                // if headers response contains x-convertigo-authenticated (means that we are authentified)
+                if(val != null){
+                    // Define that we have been loggedIn for the first time
+                    this._loggedinSession = true;
+                    // Save session id for further uses
+                    this.session = val;
+                    // Define that we have done the first checksession  
+                    this.firstcheckSessionR = true;
+                    // Check single time for session details
+                    this.checkSession()
+                    .retry(1)
+                    .subscribe(
+                        response => {
+                            // if we are not authenticated => this would be strange
+                            if(!response["authenticated"]){
+                                this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Session dropped");
+                                this.firstcheckSessionR = false;
                                 this.c8o.subscriber_session.next();
-                            },timeR );
+                            }
+                            // else we are athenticated
+                            else{
+                                // launch an handler in 85% percent of session life to tell user that session will be down
+                                let timeR = +response['maxInactive'] * 0.85 * 1000;
+                                setTimeout(()=>{
+                                    this.c8o.log.debug("[C8o][triggerSessionCheck] session will be down");
+                                    this.c8o.subscriber_session.next();
+                                },timeR );
+                            }
+                        },
+                        error => {
+                            this.c8o.log.error("[C8o][triggerSessionCheck] checking session", error);
                         }
-                    },
-                    error => {
-                        this.c8o.log.error("[C8o][triggerSessionCheck] checking session", error);
-                    }
-                );
+                    );
+            }
+        }
+        // if we were logged in but session has been down then notify
+        else {
+            var val = response.headers.get("x-convertigo-authenticated");
+            if(val == undefined && this._loggedinSession){
+                this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Session dropped");
+                this.c8o.subscriber_session.next();
             }
         }
     }

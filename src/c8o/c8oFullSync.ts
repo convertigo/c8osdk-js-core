@@ -148,21 +148,21 @@ export class C8oFullSyncCbl extends C8oFullSync {
                 rState.database = this.fullSyncDatabases[db];
                 rState.stopped = true;
                 this.replicationsToRestart.push(rState);
-                this.c8o.log.debug("[C8o][cancelActiveReplications] stopping replication " + rState.database.getdatabseName + ".replicate_pull " + (rState.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
+                this.c8o.log.debug("[C8o][cancelActiveReplications] stopping replication " + rState.database.getdatabseName + ".replicate_pull " + (rState.parameters["continuous"] == true ? " in continous mode" : "since replication was not finished"));
             }
             if(!(this.fullSyncDatabases[db] as C8oFullSyncDatabase).pushState == false && (this.fullSyncDatabases[db] as C8oFullSyncDatabase).pushState != "cancelled"){
                 let rState: ReplicationState = (this.fullSyncDatabases[db] as C8oFullSyncDatabase).cancelPushReplication();
                 rState.database = this.fullSyncDatabases[db];
                 rState.stopped = true;
                 this.replicationsToRestart.push(rState);
-                this.c8o.log.debug("[C8o][cancelActiveReplications] stopping replication for database " + rState.database.getdatabseName + ".replicate_push" + (rState.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
+                this.c8o.log.debug("[C8o][cancelActiveReplications] stopping replication for database " + rState.database.getdatabseName + ".replicate_push" + (rState.parameters["continuous"] == true ? " in continous mode" : "since replication was not finished"));
             }
             if(!(this.fullSyncDatabases[db] as C8oFullSyncDatabase).syncState == false && (this.fullSyncDatabases[db] as C8oFullSyncDatabase).syncState != "cancelled"){
                 let rState: ReplicationState = (this.fullSyncDatabases[db] as C8oFullSyncDatabase).cancelSyncReplication();
                 rState.database = this.fullSyncDatabases[db];
                 rState.stopped = true;
                 this.replicationsToRestart.push(rState);
-                this.c8o.log.debug("[C8o][cancelActiveReplications] stopping replication for database " + rState.database.getdatabseName + ".sync" + (rState.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
+                this.c8o.log.debug("[C8o][cancelActiveReplications] stopping replication for database " + rState.database.getdatabseName + ".sync" + (rState.parameters["continuous"] == true ? " in continous mode" : "since replication was not finished"));
             }
         }
         this.canceled == true;
