@@ -23,6 +23,7 @@ export abstract class C8oHttpInterfaceCore {
     private from: any;
     private requestLogin: any;
     private _loggedinSession: boolean;
+    private _notifySessionLost: boolean;
 
     constructor(c8o: C8oCore) {
         /**
@@ -48,6 +49,7 @@ export abstract class C8oHttpInterfaceCore {
         this.c8o = c8o;
         this.timeout = this.c8o.timeout;
         this.firstcheckSessionR = false;
+        this._notifySessionLost = false;
 
         /**
          *  As this package will be used in two diffrent library, wee need to test in which platform we are,
@@ -129,6 +131,8 @@ export abstract class C8oHttpInterfaceCore {
                             if((this.c8o.c8oFullSync as C8oFullSyncCbl).canceled == true){
                                 (this.c8o.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
                             }
+                            // As we are loggedin, register that next time that we will handle a session lost after loggedin we will have to notify
+                            this._notifySessionLost = false;
                             let timeR = +response['maxInactive'] * 0.85 * 1000;
                             this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Pooling for session, next check will be in " +timeR + "ms");
                             this._timeout = this.checkSessionR(headers, timeR, session);
@@ -169,6 +173,8 @@ export abstract class C8oHttpInterfaceCore {
                         }
                     }
                     else{
+                        // As we are loggedin, register that next time that we will handle a session lost after loggedin we will have to notify
+                        this._notifySessionLost = false;
                         this.c8o.log.debug("[C8o][online][checkSession] Session still Alive we will restart replications");
                         (this.c8o.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
                     }
@@ -200,6 +206,8 @@ export abstract class C8oHttpInterfaceCore {
                 this.firstcheckSessionR = true;
                 // Restart stopped replications
                 (this.c8o.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
+                // As we are loggedin, register that next time that we will handle a session lost after loggedin we will have to notify
+                this._notifySessionLost = false;
                 // If we have already a recursive check for the session cancel it
                 if(this._timeout != null){
                     clearTimeout(this._timeout);
@@ -221,6 +229,8 @@ export abstract class C8oHttpInterfaceCore {
                     this.session = val;
                     // Define that we have done the first checksession  
                     this.firstcheckSessionR = true;
+                    // As we are loggedin, register that next time that we will handle a session lost after loggedin we will have to notify
+                    this._notifySessionLost = false;
                     // Check single time for session details
                     this.checkSession()
                     .retry(1)
@@ -252,8 +262,12 @@ export abstract class C8oHttpInterfaceCore {
         else {
             var val = response.headers.get("x-convertigo-authenticated");
             if(val == undefined && this._loggedinSession){
-                this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Session dropped");
-                this.c8o.subscriber_session.next();
+                if(!this._notifySessionLost){
+                    // Set that we have notify the session lost after being loggedin
+                    this._notifySessionLost = true;
+                    this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Session dropped");
+                    this.c8o.subscriber_session.next();
+                }
             }
         }
     }
