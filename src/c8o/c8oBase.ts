@@ -38,6 +38,8 @@ export class C8oBase {
     protected _keepSessionAlive: boolean = true;
 
     protected _headers: Object = {};
+    
+    protected _initalLogLevel: Boolean;
     /** Getters **/
 
     /**

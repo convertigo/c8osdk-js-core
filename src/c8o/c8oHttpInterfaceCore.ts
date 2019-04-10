@@ -333,8 +333,15 @@ export abstract class C8oHttpInterfaceCore {
      * @param resolve 
      */
     private handleResponseHttpPost(response:any, headers:any , resolve:any, urlReq: string, parametersReq: any, headersReq: any){
+        this.checkReachable();
         this.triggerSessionCheck(response, headers, urlReq, parametersReq, headersReq);                 
         resolve(response.body)
+    }
+
+    private checkReachable(){
+        if(!this.c8o.reachable){
+            this.c8o.checkReachable();
+        }
     }
 
     /**

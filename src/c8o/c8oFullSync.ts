@@ -471,12 +471,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
      * Check network status before starting a replication
      */
     private checkState(): boolean{
-        if(navigator != undefined){
-            if(navigator["onLine"] == false){
-                return false;
-            }
-        }
-        return true;
+        return this.c8o.reachable == undefined ? false : this.c8o.reachable;
     }
 
     public handleSyncRequest(databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {

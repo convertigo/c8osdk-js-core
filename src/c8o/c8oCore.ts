@@ -170,6 +170,8 @@ export abstract class C8oCore extends C8oBase {
     protected promiseInit: Promise<any>;
     protected promiseFinInit: Promise<any>;
     protected replicationsToRestart : Array<any>;
+    private _waitingForInit;
+    public reachable;
 
     public get couchUrl(): string {
         return this._couchUrl;
@@ -192,6 +194,7 @@ export abstract class C8oCore extends C8oBase {
     }
 
     public set logRemote(value: boolean) {
+        this._initalLogLevel = value;
         this._logRemote = value;
     }
 
@@ -290,6 +293,7 @@ export abstract class C8oCore extends C8oBase {
         this.data = null;
         this.c8oLogger = new C8oLogger(this, true);
         this.subscriber_session = new Subject<any>();
+        this.subscriber_network = new Subject<any>();
     }
 
     protected extractendpoint() {
@@ -572,7 +576,9 @@ export abstract class C8oCore extends C8oBase {
      */
     protected listenOffline(){
         window.addEventListener("offline", () => {
-            this.logRemote = false;
+            //event offline
+            this.reachable = false;
+            this._logRemote = false;
             if (this.logOnFail != null) {
                 this.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail()), null);
             }
@@ -587,17 +593,50 @@ export abstract class C8oCore extends C8oBase {
      */
     protected listenOnLine(){
         window.addEventListener("online", () => {
-            this.log.info("Network online");
-            this.httpInterface.firstcheckSessionR  = false;
-            if (this._initialLogRemote && !this.logRemote) {
-                this.logRemote = true;
-                this.log.info("[C8o][online] setting remote logs to true");
-            }
-            this.log.info("[C8o][online] We will check for an existing session");
-            this.httpInterface.checkSessionOnce();
+            this.processOnline();
+            
         }, false);
     }
 
+    private processOnline(){
+        // if c8o object has been init
+        if(this.promiseFinInit != null){
+            this.finalizeInit().then(()=>{
+                // Test if endpoint is reachable
+                this.c8oLogger.logTest()
+                .then(()=>{
+                    if(!this.reachable){
+                        this.reachable = true;
+                        if(this._initalLogLevel){
+                            this._logRemote = true;
+                        }
+                        this.log.info("Network online and enpoint reachable");
+                        this.httpInterface.firstcheckSessionR  = false;
+                        if (this._initialLogRemote){// && !this.logRemote) {
+                            this.logRemote = true;
+                            this.log.info("[C8o][online] setting remote logs to true");
+                        }
+                        this.log.info("[C8o][online] We will check for an existing session");
+                        this.httpInterface.checkSessionOnce();
+                        this.subscriber_network.next("reachable");
+                    }
+                })
+                .catch(()=>{
+                    this.log.info("Network online, but we cannot reach endpoint");
+                    this.reachable = false;
+                    if(navigator["onLine"]){
+                        //event onLine not reachable
+                        this.subscriber_network.next("online");
+                    }
+                })
+            });
+        }
+        // if c8o object has not been initialized correctly, then dont check network
+        else{
+            this.log.debug("Network status, will not be checked since its have not been initialized");
+            this._waitingForInit = true; 
+        }
+    }
     /**
      * Method to bastract http get
      * @param uri the uri for given request
@@ -730,22 +769,36 @@ export abstract class C8oCore extends C8oBase {
                     if (window["cblite"] != undefined) {
                         window["cblite"].getURL((err, url) => {
                             if (err) {
+                                this.checkReachable()
                                 resolve();
                             }
                             else{
                                 url = url.replace(new RegExp("/$"), "");
                                 this.couchUrl = url;
+                                this.checkReachable()
                                 resolve();
                             }
                         });
                     }
                     else {
+                        this.checkReachable()
                         resolve();
                     }
                 });
             });
             return this.promiseFinInit;
         }
+    }
+
+    checkReachable(){
+        this.c8oLogger.logTest()
+        .then(()=>{
+            this.reachable = true;
+            this.processOnline();
+        })
+        .catch(()=>{
+            this.reachable = false;
+        })
     }
 
 }
