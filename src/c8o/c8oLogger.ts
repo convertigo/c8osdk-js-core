@@ -280,7 +280,7 @@ export class C8oLogger {
 
     private logTestAction(): Promise<any>{
         return new Promise((resolve, reject)=>{
-        const message = "Testing if endpoint is reachable";
+                const message = "[c8o] Testing if endpoint is reachable";
                 const time: string = (((new Date().getTime().valueOf()) - (this.startTimeRemoteLog)) / 1000).toString();
                 const obj = {};
                 obj[(C8oLogger.JSON_KEY_TIME.valueOf())] = time;
@@ -290,7 +290,6 @@ export class C8oLogger {
                 parameters[C8oLogger.JSON_KEY_LOGS.valueOf()] = JSON.stringify([obj]);
                 parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = this.c8o.deviceUUID;
                 parameters[C8oLogger.JSON_KEY_ENV] = this.env;
-                console.log("(" + time + ") [" + C8oLogLevel.DEBUG.name + "] " + message);
                 this.c8o.httpInterface.handleRequest(this.remoteLogUrl, parameters)
                 .then((response) => {
                     resolve(true);

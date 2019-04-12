@@ -169,6 +169,7 @@ export abstract class C8oCore extends C8oBase {
     protected promiseConstructor: Promise<any>;
     protected promiseInit: Promise<any>;
     protected promiseFinInit: Promise<any>;
+    protected promiseReachable: Promise<any>;
     protected replicationsToRestart : Array<any>;
     private _waitingForInit;
     public reachable;
@@ -371,7 +372,7 @@ export abstract class C8oCore extends C8oBase {
      */
     public _call(parameters: Object = null, c8oResponseListener: C8oResponseListener = null, c8oExceptionListener: C8oExceptionListener = null) {
         // IMPORTANT: all c8o calls have to end here !
-        Promise.all([this.promiseFinInit]).then(() => {
+        Promise.all([this.promiseFinInit, this.promiseReachable]).then(() => {
             try {
                 this.c8oLogger.logMethodCall("call", parameters, c8oResponseListener, c8oExceptionListener);
                 if (parameters == null) {
@@ -483,7 +484,7 @@ export abstract class C8oCore extends C8oBase {
     }
 
     /**
-     * Return an subject that call next if session has been lost
+     * Return an subject that call next if network has change
      */
     public handleNetworkEvents(): Subject<any> {
         this.subscriber_network.subscribe((res)=>{
@@ -630,11 +631,6 @@ export abstract class C8oCore extends C8oBase {
                     }
                 })
             });
-        }
-        // if c8o object has not been initialized correctly, then dont check network
-        else{
-            this.log.debug("Network status, will not be checked since its have not been initialized");
-            this._waitingForInit = true; 
         }
     }
     /**
@@ -791,14 +787,18 @@ export abstract class C8oCore extends C8oBase {
     }
 
     checkReachable(){
-        this.c8oLogger.logTest()
-        .then(()=>{
-            this.reachable = true;
-            this.processOnline();
-        })
-        .catch(()=>{
-            this.reachable = false;
-        })
+        this.promiseReachable = new Promise((resolve)=>{
+            this.c8oLogger.logTest()
+            .then(()=>{
+                this.reachable = true;
+                this.processOnline();
+                resolve();
+            })
+            .catch(()=>{
+                this.reachable = false;
+            })
+        });
+        
     }
 
 }
