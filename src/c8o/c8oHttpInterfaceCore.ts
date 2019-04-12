@@ -129,6 +129,7 @@ export abstract class C8oHttpInterfaceCore {
                         }
                         else{
                             if((this.c8o.c8oFullSync as C8oFullSyncCbl).canceled == true){
+                                (this.c8o.c8oFullSync as C8oFullSyncCbl).canceled = false;
                                 (this.c8o.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
                             }
                             // As we are loggedin, register that next time that we will handle a session lost after loggedin we will have to notify
