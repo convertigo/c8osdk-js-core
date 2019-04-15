@@ -126,6 +126,17 @@ export abstract class C8oHttpInterfaceCore {
                         if(!response["authenticated"]){
                             this.c8o.subscriber_session.next();
                             this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Session dropped");
+
+                            if(this.requestLogin !=  undefined){
+                                let resolve = (response)=>{
+                                    this.c8o.log.debug("[C8o] Auto Logins works");
+                                }
+                                let reject = (err)=>{
+                                    this.c8o.log.debug("[C8o] Auto Logins failed");
+                                    this.c8o.subscriber_session.next();
+                                }
+                                this.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject);
+                            }    
                         }
                         else{
                             if((this.c8o.c8oFullSync as C8oFullSyncCbl).canceled == true){
