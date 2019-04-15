@@ -124,9 +124,7 @@ export abstract class C8oHttpInterfaceCore {
                 .subscribe(
                     response => {
                         if(!response["authenticated"]){
-                            this.c8o.subscriber_session.next();
                             this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Session dropped");
-
                             if(this.requestLogin !=  undefined){
                                 let resolve = (response)=>{
                                     this.c8o.log.debug("[C8o] Auto Logins works");
@@ -145,6 +143,7 @@ export abstract class C8oHttpInterfaceCore {
                             }
                             // As we are loggedin, register that next time that we will handle a session lost after loggedin we will have to notify
                             this._notifySessionLost = false;
+                            this.firstcheckSessionR = true;
                             let timeR = +response['maxInactive'] * 0.85 * 1000;
                             this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Pooling for session, next check will be in " +timeR + "ms");
                             this._timeout = this.checkSessionR(headers, timeR, session);
@@ -276,9 +275,19 @@ export abstract class C8oHttpInterfaceCore {
             if(val == undefined && this._loggedinSession){
                 if(!this._notifySessionLost){
                     // Set that we have notify the session lost after being loggedin
-                    this._notifySessionLost = true;
-                    this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Session dropped");
-                    this.c8o.subscriber_session.next();
+                    if(this.requestLogin !=  undefined){
+                        let resolve = (response)=>{
+                            this.c8o.log.debug("[C8o] Auto Logins works");
+                            this._notifySessionLost = true;
+                        }
+                        let reject = (err)=>{
+                            this._notifySessionLost = true;
+                            this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Session dropped");
+                            this.c8o.subscriber_session.next();
+                        }
+                        this.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject);
+                    }    
+                   
                 }
             }
         }
