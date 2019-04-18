@@ -76,11 +76,11 @@ export class C8oFullSyncDatabase {
         try {
             if (c8o.couchUrl != null) {
                 this.database = new PouchDB(c8o.couchUrl + "/" + databaseName);
-                this.c8o.log.debug("PouchDb launched on couchbaselite");
+                this.c8o.log._debug("PouchDb launched on couchbaselite");
             } else {
                 PouchDB.plugin(PouchDBLoad)
                 this.database = new PouchDB(databaseName);
-                this.c8o.log.debug("PouchDb launched normally");
+                this.c8o.log._debug("PouchDb launched normally");
             }
         } catch (error) {
             throw error;
@@ -311,10 +311,10 @@ export class C8oFullSyncDatabase {
                                 rep.cancel();
                                 if (err.code === "ETIMEDOUT" && err.status === 0) {
                                     if (parameters["force_retry"] == true) {
-                                        this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Forcing Restarting replication");
+                                        this.c8o.log._warn("Timeout handle during fullsync replication (fs://.sync) \n Forcing Restarting replication");
                                         this.database.sync(remoteDB, {timeout: 600000, retry: true});
                                     } else {
-                                        this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Restarting automatically replication");
+                                        this.c8o.log._warn("Timeout handle during fullsync replication (fs://.sync) \n Restarting automatically replication");
                                     }
                                 } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
                                     reject("NO_NETWORK");
@@ -335,10 +335,10 @@ export class C8oFullSyncDatabase {
 
                 } else if (err.code === "ETIMEDOUT" && err.status === 0) {
                     if (parameters["force_retry"] == true) {
-                        this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Forcing Restarting replication");
+                        this.c8o.log._warn("Timeout handle during fullsync replication (fs://.sync) \n Forcing Restarting replication");
                         this.database.sync(remoteDB, {timeout: 600000, retry: true});
                     } else {
-                        this.c8o.log.warn("C80=>FullSyncDatabase: Timeout handle during fullsync replication (fs://.sync) \n Restarting automatically replication");
+                        this.c8o.log._warn("Timeout handle during fullsync replication (fs://.sync) \n Restarting automatically replication");
                     }
                 } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
                     reject("NO_NETWORK");
@@ -540,12 +540,12 @@ export class C8oFullSyncDatabase {
                     this.database = null;
                     resolve(response);
                 }).catch((error) => {
-                    this.c8o.log.debug("Failed to close DB, will retry: ", error.message);
+                    this.c8o.log._debug("Failed to close DB, will retry: ", error.message);
                     this.database.destroy().then((response) => {
                         this.database = null;
                         resolve(response);
                     }).catch((error) => {
-                        this.c8o.log.debug("Failed to close DB, second attempt has failed ", error.message);
+                        this.c8o.log._debug("Failed to close DB, second attempt has failed ", error.message);
                         reject(error);
                     });
                 });

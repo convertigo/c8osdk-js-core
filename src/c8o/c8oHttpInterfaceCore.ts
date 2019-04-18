@@ -35,11 +35,11 @@ export abstract class C8oHttpInterfaceCore {
         if(rxjs !=  undefined){
             if(rxjs.from != undefined){
                 this.from  = rxjs.from;
-                c8o.log.trace("[C8oHttpInterfaceCore] Detect rxjs 6.x")
+                c8o.log._trace("[C8oHttpInterfaceCore] Detect rxjs 6.x")
             }
             else{
                 rxjs = require('rxjs/observable/fromPromise');
-                c8o.log.trace("[C8oHttpInterfaceCore] Detect rxjs 5.x")
+                c8o.log._trace("[C8oHttpInterfaceCore] Detect rxjs 5.x")
                 if(rxjs != undefined){
                     this.from = rxjs.fromPromise;
                 }
@@ -58,6 +58,11 @@ export abstract class C8oHttpInterfaceCore {
         if(this.c8o.httpPublic.constructor.name !== "HttpClient"){
             this.js = true;
         }
+    }
+
+    public forceInit(){
+        this.firstcheckSessionR = false;
+        this._notifySessionLost = false;
     }
 
     /**
@@ -118,19 +123,19 @@ export abstract class C8oHttpInterfaceCore {
      */
     private checkSessionR(headers: any, time: number, session: string){
         setTimeout(()=>{
-                this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Checking for session");
+                this.c8o.log._debug("C8oHttpsession][checkSessionR] Checking for session");
                 this.checkSession()
                 .retry(1)
                 .subscribe(
                     response => {
                         if(!response["authenticated"]){
-                            this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Session dropped");
+                            this.c8o.log._debug("[C8oHttpsession][checkSessionR] Session dropped");
                             if(this.requestLogin !=  undefined){
                                 let resolve = (response)=>{
-                                    this.c8o.log.debug("[C8o] Auto Logins works");
+                                    this.c8o.log._debug("[C8o] Auto Logins works");
                                 }
                                 let reject = (err)=>{
-                                    this.c8o.log.debug("[C8o] Auto Logins failed");
+                                    this.c8o.log._debug("[C8o] Auto Logins failed");
                                     this.c8o.subscriber_session.next();
                                 }
                                 this.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject);
@@ -145,13 +150,13 @@ export abstract class C8oHttpInterfaceCore {
                             this._notifySessionLost = false;
                             this.firstcheckSessionR = true;
                             let timeR = +response['maxInactive'] * 0.85 * 1000;
-                            this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Pooling for session, next check will be in " +timeR + "ms");
+                            this.c8o.log._debug("[C8oHttpsession][checkSessionR] Pooling for session, next check will be in " +timeR + "ms");
                             this._timeout = this.checkSessionR(headers, timeR, session);
                             (this.c8o.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
                         }
                     },
                     error => {
-                        this.c8o.log.error("[C8o][C8oHttpsession][checkSessionR] error happened pooling session", error);
+                        this.c8o.log._error("[C8oHttpsession][checkSessionR] error happened pooling session", error);
                      }
                 );
         }, time)
@@ -167,13 +172,13 @@ export abstract class C8oHttpInterfaceCore {
             .subscribe(
                 response => {
                     if(!response["authenticated"]){
-                        this.c8o.log.debug("[C8o][online][checkSession] Session has been dropped");
+                        this.c8o.log._debug("online][checkSession] Session has been dropped");
                         if(this.requestLogin !=  undefined){
                             let resolve = (response)=>{
-                                this.c8o.log.debug("[C8o] Auto Logins works");
+                                this.c8o.log._debug("Auto Logins works");
                             }
                             let reject = (err)=>{
-                                this.c8o.log.debug("[C8o] Auto Logins failed");
+                                this.c8o.log._debug("Auto Logins failed");
                                 this.c8o.subscriber_session.next();
                             }
                             this.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject);
@@ -186,12 +191,12 @@ export abstract class C8oHttpInterfaceCore {
                     else{
                         // As we are loggedin, register that next time that we will handle a session lost after loggedin we will have to notify
                         this._notifySessionLost = false;
-                        this.c8o.log.debug("[C8o][online][checkSession] Session still Alive we will restart replications");
+                        this.c8o.log._debug("[online][checkSession] Session still Alive we will restart replications");
                         (this.c8o.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
                     }
                 },
                 error => {
-                    this.c8o.log.error("[C8o][online][checkSession][online] error happened pooling session", error);
+                    this.c8o.log._error("[online][checkSession][online] error happened pooling session", error);
                 }
             );
     }
@@ -202,7 +207,7 @@ export abstract class C8oHttpInterfaceCore {
      * @param headers 
      */
     public triggerSessionCheck(response: any, headers: any, urlReq, parametersReq, headersReq){
-        // if we had still not bee loggedin and we want to keep alive session
+        // if we had still not beeing loggedin and we want to keep alive session
         if(!this.firstcheckSessionR && this.c8o.keepSessionAlive == true){
             var val = response.headers.get("x-convertigo-authenticated");
             // if headers response contains x-convertigo-authenticated 
@@ -222,7 +227,7 @@ export abstract class C8oHttpInterfaceCore {
                 // If we have already a recursive check for the session cancel it
                 if(this._timeout != null){
                     clearTimeout(this._timeout);
-                    this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Remove ChecksessionR for older session");
+                    this.c8o.log._debug("[C8oHttpsession][checkSessionR] Remove ChecksessionR for older session");
                 }
                 // Launch a new check Session recursive
                 this.checkSessionR(headers, 0, val);
@@ -249,7 +254,7 @@ export abstract class C8oHttpInterfaceCore {
                         response => {
                             // if we are not authenticated => this would be strange
                             if(!response["authenticated"]){
-                                this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Session dropped");
+                                this.c8o.log._debug("[C8oHttpsession][checkSessionR] Session dropped");
                                 this.firstcheckSessionR = false;
                                 this.c8o.subscriber_session.next();
                             }
@@ -258,13 +263,13 @@ export abstract class C8oHttpInterfaceCore {
                                 // launch an handler in 85% percent of session life to tell user that session will be down
                                 let timeR = +response['maxInactive'] * 0.85 * 1000;
                                 setTimeout(()=>{
-                                    this.c8o.log.debug("[C8o][triggerSessionCheck] session will be down");
+                                    this.c8o.log._debug("[triggerSessionCheck] session will be down");
                                     this.c8o.subscriber_session.next();
                                 },timeR );
                             }
                         },
                         error => {
-                            this.c8o.log.error("[C8o][triggerSessionCheck] checking session", error);
+                            this.c8o.log._error("[triggerSessionCheck] checking session", error);
                         }
                     );
             }
@@ -273,22 +278,27 @@ export abstract class C8oHttpInterfaceCore {
         else {
             var val = response.headers.get("x-convertigo-authenticated");
             if(val == undefined && this._loggedinSession){
-                if(!this._notifySessionLost){
+                if(!this._notifySessionLost ){
                     // Set that we have notify the session lost after being loggedin
-                    if(this.requestLogin !=  undefined){
+                    if(this.requestLogin !=  undefined && this.c8o.keepSessionAlive){
                         let resolve = (response)=>{
-                            this.c8o.log.debug("[C8o] Auto Logins works");
+                            this.c8o.log._debug("Auto Logins works");
                             this._notifySessionLost = true;
                         }
                         let reject = (err)=>{
                             this._notifySessionLost = true;
-                            this.c8o.log.debug("[C8o][C8oHttpsession][checkSessionR] Session dropped");
+                            this.c8o.log._debug("[C8oHttpsession][checkSessionR] Session dropped");
                             this.c8o.subscriber_session.next();
                         }
                         this.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject);
                     }    
+                    else{
+                        this.c8o.subscriber_session.next();
+                        this._notifySessionLost = true;
+                    }
                    
                 }
+                
             }
         }
     }

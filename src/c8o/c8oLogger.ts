@@ -183,19 +183,19 @@ export class C8oLogger {
         }
     }
 
-    private _fatal(message: string, exceptions: Error = null) {
+    public _fatal(message: string, exceptions: Error = null) {
      this._log(C8oLogLevel.FATAL, message, exceptions);
     }
 
-    private _error(message: string, exceptions: Error = null) {
+    public _error(message: string, exceptions: Error = null) {
      this._log(C8oLogLevel.ERROR, message, exceptions);
     }
 
-    private _warn(message: string, exceptions: Error = null) {
+    public _warn(message: string, exceptions: Error = null) {
      this._log(C8oLogLevel.WARN, message, exceptions);
     }
 
-    private _info(message: string, exceptions: Error = null) {
+    public _info(message: string, exceptions: Error = null) {
      this._log(C8oLogLevel.INFO, message, exceptions);
     } 
 
@@ -203,7 +203,7 @@ export class C8oLogger {
         this._log(C8oLogLevel.DEBUG, message, exceptions);
     }
 
-    private _trace(message: string, exceptions: Error = null) {
+    public _trace(message: string, exceptions: Error = null) {
         this._log(C8oLogLevel.TRACE, message, exceptions);
     }
 

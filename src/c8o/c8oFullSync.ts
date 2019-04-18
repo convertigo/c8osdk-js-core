@@ -148,21 +148,21 @@ export class C8oFullSyncCbl extends C8oFullSync {
                 rState.database = this.fullSyncDatabases[db];
                 rState.stopped = true;
                 this.replicationsToRestart.push(rState);
-                this.c8o.log.debug("[C8o][cancelActiveReplications] stopping replication " + rState.database.getdatabseName + ".replicate_pull " + (rState.parameters["continuous"] == true ? " in continous mode" : "since replication was not finished"));
+                this.c8o.log._debug("[cancelActiveReplications] stopping replication " + rState.database.getdatabseName + ".replicate_pull " + (rState.parameters["continuous"] == true ? " in continous mode" : "since replication was not finished"));
             }
             if(!(this.fullSyncDatabases[db] as C8oFullSyncDatabase).pushState == false && (this.fullSyncDatabases[db] as C8oFullSyncDatabase).pushState != "cancelled"){
                 let rState: ReplicationState = (this.fullSyncDatabases[db] as C8oFullSyncDatabase).cancelPushReplication();
                 rState.database = this.fullSyncDatabases[db];
                 rState.stopped = true;
                 this.replicationsToRestart.push(rState);
-                this.c8o.log.debug("[C8o][cancelActiveReplications] stopping replication for database " + rState.database.getdatabseName + ".replicate_push" + (rState.parameters["continuous"] == true ? " in continous mode" : "since replication was not finished"));
+                this.c8o.log._debug("[cancelActiveReplications] stopping replication for database " + rState.database.getdatabseName + ".replicate_push" + (rState.parameters["continuous"] == true ? " in continous mode" : "since replication was not finished"));
             }
             if(!(this.fullSyncDatabases[db] as C8oFullSyncDatabase).syncState == false && (this.fullSyncDatabases[db] as C8oFullSyncDatabase).syncState != "cancelled"){
                 let rState: ReplicationState = (this.fullSyncDatabases[db] as C8oFullSyncDatabase).cancelSyncReplication();
                 rState.database = this.fullSyncDatabases[db];
                 rState.stopped = true;
                 this.replicationsToRestart.push(rState);
-                this.c8o.log.debug("[C8o][cancelActiveReplications] stopping replication for database " + rState.database.getdatabseName + ".sync" + (rState.parameters["continuous"] == true ? " in continous mode" : "since replication was not finished"));
+                this.c8o.log._debug("[cancelActiveReplications] stopping replication for database " + rState.database.getdatabseName + ".sync" + (rState.parameters["continuous"] == true ? " in continous mode" : "since replication was not finished"));
             }
         }
         this.canceled == true;
@@ -176,15 +176,15 @@ export class C8oFullSyncCbl extends C8oFullSync {
             el.stopped = false;
             switch(el.type){
                 case "sync":
-                    this.c8o.log.debug("[C8o][restartStoppedReplications] restarting replication for database " + el.database.getdatabseName + " and verb sync " + (el.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
+                    this.c8o.log._debug("restartStoppedReplications] restarting replication for database " + el.database.getdatabseName + " and verb sync " + (el.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
                     el.database.startAllReplications(el.parameters, el.listener);
                 break;
                 case "push":
-                    this.c8o.log.debug("[C8o][restartStoppedReplications] restarting replication for database " + el.database.getdatabseName + " and verb push " + (el.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
+                    this.c8o.log._debug("[restartStoppedReplications] restarting replication for database " + el.database.getdatabseName + " and verb push " + (el.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
                     el.database.startPushReplication(el.parameters, el.listener);
                 break;
                 case "pull":
-                    this.c8o.log.debug("[C8o][restartStoppedReplications] restarting replication for database " + el.database.getdatabseName + " and verb pull " + (el.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
+                    this.c8o.log._debug("[restartStoppedReplications] restarting replication for database " + el.database.getdatabseName + " and verb pull " + (el.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
                     el.database.startPullReplication(el.parameters, el.listener);
                 break;
             }
@@ -200,7 +200,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
         else if(nb > 1){
             str  = " "+ nb +" replications has been restarted"
         }
-        this.c8o.log.debug("[C8o][restartStoppedReplications] "+ str);
+        this.c8o.log._debug("[restartStoppedReplications] "+ str);
         this.replicationsToRestart = [];
     }
 
@@ -485,19 +485,41 @@ export class C8oFullSyncCbl extends C8oFullSync {
             let rState: ReplicationState = {listener:c8oResponseListener, database:fullSyncDatabase, parameters: parameters, type:"sync", stopped:true};
             rState.database = fullSyncDatabase;
             this.replicationsToRestart.push(rState);
-            this.c8o.log.debug("[C8O][c8ofullsync] waiting for network to start replication");
+            this.c8o.log._debug("[c8ofullsync] waiting for network to start replication");
             return new Promise(()=>{});
         }
     }
 
     public handleReplicatePullRequest(databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
         const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
-        return fullSyncDatabase.startPullReplication(parameters, c8oResponseListener);
+        if(this.checkState()){
+            return fullSyncDatabase.startPullReplication(parameters, c8oResponseListener);
+        }
+        else{
+            fullSyncDatabase.assignState(c8oResponseListener,parameters,"pull");
+            let rState: ReplicationState = {listener:c8oResponseListener, database:fullSyncDatabase, parameters: parameters, type:"pull", stopped:true};
+            rState.database = fullSyncDatabase;
+            this.replicationsToRestart.push(rState);
+            this.c8o.log._debug("[c8ofullsync] waiting for network to start replication");
+            return new Promise(()=>{});
+        }
+
+        
     }
 
     public handleReplicatePushRequest(databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
         const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
-        return fullSyncDatabase.startPushReplication(parameters, c8oResponseListener);
+        if(this.checkState()){
+            return fullSyncDatabase.startPushReplication(parameters, c8oResponseListener);
+        }
+        else{
+            fullSyncDatabase.assignState(c8oResponseListener,parameters,"push");
+            let rState: ReplicationState = {listener:c8oResponseListener, database:fullSyncDatabase, parameters: parameters, type:"push", stopped:true};
+            rState.database = fullSyncDatabase;
+            this.replicationsToRestart.push(rState);
+            this.c8o.log._debug("[c8ofullsync] waiting for network to start replication");
+            return new Promise(()=>{});
+        }
     }
 
     public handleResetDatabaseRequest(databaseName: string): Promise<FullSyncDefaultResponse> {
@@ -522,7 +544,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
             }).then(() => {
                 resolve(new FullSyncDefaultResponse(true));
             }).catch((err) => {
-                //this.c8o.log.error("Error loading the " + parameters["data"] + " database resource" + JSON.stringify(err, Object.getOwnPropertyNames(err)))
+                //this.c8o.log._error("Error loading the " + parameters["data"] + " database resource" + JSON.stringify(err, Object.getOwnPropertyNames(err)))
                 reject(new C8oException("Bulk Load failed", err));
             })
         })
@@ -535,7 +557,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
                 .then((response) => {
                     resolve(response);
                 }).catch((err) => {
-                    //this.c8o.log.error("Error loading the " + parameters["data"] + " database resource" + JSON.stringify(err, Object.getOwnPropertyNames(err)))
+                    //this.c8o.log._error("Error loading the " + parameters["data"] + " database resource" + JSON.stringify(err, Object.getOwnPropertyNames(err)))
                     reject(new C8oException("Get info failed", err));
                 })
         })

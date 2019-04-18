@@ -488,7 +488,7 @@ export abstract class C8oCore extends C8oBase {
      */
     public handleNetworkEvents(): Subject<any> {
         this.subscriber_network.subscribe((res)=>{
-            this.c8oLogger.debug("[C8o][handleNetworkEvents] Handle a network event lost" + res);
+            this.c8oLogger.debug("[C8o][handleNetworkEvents] Handle a network event: " + res.description);
         });
         return this.subscriber_network;
     }
@@ -578,15 +578,20 @@ export abstract class C8oCore extends C8oBase {
     protected listenOffline(){
         window.addEventListener("offline", () => {
             //event offline
-            this.reachable = false;
-            this._logRemote = false;
-            if (this.logOnFail != null) {
-                this.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail()), null);
-            }
-            this.c8oLogger.info("[C8o] Network offline detected");
-            this.c8oLogger.info("[C8o] Setting remote logs to false");
-            (this.c8oFullSync as C8oFullSyncCbl).cancelActiveReplications();
+            this.processOffline();
         }, false);
+    }
+
+    private processOffline(){
+        this.reachable = false;
+        this._logRemote = false;
+        if (this.logOnFail != null) {
+            this.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail()), null);
+        }
+        this.c8oLogger.info("[C8o] Network offline detected");
+        this.c8oLogger.info("[C8o] Setting remote logs to false");
+        this.subscriber_network.next({status:"offline", "description":"We are offline"});
+        (this.c8oFullSync as C8oFullSyncCbl).cancelActiveReplications();
     }
     
     /**
@@ -599,7 +604,10 @@ export abstract class C8oCore extends C8oBase {
         }, false);
     }
 
-    private processOnline(){
+    private processNotReachable(){
+        
+    }
+    private processOnline(resolve = null){
         // if c8o object has been init
         if(this.promiseFinInit != null){
             this.finalizeInit().then(()=>{
@@ -619,15 +627,27 @@ export abstract class C8oCore extends C8oBase {
                         }
                         this.log.info("[C8o][online] We will check for an existing session");
                         this.httpInterface.checkSessionOnce();
-                        this.subscriber_network.next("reachable");
+                        this.subscriber_network.next({status:"reachable", "description":"We are online, and endpoint is reachable"});
+                    }
+                    if(resolve != undefined){
+                        resolve()
                     }
                 })
                 .catch(()=>{
-                    this.log.info("Network online, but we cannot reach endpoint");
                     this.reachable = false;
+                    this._logRemote = false;
+                    if (this.logOnFail != null) {
+                        this.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail()), null);
+                    }
+                    this.log.info("[C8o] Network online, but we cannot reach endpoint");
+                    this.c8oLogger.info("[C8o] Setting remote logs to false");
+                    (this.c8oFullSync as C8oFullSyncCbl).cancelActiveReplications();
                     if(navigator["onLine"]){
                         //event onLine not reachable
-                        this.subscriber_network.next("online");
+                        this.subscriber_network.next({status:"notReachable", "description":"We are online, but endpoint is not reachable"});
+                    }
+                    else{
+                        this.subscriber_network.next({status:"offline", "description":"We are offline"});
                     }
                 })
             });
@@ -788,15 +808,27 @@ export abstract class C8oCore extends C8oBase {
 
     checkReachable(){
         this.promiseReachable = new Promise((resolve)=>{
-            this.c8oLogger.logTest()
-            .then(()=>{
-                this.reachable = true;
-                this.processOnline();
-                resolve();
-            })
-            .catch(()=>{
+            if(window.navigator.onLine == true){
+                this.processOnline(resolve);
+            }
+            else{
                 this.reachable = false;
-            })
+                    this._logRemote = false;
+                    if (this.logOnFail != null) {
+                        this.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail()), null);
+                    }
+                    this.log.info("[C8o] Network online, but we cannot reach endpoint");
+                    this.c8oLogger.info("[C8o] Setting remote logs to false");
+                    (this.c8oFullSync as C8oFullSyncCbl).cancelActiveReplications();
+                    this.reachable = false;
+                    if(navigator["onLine"]){
+                        //event onLine not reachable
+                        this.subscriber_network.next({status:"notReachable", "description":"We are online, but endpoint is not reachable"});
+                    }
+                    else{
+                        this.subscriber_network.next({status:"offline", "description":"We are offline"});
+                    }
+            }
         });
         
     }
