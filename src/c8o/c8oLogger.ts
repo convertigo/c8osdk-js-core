@@ -267,15 +267,43 @@ export class C8oLogger {
             });
     }
 
-    public logTest(): Promise<any>{
-            if (!this.initDone) {
+    checkInitDone(resolve = null):Promise<any>{
+        if(resolve == null){
+            return new Promise((resolve)=>{
+                if(!this.initDone){
+                    setTimeout(()=>{
+                        this.checkInitDone(resolve)
+                    }, 100);
+                }   
+                else{resolve()}
+            })
+            
+        }
+        else{
+            if(!this.initDone){
+                setTimeout(()=>{
+                    this.checkInitDone(resolve)
+                }, 100);
+            }
+            else{
+                resolve();
+            }   
+        }
+        
+    }
+    public async logTest(): Promise<any>{
+        
+        await this.checkInitDone()
+        return this.logTestAction();
+        
+            /*if (!this.initDone) {
                 setTimeout(()=>{
                     return this.logTest();
                 },100)
             }
             else{
                 return this.logTestAction();
-            }    
+            } */   
     }
 
     private logTestAction(): Promise<any>{

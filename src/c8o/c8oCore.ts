@@ -16,7 +16,10 @@ import { C8oCouchBaseLiteException } from "./Exception/c8oCouchBaseLiteException
 import { C8oException } from "./Exception/c8oException";
 import { C8oExceptionListener } from "./Exception/c8oExceptionListener";
 import { Observable, Subject } from 'rxjs';
-import { reject } from 'q';
+import {C8oManagerNetwork} from "./c8oManagerNetwork";
+import {C8oManagerDatabase} from "./c8oManagerDatabase";
+import {C8oManagerSession} from "./c8oManagerSession";
+import { C8oNetworkStatus } from "./C8oNetworkStatus";
 
 declare var require: any;
 /**
@@ -168,11 +171,16 @@ export abstract class C8oCore extends C8oBase {
     protected _couchUrl: string = null;
     protected promiseConstructor: Promise<any>;
     protected promiseInit: Promise<any>;
-    protected promiseFinInit: Promise<any>;
+    public promiseFinInit: Promise<any>;
     protected promiseReachable: Promise<any>;
+    private promiseManagerNetwork: Promise<any>;
     protected replicationsToRestart : Array<any>;
     private _waitingForInit;
     public reachable;
+
+    public network: C8oManagerNetwork;
+    public database: C8oManagerDatabase;
+    public session: C8oManagerSession;
 
     public get couchUrl(): string {
         return this._couchUrl;
@@ -295,6 +303,10 @@ export abstract class C8oCore extends C8oBase {
         this.c8oLogger = new C8oLogger(this, true);
         this.subscriber_session = new Subject<any>();
         this.subscriber_network = new Subject<any>();
+        this.network = new C8oManagerNetwork(this);
+        this.database= new C8oManagerDatabase(this);
+        this.session = new C8oManagerSession(this);
+        this.promiseManagerNetwork = this.network.init();
     }
 
     protected extractendpoint() {
@@ -372,7 +384,7 @@ export abstract class C8oCore extends C8oBase {
      */
     public _call(parameters: Object = null, c8oResponseListener: C8oResponseListener = null, c8oExceptionListener: C8oExceptionListener = null) {
         // IMPORTANT: all c8o calls have to end here !
-        Promise.all([this.promiseFinInit, this.promiseReachable]).then(() => {
+        Promise.all([this.promiseFinInit, this.promiseManagerNetwork]).then(() => {
             try {
                 this.c8oLogger.logMethodCall("call", parameters, c8oResponseListener, c8oExceptionListener);
                 if (parameters == null) {
@@ -479,6 +491,10 @@ export abstract class C8oCore extends C8oBase {
     public handleSessionLost(): Subject<any> {
         this.subscriber_session.subscribe((res)=>{
             this.c8oLogger.debug("[C8o][handleSessionLost] Handle a session lost");
+/*            (this.c8oFullSync as C8oFullSyncCbl).canceled = false;
+            (this.c8oFullSync as C8oFullSyncCbl).cancelActiveReplications();
+  */
+            this.database.stopReplications(this.session.user.name);
         });
         return this.subscriber_session;
     }
@@ -487,9 +503,6 @@ export abstract class C8oCore extends C8oBase {
      * Return an subject that call next if network has change
      */
     public handleNetworkEvents(): Subject<any> {
-        this.subscriber_network.subscribe((res)=>{
-            this.c8oLogger.debug("[C8o][handleNetworkEvents] Handle a network event: " + res.description);
-        });
         return this.subscriber_network;
     }
 
@@ -742,9 +755,9 @@ export abstract class C8oCore extends C8oBase {
                 this.c8oLogger.affect_val(this, false);
                 this.c8oLogger.logRemoteInit();
                 //Listen for offline status
-                this.listenOffline();
+                //this.listenOffline();
                 //Listen for online status
-                this.listenOnLine();
+                //this.listenOnLine();
                 this.c8oLogger.logMethodCall("C8o Constructor");
                 this.c8oFullSync = new C8oFullSyncCbl(this);
                 resolve();
@@ -785,19 +798,19 @@ export abstract class C8oCore extends C8oBase {
                     if (window["cblite"] != undefined) {
                         window["cblite"].getURL((err, url) => {
                             if (err) {
-                                this.checkReachable()
+                                //this.checkReachable()
                                 resolve();
                             }
                             else{
                                 url = url.replace(new RegExp("/$"), "");
                                 this.couchUrl = url;
-                                this.checkReachable()
+                                //this.checkReachable()
                                 resolve();
                             }
                         });
                     }
                     else {
-                        this.checkReachable()
+                        //this.checkReachable()
                         resolve();
                     }
                 });

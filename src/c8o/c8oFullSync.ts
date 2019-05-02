@@ -177,15 +177,15 @@ export class C8oFullSyncCbl extends C8oFullSync {
             switch(el.type){
                 case "sync":
                     this.c8o.log._debug("restartStoppedReplications] restarting replication for database " + el.database.getdatabseName + " and verb sync " + (el.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
-                    el.database.startAllReplications(el.parameters, el.listener);
+                    //el.database.startAllReplications(el.parameters, el.listener);
                 break;
                 case "push":
                     this.c8o.log._debug("[restartStoppedReplications] restarting replication for database " + el.database.getdatabseName + " and verb push " + (el.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
-                    el.database.startPushReplication(el.parameters, el.listener);
+                    //el.database.startPushReplication(el.parameters, el.listener);
                 break;
                 case "pull":
                     this.c8o.log._debug("[restartStoppedReplications] restarting replication for database " + el.database.getdatabseName + " and verb pull " + (el.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
-                    el.database.startPullReplication(el.parameters, el.listener);
+                    //el.database.startPullReplication(el.parameters, el.listener);
                 break;
             }
         }
@@ -476,10 +476,15 @@ export class C8oFullSyncCbl extends C8oFullSync {
 
     public handleSyncRequest(databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
         const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
-        if(this.checkState()){
-            return fullSyncDatabase.startAllReplications(parameters, c8oResponseListener);
+        let resp = this.c8o.database.registerRequest(c8oResponseListener, parameters, "sync", fullSyncDatabase);
+        if(!resp[0]){
+            return fullSyncDatabase.startAllReplications(parameters, c8oResponseListener, resp[1]);
         }
         else{
+            this.c8o.log._trace("[c8ofullsync] waiting for network to start replication");
+            return new Promise(()=>{});
+        }
+            /*
             fullSyncDatabase.assignState(c8oResponseListener,parameters,"push");
             fullSyncDatabase.assignState(c8oResponseListener,parameters,"pull");
             let rState: ReplicationState = {listener:c8oResponseListener, database:fullSyncDatabase, parameters: parameters, type:"sync", stopped:true};
@@ -487,12 +492,27 @@ export class C8oFullSyncCbl extends C8oFullSync {
             this.replicationsToRestart.push(rState);
             this.c8o.log._debug("[c8ofullsync] waiting for network to start replication");
             return new Promise(()=>{});
-        }
+        }*/
     }
 
     public handleReplicatePullRequest(databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
         const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
-        if(this.checkState()){
+        let finished = false;
+        let handler = (()=>{
+            finished = true;
+        })
+        
+        let resp = this.c8o.database.registerRequest(c8oResponseListener, parameters, "pull", fullSyncDatabase);
+        if(!resp[0]){
+            return fullSyncDatabase.startPullReplication(parameters, c8oResponseListener, resp[1]);
+        }
+        else{
+            this.c8o.log._trace("[c8ofullsync] waiting for network to start replication");
+            return new Promise(()=>{});
+        }
+        
+        
+        /*if(this.checkState()){
             return fullSyncDatabase.startPullReplication(parameters, c8oResponseListener);
         }
         else{
@@ -502,14 +522,24 @@ export class C8oFullSyncCbl extends C8oFullSync {
             this.replicationsToRestart.push(rState);
             this.c8o.log._debug("[c8ofullsync] waiting for network to start replication");
             return new Promise(()=>{});
-        }
+        }*/
 
         
     }
 
     public handleReplicatePushRequest(databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
         const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
-        if(this.checkState()){
+        let resp = this.c8o.database.registerRequest(c8oResponseListener, parameters, "push",fullSyncDatabase);
+        if(!resp[0]){
+            return fullSyncDatabase.startPushReplication(parameters, c8oResponseListener, resp[1]);
+        }
+        else{
+            this.c8o.log._trace("[c8ofullsync] waiting for network to start replication");
+            return new Promise(()=>{});
+        }
+        
+        
+        /*if(this.checkState()){
             return fullSyncDatabase.startPushReplication(parameters, c8oResponseListener);
         }
         else{
@@ -519,7 +549,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
             this.replicationsToRestart.push(rState);
             this.c8o.log._debug("[c8ofullsync] waiting for network to start replication");
             return new Promise(()=>{});
-        }
+        }*/
     }
 
     public handleResetDatabaseRequest(databaseName: string): Promise<FullSyncDefaultResponse> {

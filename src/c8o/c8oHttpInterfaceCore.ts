@@ -1,13 +1,14 @@
 import "rxjs/add/operator/retry";
-import {C8oCore} from "./c8oCore";
-import {C8oProgress} from "./c8oProgress";
-import { C8oResponseListener, C8oResponseJsonListener} from "./c8oResponse";
+import { C8oCore } from "./c8oCore";
+import { C8oProgress } from "./c8oProgress";
+import { C8oResponseListener, C8oResponseJsonListener } from "./c8oResponse";
 import { C8oFullSyncCbl } from "./c8oFullSync";
 import { C8oHttpRequestException } from "./Exception/c8oHttpRequestException";
 
 import { C8oExceptionMessage } from "./Exception/c8oExceptionMessage";
 import { Observable } from "rxjs";
 import { url } from 'inspector';
+import { resolve } from "path";
 
 declare const require: any;
 export abstract class C8oHttpInterfaceCore {
@@ -19,7 +20,7 @@ export abstract class C8oHttpInterfaceCore {
     public firstcheckSessionR: boolean;
     private js = false;
     private session = "";
-    private _timeout : any;
+    private _timeout: any;
     private from: any;
     private requestLogin: any;
     private _loggedinSession: boolean;
@@ -32,20 +33,20 @@ export abstract class C8oHttpInterfaceCore {
          * So we test presence or not of module in some paths into rxjs to define in which version we are and execute the good import.
         */
         let rxjs = require('rxjs');
-        if(rxjs !=  undefined){
-            if(rxjs.from != undefined){
-                this.from  = rxjs.from;
+        if (rxjs != undefined) {
+            if (rxjs.from != undefined) {
+                this.from = rxjs.from;
                 c8o.log._trace("[C8oHttpInterfaceCore] Detect rxjs 6.x")
             }
-            else{
+            else {
                 rxjs = require('rxjs/observable/fromPromise');
                 c8o.log._trace("[C8oHttpInterfaceCore] Detect rxjs 5.x")
-                if(rxjs != undefined){
+                if (rxjs != undefined) {
                     this.from = rxjs.fromPromise;
                 }
             }
         }
-        
+
         this.c8o = c8o;
         this.timeout = this.c8o.timeout;
         this.firstcheckSessionR = false;
@@ -55,12 +56,12 @@ export abstract class C8oHttpInterfaceCore {
          *  As this package will be used in two diffrent library, wee need to test in which platform we are,
          *  to perform diffrent platform specific actions.
          */
-        if(this.c8o.httpPublic.constructor.name !== "HttpClient"){
+        if (this.c8o.httpPublic.constructor.name !== "HttpClient") {
             this.js = true;
         }
     }
 
-    public forceInit(){
+    public forceInit() {
         this.firstcheckSessionR = false;
         this._notifySessionLost = false;
     }
@@ -69,11 +70,11 @@ export abstract class C8oHttpInterfaceCore {
      * Method to bastract http get
      * @param uri the uri for given request
      */
-    public httpGetObservable(uri, param1, param2){
-        if(this.js){
+    public httpGetObservable(uri, param1, param2) {
+        if (this.js) {
             return this.from(this.c8o.httpPublic.get(uri, param1, param2));
         }
-        else{
+        else {
             return this.c8o.httpPublic.get(uri, param1, param2);
         }
     }
@@ -82,11 +83,11 @@ export abstract class C8oHttpInterfaceCore {
      * Method to bastract http post
      * @param uri the uri for given request
      */
-    public httpPostObservable(uri, param1, param2){
-        if(this.js){
+    public httpPostObservable(uri, param1, param2) {
+        if (this.js) {
             return this.from(this.c8o.httpPublic.post(uri, param1, param2));
         }
-        else{
+        else {
             return this.c8o.httpPublic.post(uri, param1, param2);
         }
     }
@@ -94,25 +95,36 @@ export abstract class C8oHttpInterfaceCore {
      * Call user service
      * @param headers headers for request
      */
-    private getUserService(headers:any): Observable<any>{
-        return this.httpPostObservable(this.c8o.endpointConvertigo+"/services/user.Get", {}, {
-            headers: headers,
-            withCredentials: true
-        });
+    public getUserServiceStatus(): Promise<any> {
+        return new Promise((resolve) => {
+            let headersObject = { 'Accept': 'application/json', 'x-convertigo-sdk': this.c8o.sdkVersion };
+            Object.assign(headersObject, this.c8o.headers);
+            let headers = this.getHeaders(headersObject);
+            this.httpPostObservable(this.c8o.endpointConvertigo + "/services/user.Get", {}, {
+                headers: headers,
+                withCredentials: true
+            })
+                .retry(1)
+                .subscribe(
+                    response => {
+                        resolve(response)
+                    })
+        })
+
     }
 
     /**
      * Check if session is ok
      * @param parameters 
      */
-    public checkSession(): Observable<any>{
-        let headersObject = {'Accept':'application/json', 'x-convertigo-sdk': this.c8o.sdkVersion};
+    public checkSession(): Observable<any> {
+        let headersObject = { 'Accept': 'application/json', 'x-convertigo-sdk': this.c8o.sdkVersion };
         Object.assign(headersObject, this.c8o.headers);
         let headers = this.getHeaders(headersObject);
-        return this.httpPostObservable(this.c8o.endpointConvertigo+"/services/user.Get", {}, {
+        return this.httpPostObservable(this.c8o.endpointConvertigo + "/services/user.Get", {}, {
             headers: headers,
             withCredentials: true
-        });
+        })
     }
 
     /**
@@ -121,28 +133,28 @@ export abstract class C8oHttpInterfaceCore {
      * @param time 
      * @param session 
      */
-    private checkSessionR(headers: any, time: number, session: string){
-        setTimeout(()=>{
-                this.c8o.log._debug("C8oHttpsession][checkSessionR] Checking for session");
-                this.checkSession()
+    private checkSessionR(headers: any, time: number, session: string) {
+        setTimeout(() => {
+            this.c8o.log._debug("C8oHttpsession][checkSessionR] Checking for session");
+            this.checkSession()
                 .retry(1)
                 .subscribe(
                     response => {
-                        if(!response["authenticated"]){
-                            this.c8o.log._debug("[C8oHttpsession][checkSessionR] Session dropped");
-                            if(this.requestLogin !=  undefined){
-                                let resolve = (response)=>{
+                        if (!response["authenticated"]) {
+                            this.c8o.log._debug("[C8oHttpsession][checkSessionR] Session dropped 3");
+                            if (this.requestLogin != undefined) {
+                                let resolve = (response) => {
                                     this.c8o.log._debug("[C8o] Auto Logins works");
                                 }
-                                let reject = (err)=>{
+                                let reject = (err) => {
                                     this.c8o.log._debug("[C8o] Auto Logins failed");
                                     this.c8o.subscriber_session.next();
                                 }
                                 this.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject);
-                            }    
+                            }
                         }
-                        else{
-                            if((this.c8o.c8oFullSync as C8oFullSyncCbl).canceled == true){
+                        else {
+                            if ((this.c8o.c8oFullSync as C8oFullSyncCbl).canceled == true) {
                                 (this.c8o.c8oFullSync as C8oFullSyncCbl).canceled = false;
                                 (this.c8o.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
                             }
@@ -150,14 +162,14 @@ export abstract class C8oHttpInterfaceCore {
                             this._notifySessionLost = false;
                             this.firstcheckSessionR = true;
                             let timeR = +response['maxInactive'] * 0.85 * 1000;
-                            this.c8o.log._debug("[C8oHttpsession][checkSessionR] Pooling for session, next check will be in " +timeR + "ms");
+                            this.c8o.log._debug("[C8oHttpsession][checkSessionR] Pooling for session, next check will be in " + timeR + "ms");
                             this._timeout = this.checkSessionR(headers, timeR, session);
                             (this.c8o.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
                         }
                     },
                     error => {
                         this.c8o.log._error("[C8oHttpsession][checkSessionR] error happened pooling session", error);
-                     }
+                    }
                 );
         }, time)
     }
@@ -166,29 +178,30 @@ export abstract class C8oHttpInterfaceCore {
      * checkSessionOnce
      * We test session status and perform actions from its result
      */
-    public checkSessionOnce(){
+    public checkSessionOnce() {
         this.checkSession()
             .retry(1)
             .subscribe(
                 response => {
-                    if(!response["authenticated"]){
+                    if (!response["authenticated"]) {
                         this.c8o.log._debug("online][checkSession] Session has been dropped");
-                        if(this.requestLogin !=  undefined){
-                            let resolve = (response)=>{
+                        if (this.requestLogin != undefined) {
+                            let resolve = (response) => {
                                 this.c8o.log._debug("Auto Logins works");
+                                (this.c8o.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
                             }
-                            let reject = (err)=>{
+                            let reject = (err) => {
                                 this.c8o.log._debug("Auto Logins failed");
                                 this.c8o.subscriber_session.next();
                             }
                             this.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject);
-                        
+
                         }
-                        else{
+                        else {
                             this.c8o.subscriber_session.next();
                         }
                     }
-                    else{
+                    else {
                         // As we are loggedin, register that next time that we will handle a session lost after loggedin we will have to notify
                         this._notifySessionLost = false;
                         this.c8o.log._debug("[online][checkSession] Session still Alive we will restart replications");
@@ -206,16 +219,16 @@ export abstract class C8oHttpInterfaceCore {
      * @param response 
      * @param headers 
      */
-    public triggerSessionCheck(response: any, headers: any, urlReq, parametersReq, headersReq){
+    public triggerSessionCheck(response: any, headers: any, urlReq, parametersReq, headersReq) {
         // if we had still not beeing loggedin and we want to keep alive session
-        if(!this.firstcheckSessionR && this.c8o.keepSessionAlive == true){
+        if (!this.firstcheckSessionR && this.c8o.keepSessionAlive == true) {
             var val = response.headers.get("x-convertigo-authenticated");
             // if headers response contains x-convertigo-authenticated 
-            if(val != null){
+            if (val != null) {
                 // Define that we have been loggedIn for the first time
                 this._loggedinSession = true;
                 // Save that request as it's the one that will allow us to perform auto login
-                this.requestLogin = {url: urlReq, parameters: parametersReq, headers: headersReq};
+                this.requestLogin = { url: urlReq, parameters: parametersReq, headers: headersReq };
                 // Save session id for further uses
                 this.session = val;
                 // Define that we have done the first checksession  
@@ -225,7 +238,7 @@ export abstract class C8oHttpInterfaceCore {
                 // As we are loggedin, register that next time that we will handle a session lost after loggedin we will have to notify
                 this._notifySessionLost = false;
                 // If we have already a recursive check for the session cancel it
-                if(this._timeout != null){
+                if (this._timeout != null) {
                     clearTimeout(this._timeout);
                     this.c8o.log._debug("[C8oHttpsession][checkSessionR] Remove ChecksessionR for older session");
                 }
@@ -234,38 +247,42 @@ export abstract class C8oHttpInterfaceCore {
             }
         }
         // if we had still not bee loggedin and don't want to keep alive sessions 
-        else if(!this.firstcheckSessionR && this.c8o.keepSessionAlive == false){
-            
-                var val = response.headers.get("x-convertigo-authenticated");
-                // if headers response contains x-convertigo-authenticated (means that we are authentified)
-                if(val != null){
-                    // Define that we have been loggedIn for the first time
-                    this._loggedinSession = true;
-                    // Save session id for further uses
-                    this.session = val;
-                    // Define that we have done the first checksession  
-                    this.firstcheckSessionR = true;
-                    // As we are loggedin, register that next time that we will handle a session lost after loggedin we will have to notify
-                    this._notifySessionLost = false;
-                    // Check single time for session details
-                    this.checkSession()
+        else if (!this.firstcheckSessionR && this.c8o.keepSessionAlive == false) {
+
+            var val = response.headers.get("x-convertigo-authenticated");
+            // if headers response contains x-convertigo-authenticated (means that we are authentified)
+            if (val != null) {
+                // Define that we have been loggedIn for the first time
+                this._loggedinSession = true;
+                // Save session id for further uses
+                this.session = val;
+                // Define that we have done the first checksession  
+                this.firstcheckSessionR = true;
+                // As we are loggedin, register that next time that we will handle a session lost after loggedin we will have to notify
+                this._notifySessionLost = false;
+                // Check single time for session details
+                this.checkSession()
                     .retry(1)
                     .subscribe(
                         response => {
                             // if we are not authenticated => this would be strange
-                            if(!response["authenticated"]){
-                                this.c8o.log._debug("[C8oHttpsession][checkSessionR] Session dropped");
+                            if (!response["authenticated"]) {
+                                this.c8o.log._debug("[C8oHttpsession][checkSessionR] Session dropped 4");
                                 this.firstcheckSessionR = false;
                                 this.c8o.subscriber_session.next();
                             }
                             // else we are athenticated
-                            else{
+                            else {
+                                if ((this.c8o.c8oFullSync as C8oFullSyncCbl).canceled == true) {
+                                    (this.c8o.c8oFullSync as C8oFullSyncCbl).canceled = false;
+                                    (this.c8o.c8oFullSync as C8oFullSyncCbl).restartStoppedReplications();
+                                }
                                 // launch an handler in 85% percent of session life to tell user that session will be down
                                 let timeR = +response['maxInactive'] * 0.85 * 1000;
-                                setTimeout(()=>{
+                                setTimeout(() => {
                                     this.c8o.log._debug("[triggerSessionCheck] session will be down");
                                     this.c8o.subscriber_session.next();
-                                },timeR );
+                                }, timeR);
                             }
                         },
                         error => {
@@ -277,41 +294,53 @@ export abstract class C8oHttpInterfaceCore {
         // if we were logged in but session has been down then notify
         else {
             var val = response.headers.get("x-convertigo-authenticated");
-            if(val == undefined && this._loggedinSession){
-                if(!this._notifySessionLost ){
+            if (val == undefined && this._loggedinSession) {
+                if (!this._notifySessionLost) {
                     // Set that we have notify the session lost after being loggedin
-                    if(this.requestLogin !=  undefined && this.c8o.keepSessionAlive){
-                        let resolve = (response)=>{
+                    if (this.requestLogin != undefined && this.c8o.keepSessionAlive) {
+                        let resolve = (response) => {
                             this.c8o.log._debug("Auto Logins works");
                             this._notifySessionLost = true;
                         }
-                        let reject = (err)=>{
+                        let reject = (err) => {
+                            this.firstcheckSessionR = false;
                             this._notifySessionLost = true;
-                            this.c8o.log._debug("[C8oHttpsession][checkSessionR] Session dropped");
+                            this.c8o.log._debug("[C8oHttpsession][checkSessionR] Session dropped 1");
                             this.c8o.subscriber_session.next();
                         }
                         this.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject);
-                    }    
-                    else{
-                        this.c8o.subscriber_session.next();
-                        this._notifySessionLost = true;
                     }
-                   
+                    else {
+                        this.checkSession()
+                            .subscribe((response) => {
+                                if (!response["authenticated"]) {
+                                    this.c8o.log._debug("[C8oHttpsession][checkSessionR] Session dropped 2");
+                                    this.firstcheckSessionR = false;
+                                    this.c8o.subscriber_session.next();
+                                    this._notifySessionLost = true;
+                                }
+                                else {
+
+                                }
+                            });
+
+                    }
+
                 }
-                
+
             }
         }
     }
 
-     /**
-     * Make an http post
-     * @param {string} url
-     * @param {Object} parameters
-     * @return {Promise<any>}
-     */
-    public httpPost(url: string, parameters: Object): Promise<any>{
+    /**
+    * Make an http post
+    * @param {string} url
+    * @param {Object} parameters
+    * @return {Promise<any>}
+    */
+    public httpPost(url: string, parameters: Object): Promise<any> {
         parameters = this.transformRequest(parameters);
-        let headersObject = {"Content-Type": "application/x-www-form-urlencoded", "x-convertigo-sdk": this.c8o.sdkVersion};
+        let headersObject = { "Content-Type": "application/x-www-form-urlencoded", "x-convertigo-sdk": this.c8o.sdkVersion };
         Object.assign(headersObject, this.c8o.headers);
         let headers = this.getHeaders(headersObject);
         if (this.firstCall) {
@@ -331,7 +360,7 @@ export abstract class C8oHttpInterfaceCore {
             });
         }
     }
-    
+
     /**
      * Execute http Posts 
      * @param url 
@@ -340,21 +369,21 @@ export abstract class C8oHttpInterfaceCore {
      * @param resolve 
      * @param reject 
      */
-    private execHttpPosts(url:string, parameters:any, headers:any, resolve, reject){
+    public execHttpPosts(url: string, parameters: any, headers: any, resolve, reject) {
         this.httpPostObservable(url, parameters, {
             headers: headers,
             withCredentials: true,
             observe: 'response'
         })
-        .retry(1)
-        .subscribe(
-            response =>{
-                this.handleResponseHttpPost(response, headers, resolve, url, parameters, headers);
-            },
-            error => {
-                this.handleErrorHttpPost(error, reject);
-            }
-        );
+            .retry(1)
+            .subscribe(
+                response => {
+                    this.handleResponseHttpPost(response, headers, resolve, url, parameters, headers);
+                },
+                error => {
+                    this.handleErrorHttpPost(error, reject);
+                }
+            );
     }
 
     /**
@@ -363,14 +392,24 @@ export abstract class C8oHttpInterfaceCore {
      * @param headers 
      * @param resolve 
      */
-    private handleResponseHttpPost(response:any, headers:any , resolve:any, urlReq: string, parametersReq: any, headersReq: any){
-        this.checkReachable();
-        this.triggerSessionCheck(response, headers, urlReq, parametersReq, headersReq);                 
-        resolve(response.body)
+    private handleResponseHttpPost(response: any, headers: any, resolve: any, urlReq: string, parametersReq: any, headersReq: any) {
+        //this.checkReachable();
+        //this.triggerSessionCheck(response, headers, urlReq, parametersReq, headersReq);
+        if(urlReq.indexOf(".json") != -1){
+            this.c8o.session.sort(response, headers, urlReq, parametersReq, headersReq)
+            .then(()=>{
+                resolve(response.body);
+            })
+        }
+        else{
+            resolve(response.body);
+        }
+        
+        
     }
 
-    private checkReachable(){
-        if(!this.c8o.reachable){
+    private checkReachable() {
+        if (!this.c8o.reachable) {
             this.c8o.checkReachable();
         }
     }
@@ -380,7 +419,7 @@ export abstract class C8oHttpInterfaceCore {
      * @param error 
      * @param reject 
      */
-    private handleErrorHttpPost(error:any, reject:any){
+    private handleErrorHttpPost(error: any, reject: any) {
         reject((new C8oHttpRequestException(C8oExceptionMessage.runHttpRequest(), error)));
     }
 
@@ -392,33 +431,33 @@ export abstract class C8oHttpInterfaceCore {
      * @param {Object} parameters
      * @return {number}
      */
-    public checkFile(parameters: Object): number{
+    public checkFile(parameters: Object): number {
         for (let p in parameters) {
             if (parameters[p] instanceof Array) {
                 for (let p1 in parameters[p]) {
                     //noinspection JSUnfilteredForInLoop
-                    if(parameters[p][p1] instanceof FileList){
+                    if (parameters[p][p1] instanceof FileList) {
                         return 1;
                     }
                     else if (parameters[p][p1] instanceof File) {
                         return 1;
                     }
-                    else if(this.isCordova()){
-                        if(parameters[p][p1] instanceof URL){
+                    else if (this.isCordova()) {
+                        if (parameters[p][p1] instanceof URL) {
                             return 2;
                         }
                     }
                 }
             }
             else {
-                if(parameters[p] instanceof FileList){
+                if (parameters[p] instanceof FileList) {
                     return 1;
                 }
-                if(parameters[p] instanceof File){
+                if (parameters[p] instanceof File) {
                     return 1;
                 }
-                else if(this.isCordova()){
-                    if(parameters[p]instanceof URL){
+                else if (this.isCordova()) {
+                    if (parameters[p] instanceof URL) {
                         return 2;
                     }
                 }
@@ -431,12 +470,12 @@ export abstract class C8oHttpInterfaceCore {
      * Check if we are in cordova environment
      * @return {boolean}
      */
-    protected isCordova():boolean{
-        if(this._isCordova == null){
-            if(window["cordova"]!= undefined){
+    protected isCordova(): boolean {
+        if (this._isCordova == null) {
+            if (window["cordova"] != undefined) {
                 this._isCordova = true;
             }
-            else{
+            else {
                 this._isCordova = false;
             }
         }
@@ -473,33 +512,33 @@ export abstract class C8oHttpInterfaceCore {
      * @return {FormData}
      */
     public transformRequestformdata(parameters: Object): FormData {
-        let formdata : FormData=  new FormData();
+        let formdata: FormData = new FormData();
         for (let p in parameters) {
             if (parameters[p] instanceof Array) {
                 for (let p1 in parameters[p]) {
-                    if(parameters[p][p1] instanceof FileList){
+                    if (parameters[p][p1] instanceof FileList) {
                         for (var i = 0; i < parameters[p][p1].length; i++) {
                             formdata.append(p, parameters[p][p1][i], parameters[p][p1][i].name);
                         }
                     }
-                    else if(parameters[p][p1] instanceof FileList){
+                    else if (parameters[p][p1] instanceof FileList) {
                         formdata.append(p, parameters[p][p1], parameters[p][p1].name)
                     }
-                    else{
+                    else {
                         formdata.append(p, parameters[p][p1])
                     }
                 }
             }
             else {
-                if(parameters[p] instanceof FileList) {
+                if (parameters[p] instanceof FileList) {
                     for (var j = 0; j < parameters[p].length; j++) {
                         formdata.append(p, parameters[p][j], parameters[p][j].name);
                     }
                 }
-                else if(parameters[p] instanceof File) {
+                else if (parameters[p] instanceof File) {
                     formdata.append(p, parameters[p], parameters[p].name);
                 }
-                else{
+                else {
                     formdata.append(p, parameters[p]);
                 }
             }
@@ -512,25 +551,25 @@ export abstract class C8oHttpInterfaceCore {
      * @param {Object} parameters
      * @return {any}
      */
-    public transformRequestfileNative(parameters: Object): any{
+    public transformRequestfileNative(parameters: Object): any {
         let file: Array<any> = new Array();
         let params: Object = new Object();
         for (let p in parameters) {
             if (parameters[p] instanceof Array) {
                 for (let p1 in parameters[p]) {
-                    if(parameters[p][p1] instanceof URL){
+                    if (parameters[p][p1] instanceof URL) {
                         file.push([p1, parameters[p][p1]]);
                     }
-                    else{
+                    else {
                         params[p1] = parameters[p][p1]["href"];
                     }
                 }
             }
             else {
-                if(parameters[p] instanceof URL) {
+                if (parameters[p] instanceof URL) {
                     file.push([p, parameters[p]["href"]]);
                 }
-                else{
+                else {
                     params[p] = parameters[p];
                 }
             }
@@ -551,13 +590,13 @@ export abstract class C8oHttpInterfaceCore {
                 parameters["__sequence"] = parameters["__sequence"].substring(0, parameters["__sequence"].indexOf("#"));
             }
         }
-        switch (this.checkFile(parameters)){
+        switch (this.checkFile(parameters)) {
             case 0: {
                 return this.httpPost(url, parameters);
             }
             case 1: {
                 let form = this.transformRequestformdata(parameters);
-                return this.uploadFileHttp(url,form,parameters,c8oResponseListener);
+                return this.uploadFileHttp(url, form, parameters, c8oResponseListener);
             }
             case 2: {
                 return this.uploadFilePluginNative(url, parameters, c8oResponseListener);
@@ -573,7 +612,7 @@ export abstract class C8oHttpInterfaceCore {
      * @param {C8oResponseListener} c8oResponseListener
      * @return {Promise<any>}
      */
-    public uploadFilePluginNative(url: string, parameters: Object, c8oResponseListener: C8oResponseListener):Promise<any>{
+    public uploadFilePluginNative(url: string, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
         let progress: C8oProgress = new C8oProgress();
         progress.pull = false;
         let varNull: JSON = null;
@@ -583,10 +622,10 @@ export abstract class C8oHttpInterfaceCore {
         options.fileKey = files[0][0];
         options.fileName = files[0][1].substr(files[0][1].lastIndexOf('/') + 1);
         options.params = data[1];
-        let headersObject = {'Accept':'application/json', 'x-convertigo-sdk': this.c8o.sdkVersion};
+        let headersObject = { 'Accept': 'application/json', 'x-convertigo-sdk': this.c8o.sdkVersion };
         Object.assign(headersObject, this.c8o.headers);
         options.headers = headersObject;
-        return new Promise((resolve,reject)=>{
+        return new Promise((resolve, reject) => {
             Promise.all([this.p1]).then(() => {
                 var ft = new window["FileTransfer"]();
                 ft.onprogress = (progressEvent) => {
@@ -611,8 +650,8 @@ export abstract class C8oHttpInterfaceCore {
      * @param {C8oResponseListener} c8oResponseListener
      * @return {Promise<any>}
      */
-    uploadFileHttp(url: string, form: FormData, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any>{
-        let headersObject = {'Accept':'application/json', 'x-convertigo-sdk': this.c8o.sdkVersion};
+    uploadFileHttp(url: string, form: FormData, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
+        let headersObject = { 'Accept': 'application/json', 'x-convertigo-sdk': this.c8o.sdkVersion };
         Object.assign(headersObject, this.c8o.headers);
         let progress: C8oProgress = new C8oProgress();
         progress.pull = false;
@@ -622,13 +661,13 @@ export abstract class C8oHttpInterfaceCore {
             this.p1 = new Promise((resolve) => {
                 this.firstCall = false;
                 this.getuploadRequester(url, form, headersObject)
-                .subscribe(
-                    event=>{
-                        this.handleResponseFileUpload(event, progress, parameters, c8oResponseListener, varNull, resolve); 
-                    },
-                    error => { 
-                        this.handleErrorFileUpload(error, resolve);
-                    });
+                    .subscribe(
+                        event => {
+                            this.handleResponseFileUpload(event, progress, parameters, c8oResponseListener, varNull, resolve);
+                        },
+                        error => {
+                            this.handleErrorFileUpload(error, resolve);
+                        });
             });
             return this.p1;
         }
@@ -636,13 +675,13 @@ export abstract class C8oHttpInterfaceCore {
             return new Promise((resolve, reject) => {
                 Promise.all([this.p1]).then(() => {
                     this.getuploadRequester(url, form, headersObject)
-                    .subscribe(
-                        event=>{
-                            this.handleResponseFileUpload(event, progress, parameters, c8oResponseListener, varNull, resolve);      
-                        },
-                        error => { 
-                            this.handleErrorFileUpload(error, resolve);
-                        });
+                        .subscribe(
+                            event => {
+                                this.handleResponseFileUpload(event, progress, parameters, c8oResponseListener, varNull, resolve);
+                            },
+                            error => {
+                                this.handleErrorFileUpload(error, resolve);
+                            });
                 });
             });
         }
@@ -657,15 +696,15 @@ export abstract class C8oHttpInterfaceCore {
      * @param varNull 
      * @param resolve 
      */
-    public handleResponseFileUpload(event:any, progress: C8oProgress, parameters: Object, c8oResponseListener: C8oResponseListener, varNull:any, resolve):void{
-        if(!this.js){
+    public handleResponseFileUpload(event: any, progress: C8oProgress, parameters: Object, c8oResponseListener: C8oResponseListener, varNull: any, resolve): void {
+        if (!this.js) {
             if (event.type === 1) {
                 this.handleProgress(event, progress, parameters, c8oResponseListener, varNull);
             } else if (this.isHttpResponse(event)) {
                 resolve(event);
             }
         }
-        else{
+        else {
             console.error("MUST BE DONE");
         }
     }
@@ -675,8 +714,8 @@ export abstract class C8oHttpInterfaceCore {
      * @param error 
      * @param resolve 
      */
-    private handleErrorFileUpload(error:any, resolve:any): void {
-        resolve({"error": (new C8oHttpRequestException(C8oExceptionMessage.runHttpRequest(), error))});
+    private handleErrorFileUpload(error: any, resolve: any): void {
+        resolve({ "error": (new C8oHttpRequestException(C8oExceptionMessage.runHttpRequest(), error)) });
     }
 
     /**
@@ -687,25 +726,25 @@ export abstract class C8oHttpInterfaceCore {
      * @param {C8oResponseListener} c8oResponseListener
      * @param {JSON} varNull
      */
-    handleProgress(event: any, progress: C8oProgress, parameters: any, c8oResponseListener: C8oResponseListener, varNull: JSON): void{
+    handleProgress(event: any, progress: C8oProgress, parameters: any, c8oResponseListener: C8oResponseListener, varNull: JSON): void {
         progress.current = event.loaded;
         progress.total = event.total;
-        if(event.loaded != event.total){
+        if (event.loaded != event.total) {
             progress.finished = false;
         }
-        else{
+        else {
             progress.finished = true;
         }
         parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
         (c8oResponseListener as C8oResponseJsonListener).onJsonResponse(varNull, parameters);
 
     }
-    
-     /**
-     * get headers;
-     * @param object headers object
-     */
-    public abstract getHeaders(object):any;
+
+    /**
+    * get headers;
+    * @param object headers object
+    */
+    public abstract getHeaders(object): any;
 
     /**
      * Post with progress
@@ -713,11 +752,11 @@ export abstract class C8oHttpInterfaceCore {
      * @param form the form data to post
      * @param headersObject Headers to use
      */
-    public abstract getuploadRequester(url:string, form: FormData, headersObject:any): Observable<any>;
+    public abstract getuploadRequester(url: string, form: FormData, headersObject: any): Observable<any>;
 
     /**
      * test type of response
      * @param event any
      */
-    public abstract isHttpResponse(event:any):boolean;
+    public abstract isHttpResponse(event: any): boolean;
 }

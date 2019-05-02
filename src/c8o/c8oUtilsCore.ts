@@ -112,6 +112,10 @@ export class C8oUtilsCore {
     public static identifyC8oCallRequest(parameters: Object, responseType: string): string {
         return responseType + JSON.stringify(parameters);
     }
+
+    public static checkHeaderArgument(response, argument){
+        return response.headers.get(argument);
+    }
 }
 
 export class Queue<T> {

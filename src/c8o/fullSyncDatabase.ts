@@ -91,18 +91,17 @@ export class C8oFullSyncDatabase {
      * Start pull and push replications.
      * @returns Promise<any>
      */
-    public startAllReplications(parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
-        this.assignState(c8oResponseListener,parameters,"sync");
-        return this.startSync(this.syncFullSyncReplication, parameters, c8oResponseListener);        
+    public startAllReplications(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any): Promise<any> {
+        return this.startSync(this.syncFullSyncReplication, parameters, c8oResponseListener, handler);        
     }
 
     /**
      * Start pull replication.
      * @returns Promise<any>
      */
-    public startPullReplication(parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
+    public startPullReplication(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any): Promise<any> {
         this.assignState(c8oResponseListener,parameters,"pull");
-        return this.startReplication(this.pullFullSyncReplication, parameters, c8oResponseListener);
+        return this.startReplication(this.pullFullSyncReplication, parameters, c8oResponseListener, handler);
         
     }
 
@@ -110,9 +109,9 @@ export class C8oFullSyncDatabase {
      * Start push replication.
      * @returns Promise<any>
      */
-    public startPushReplication(parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
+    public startPushReplication(parameters: Object, c8oResponseListener: C8oResponseListener, handler:any): Promise<any> {
         this.assignState(c8oResponseListener,parameters,"push");
-        return this.startReplication(this.pushFullSyncReplication, parameters, c8oResponseListener);
+        return this.startReplication(this.pushFullSyncReplication, parameters, c8oResponseListener, handler);
         
     }
 
@@ -155,7 +154,7 @@ export class C8oFullSyncDatabase {
         return true;
     }
 
-    private startSync(fullSyncReplication: FullSyncReplication, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
+    private startSync(fullSyncReplication: FullSyncReplication, parameters: Object, c8oResponseListener: C8oResponseListener, handler): Promise<any> {
         let continuous: boolean = false;
         let cancel: boolean = false;
         const parametersObj: Object = {};
@@ -325,6 +324,10 @@ export class C8oFullSyncDatabase {
                         });
 
                 }
+                else if (!continuous){
+                    this.c8o.log._trace("Replication is finished, modifying its state");
+                    handler();
+                }
             }).on("error", (err) => {
                 rep.cancel();
                 if (err.message === "Unexpected end of JSON input") {
@@ -349,6 +352,8 @@ export class C8oFullSyncDatabase {
 
             if (cancel) {
                 if (rep != null) {
+                    this.c8o.log._trace("Replication canceled called, modifying its state");
+                    handler();
                     rep.cancel();
                     progress.finished = true;
                     if (c8oResponseListener != null && c8oResponseListener instanceof C8oResponseProgressListener) {
@@ -369,7 +374,7 @@ export class C8oFullSyncDatabase {
      * @param c8oResponseListener
      * @param parameters
      */
-    private startReplication(fullSyncReplication: FullSyncReplication, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
+    private startReplication(fullSyncReplication: FullSyncReplication, parameters: Object, c8oResponseListener: C8oResponseListener, handler): Promise<any> {
         let continuous: boolean = false;
         let cancel: boolean = false;
         const parametersObj: Object = {};
@@ -492,6 +497,10 @@ export class C8oFullSyncDatabase {
                             }
                         });
                 }
+                else if (!continuous){
+                    this.c8o.log._trace("Replication is finished, modifying its state");
+                    handler();
+                }
             }).on("error", (err) => {
                 if (err.message === "Unexpected end of JSON input") {
                     progress.finished = true;
@@ -510,6 +519,8 @@ export class C8oFullSyncDatabase {
 
             if (cancel) {
                 if (rep != null) {
+                    this.c8o.log._trace("Replication canceled called, modifying its state");
+                    handler();
                     rep.cancel();
                     progress.finished = true;
                     if (c8oResponseListener != null && c8oResponseListener instanceof C8oResponseProgressListener) {
