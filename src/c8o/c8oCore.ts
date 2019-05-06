@@ -494,7 +494,7 @@ export abstract class C8oCore extends C8oBase {
 /*            (this.c8oFullSync as C8oFullSyncCbl).canceled = false;
             (this.c8oFullSync as C8oFullSyncCbl).cancelActiveReplications();
   */
-            this.database.stopReplications(this.session.user.name);
+           
         });
         return this.subscriber_session;
     }

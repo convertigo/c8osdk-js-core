@@ -58,12 +58,15 @@ export class C8oManagerNetwork {
             switch(res){
                 case C8oNetworkStatus.Reachable:
                     this.c8o.database.restartReplications(this.c8o.session.user.name);
+                    this.c8o.database.restartReplications("anonymous");
                 break;
                 case C8oNetworkStatus.NotReachable:
                     this.c8o.database.stopReplications(this.c8o.session.user.name);
+                    this.c8o.database.stopReplications("anonymous");
                 break;
                 case C8oNetworkStatus.Offline:
                     this.c8o.database.stopReplications(this.c8o.session.user.name);
+                    this.c8o.database.stopReplications("anonymous");
                 break;
             }
         });

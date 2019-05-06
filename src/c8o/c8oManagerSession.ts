@@ -21,6 +21,7 @@ export class C8oManagerSession {
     private loginManager: C8oManagerLogin;
     private checker: any;
     private _user: C8oSessionUser;
+    private _olduser: C8oSessionUser;
     private ignored;
 
     constructor(c8o: C8oCore) {
@@ -63,6 +64,26 @@ export class C8oManagerSession {
     public get user(): C8oSessionUser {
         return this._user;
     }
+    /**
+     * Get previous status of the session
+     * 
+     * @returns: C8oSessionStatus
+     * 
+     * Can be:
+     * C8oSessionStatus.Connected
+     * C8oSessionStatus.HasBeenConnected
+     * C8oSessionStatus.HasBeenDisconnected
+     * C8oSessionStatus.Disconnected
+     * C8oSessionStatus.Ignore
+     */
+    public get olduser(): C8oSessionUser {
+        return this._olduser;
+    }
+
+    public set user(user: C8oSessionUser){
+        this._olduser = user;
+        this._user = user;
+    }
 
     public async sort(response: any, headers: any, urlReq, parametersReq, headersReq, resolve = null) {
         // update _status if this is a sequence
@@ -85,6 +106,7 @@ export class C8oManagerSession {
                             
                         }
                         else{
+                            this.c8o.database.stopReplications(this.user.name);
                             this._user = new C8oSessionUser();
                             this.c8o.subscriber_session.next();
                             resolve();
@@ -242,6 +264,7 @@ export class C8oManagerSession {
                     // try to login
                     let success = await this.loginManager.doLogin();
                     if (success.status == false) {
+                        this.c8o.database.stopReplications(this.user.name);
                         this._user = new C8oSessionUser();
                         this._status = C8oSessionStatus.HasBeenDisconnected;
                         this.c8o.subscriber_session.next();
@@ -252,7 +275,7 @@ export class C8oManagerSession {
                     }
                 }
                 else {
-                    
+                    this.c8o.database.stopReplications(this.user.name);
                     this._user = new C8oSessionUser();
                     this._status = C8oSessionStatus.HasBeenDisconnected;
                     this.c8o.subscriber_session.next();
@@ -275,6 +298,7 @@ export class C8oManagerSession {
                     }
                     this.checker =
                         setTimeout(async () => {
+                            this.c8o.database.stopReplications(this.user.name);
                             this.c8o.subscriber_session.next();
                         }, timeR)
                         resolve();
