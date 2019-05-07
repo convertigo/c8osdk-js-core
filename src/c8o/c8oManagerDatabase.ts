@@ -2,7 +2,7 @@ import "rxjs/add/operator/retry";
 import { C8oCore } from "./c8oCore";
 import { C8oResponseListener, C8oResponseJsonListener } from "./c8oResponse";
 import { C8oSessionStatus } from "./c8oSessionStatus";
-import { C8oReplicationStatus } from "./c8oReplicationStatus";
+import {C8oReplicationStatus} from "./c8oReplicationStatus";
 import { C8oNetworkStatus } from "./c8oNetworkStatus";
 
 declare const require: any;
