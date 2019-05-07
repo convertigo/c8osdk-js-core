@@ -1,14 +1,5 @@
 import "rxjs/add/operator/retry";
 import {C8oCore} from "./c8oCore";
-import {C8oProgress} from "./c8oProgress";
-import { C8oResponseListener, C8oResponseJsonListener} from "./c8oResponse";
-import { C8oFullSyncCbl } from "./c8oFullSync";
-import { C8oHttpRequestException } from "./Exception/c8oHttpRequestException";
-
-import { C8oExceptionMessage } from "./Exception/c8oExceptionMessage";
-import { Observable } from "rxjs";
-import { url } from 'inspector';
-import { C8oSessionStatus } from './c8oSessionStatus';
 
 declare const require: any;
 export class C8oManagerLogin {

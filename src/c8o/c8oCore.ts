@@ -19,7 +19,6 @@ import { Observable, Subject } from 'rxjs';
 import {C8oManagerNetwork} from "./c8oManagerNetwork";
 import {C8oManagerDatabase} from "./c8oManagerDatabase";
 import {C8oManagerSession} from "./c8oManagerSession";
-import { C8oNetworkStatus } from "./C8oNetworkStatus";
 
 declare var require: any;
 /**

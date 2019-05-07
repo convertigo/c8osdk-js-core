@@ -1,5 +1,4 @@
 import { C8oCore } from "./c8oCore";
-
 import { C8oNetworkStatus } from "./c8oNetworkStatus"
 
 export class C8oManagerNetwork {
