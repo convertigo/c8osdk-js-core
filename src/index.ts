@@ -25,6 +25,15 @@ export * from "./c8o/fullSyncRequestable";
 export * from "./c8o/fullSyncResponse";
 export * from "./c8o/priority.service";
 
+export * from "./c8o/c8oManagerDatabase"
+export * from "./c8o/c8oManagerLogin"
+export * from "./c8o/c8oManagerNetwork"
+export * from "./c8o/c8oManagerSession"
+export * from "./c8o/c8oNetworkStatus"
+export * from "./c8o/c8oReplicationStatus"
+export * from "./c8o/c8oSessionStatus"
+export * from "./c8o/C8oSessionUser"
+
 export * from "./c8o/Exception/c8oCouchBaseLiteException";
 export * from "./c8o/Exception/c8oException";
 export * from "./c8o/Exception/c8oExceptionListener";
@@ -32,3 +41,5 @@ export * from "./c8o/Exception/c8oExceptionMessage";
 export * from "./c8o/Exception/c8oHttpRequestException";
 export * from "./c8o/Exception/c8oRessourceNotFoundException";
 export * from "./c8o/Exception/c8oUnavailableLocalCacheException";
+
+
