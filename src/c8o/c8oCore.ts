@@ -585,87 +585,7 @@ export abstract class C8oCore extends C8oBase {
                 (this.lives[task] as C8oCallTask).executeFromLive();
             }
     });
-    /**
-     * Listen offline status to stop active replications and disactive log remote
-     */
-    protected listenOffline(){
-        window.addEventListener("offline", () => {
-            //event offline
-            this.processOffline();
-        }, false);
-    }
-
-    private processOffline(){
-        this.reachable = false;
-        this._logRemote = false;
-        if (this.logOnFail != null) {
-            this.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail()), null);
-        }
-        this.c8oLogger.info("[C8o] Network offline detected");
-        this.c8oLogger.info("[C8o] Setting remote logs to false");
-        this.subscriber_network.next({status:"offline", "description":"We are offline"});
-        (this.c8oFullSync as C8oFullSyncCbl).cancelActiveReplications();
-    }
     
-    /**
-     * Listen online status to restart replications check for authenticated status and active log remote
-     */
-    protected listenOnLine(){
-        window.addEventListener("online", () => {
-            this.processOnline();
-            
-        }, false);
-    }
-
-    private processNotReachable(){
-        
-    }
-    private processOnline(resolve = null){
-        // if c8o object has been init
-        if(this.promiseFinInit != null){
-            this.finalizeInit().then(()=>{
-                // Test if endpoint is reachable
-                this.c8oLogger.logTest()
-                .then(()=>{
-                    if(!this.reachable){
-                        this.reachable = true;
-                        if(this._initalLogLevel){
-                            this._logRemote = true;
-                        }
-                        this.log.info("Network online and enpoint reachable");
-                        this.httpInterface.firstcheckSessionR  = false;
-                        if (this._initialLogRemote){// && !this.logRemote) {
-                            this.logRemote = true;
-                            this.log.info("[C8o][online] setting remote logs to true");
-                        }
-                        this.log.info("[C8o][online] We will check for an existing session");
-                        this.httpInterface.checkSessionOnce();
-                        this.subscriber_network.next({status:"reachable", "description":"We are online, and endpoint is reachable"});
-                    }
-                    if(resolve != undefined){
-                        resolve()
-                    }
-                })
-                .catch(()=>{
-                    this.reachable = false;
-                    this._logRemote = false;
-                    if (this.logOnFail != null) {
-                        this.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail()), null);
-                    }
-                    this.log.info("[C8o] Network online, but we cannot reach endpoint");
-                    this.c8oLogger.info("[C8o] Setting remote logs to false");
-                    (this.c8oFullSync as C8oFullSyncCbl).cancelActiveReplications();
-                    if(navigator["onLine"]){
-                        //event onLine not reachable
-                        this.subscriber_network.next({status:"notReachable", "description":"We are online, but endpoint is not reachable"});
-                    }
-                    else{
-                        this.subscriber_network.next({status:"offline", "description":"We are offline"});
-                    }
-                })
-            });
-        }
-    }
     /**
      * Method to bastract http get
      * @param uri the uri for given request
@@ -819,32 +739,6 @@ export abstract class C8oCore extends C8oBase {
         }
     }
 
-    checkReachable(){
-        this.promiseReachable = new Promise((resolve)=>{
-            if(window.navigator.onLine == true){
-                this.processOnline(resolve);
-            }
-            else{
-                this.reachable = false;
-                    this._logRemote = false;
-                    if (this.logOnFail != null) {
-                        this.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail()), null);
-                    }
-                    this.log.info("[C8o] Network online, but we cannot reach endpoint");
-                    this.c8oLogger.info("[C8o] Setting remote logs to false");
-                    (this.c8oFullSync as C8oFullSyncCbl).cancelActiveReplications();
-                    this.reachable = false;
-                    if(navigator["onLine"]){
-                        //event onLine not reachable
-                        this.subscriber_network.next({status:"notReachable", "description":"We are online, but endpoint is not reachable"});
-                    }
-                    else{
-                        this.subscriber_network.next({status:"offline", "description":"We are offline"});
-                    }
-            }
-        });
-        
-    }
 
 }
 

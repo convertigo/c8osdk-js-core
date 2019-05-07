@@ -33,17 +33,14 @@ export class C8oFullSyncDatabase {
      * Used to make pull replication (uploads changes from the local database to the remote one).
      */
     private pullFullSyncReplication: FullSyncReplication = new FullSyncReplication(true);
-    private pullFullSyncReplicationState: ReplicationState = {listener:null, database:null, parameters: null, type:"pull", stopped:false};
     /**
      * Used to make push replication (downloads changes from the remote database to the local one).
      */
     private pushFullSyncReplication: FullSyncReplication = new FullSyncReplication(false);
-    private pushFullSyncReplicationState: ReplicationState = {listener:null, database:null, parameters: null, type:"push", stopped:false};
     /**
      * Used to make pull replication (uploads changes from the local database to the remote one).
      */
     private syncFullSyncReplication: FullSyncReplication = new FullSyncReplication();
-    private syncFullSyncReplicationState: ReplicationState = {listener:null, database:null, parameters: null, type:"sync", stopped:false};
 
     private remotePouchHeader;
 
@@ -100,7 +97,6 @@ export class C8oFullSyncDatabase {
      * @returns Promise<any>
      */
     public startPullReplication(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any): Promise<any> {
-        this.assignState(c8oResponseListener,parameters,"pull");
         return this.startReplication(this.pullFullSyncReplication, parameters, c8oResponseListener, handler);
         
     }
@@ -110,48 +106,8 @@ export class C8oFullSyncDatabase {
      * @returns Promise<any>
      */
     public startPushReplication(parameters: Object, c8oResponseListener: C8oResponseListener, handler:any): Promise<any> {
-        this.assignState(c8oResponseListener,parameters,"push");
         return this.startReplication(this.pushFullSyncReplication, parameters, c8oResponseListener, handler);
         
-    }
-
-    /**
-     * Save state for a given replication
-     * @param c8oResponseListener 
-     * @param parameters 
-     * @param type 
-     */
-    public assignState(c8oResponseListener: C8oResponseListener, parameters: Object, type: string){
-        switch(type){
-            case "sync":
-                this.syncFullSyncReplicationState.listener = c8oResponseListener;
-                this.syncFullSyncReplicationState.parameters = parameters;
-                this.syncFullSyncReplicationState.type = type;
-            break;
-            case "pull":
-                this.pullFullSyncReplicationState.listener = c8oResponseListener;
-                this.pullFullSyncReplicationState.parameters = parameters;
-                this.pullFullSyncReplicationState.type = type;
-            break;
-            case "push":
-                this.pushFullSyncReplicationState.listener = c8oResponseListener;
-                this.pushFullSyncReplicationState.parameters = parameters;
-                this.pushFullSyncReplicationState.type = type;
-            break;
-        }
-        
-    }
-
-    /**
-     * Check network status before starting a replication
-     */
-    private checkState(): boolean{
-        if(navigator != undefined){
-            if(navigator["onLine"] == false){
-                return false;
-            }
-        }
-        return true;
     }
 
     private startSync(fullSyncReplication: FullSyncReplication, parameters: Object, c8oResponseListener: C8oResponseListener, handler): Promise<any> {
@@ -567,68 +523,34 @@ export class C8oFullSyncDatabase {
     /**
      * cancel Pull Replication
      */
-    public cancelPullReplication():ReplicationState{
+    public cancelPullReplication(): void{
         if(this.pullFullSyncReplication.replication != undefined){
             this.pullFullSyncReplication.replication.cancel();
         }
-        return this.pullFullSyncReplicationState;
     }
 
     /**
      * cancel Push Replication
      */
-    public cancelPushReplication():ReplicationState{
+    public cancelPushReplication(): void{
         if(this.pushFullSyncReplication.replication != undefined){
             this.pushFullSyncReplication.replication.cancel();
         }
-        return this.pushFullSyncReplicationState;
     }
 
     /**
      * cancel Sync Replication
      */
-    public cancelSyncReplication():ReplicationState{
+    public cancelSyncReplication(): void{
         if(this.syncFullSyncReplication.replication != undefined){
             this.syncFullSyncReplication.replication.cancel();
         }
-        return this.syncFullSyncReplicationState;
     }
 
     /**
      * return current pull replication state or false if replication does not exists
      */
-    public get pullState(){
-        if(this.pullFullSyncReplication.replication != null){
-            return this.pullFullSyncReplication.replication.state;
-        }
-        else{
-            return false;
-        }
-    }
-
-    /**
-     * return current push replication State or false if replication does not exists
-     */
-    public get pushState(){
-        if(this.pushFullSyncReplication.replication != null){
-            return this.pushFullSyncReplication.replication.state;
-        }
-        else{
-            return false;
-        }
-    }
-
-    /**
-     * return current sync replication State or false if replication does not exists
-     */
-    public get syncState(){
-        if(this.syncFullSyncReplication.replication != null){
-            return this.syncFullSyncReplication.replication.pull.state;
-        }
-        else{
-            return false;
-        }
-    }
+  
 }
 
 export interface ReplicationState{
