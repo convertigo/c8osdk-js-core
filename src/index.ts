@@ -30,7 +30,7 @@ export * from "./c8o/c8oManagerLogin"
 export * from "./c8o/c8oManagerNetwork"
 export * from "./c8o/c8oManagerSession"
 export * from "./c8o/c8oNetworkStatus"
-export * from "./c8o/c8oReplicationStatus"
+export * from "./c8o/C8oReplicationStatus"
 export * from "./c8o/c8oSessionStatus"
 export * from "./c8o/C8oSessionUser"
 
