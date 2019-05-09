@@ -121,7 +121,8 @@ export class C8oFullSyncDatabase {
             }
         }
         catch (error) {
-            return false;
+            //there is no c8odesing base has been created in local
+            return "_C8O_DO_NOTHING";
         }
 
     }
@@ -130,25 +131,30 @@ export class C8oFullSyncDatabase {
         let remoteVersion = await this.remoteDatabaseVersion();
         let localVersion = await this.localDatabaseVersion();
         let reset = false;
-        if (remoteVersion != false) {
-            if (localVersion != false) {
-                if (remoteVersion != localVersion) {
-                    // reset
+        if(localVersion == "_C8O_DO_NOTHING"){
+            this.c8o.log._trace("Local database version do not contains, _design/c8o, it has been created in local, no reset needed");
+        }
+        else{
+            if (remoteVersion != false) {
+                if (localVersion != false) {
+                    if (remoteVersion != localVersion) {
+                        // reset
+                        reset = true;
+                    }
+                }
+                else{
                     reset = true;
                 }
             }
+            if (reset) {
+                this.c8o.log._trace("Since remote database version is diffrent from local database, we will reset it");
+                await this.resetMyBase()
+            }
             else {
-                //reset
-                reset = true;
+                this.c8o.log._trace("Remote database version and local database, had the same version, reset not needed");
             }
         }
-        if (reset) {
-            this.c8o.log._trace("Since remote database version is diffrent from local database, we will reset it");
-            await this.resetMyBase()
-        }
-        else {
-            this.c8o.log._trace("Remote database version and local database, had the same version, reset not needed");
-        }
+        
     }
 
     async resetMyBase() {
