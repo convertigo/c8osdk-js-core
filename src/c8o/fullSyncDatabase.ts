@@ -1,12 +1,14 @@
-import {C8oCore} from "./c8oCore";
-import {C8oProgress} from "./c8oProgress";
-import {C8oResponseListener, C8oResponseProgressListener} from "./c8oResponse";
-import {FullSyncReplication} from "./fullSyncReplication";
+import { C8oCore } from "./c8oCore";
+import { C8oProgress } from "./c8oProgress";
+import { C8oResponseListener, C8oResponseProgressListener } from "./c8oResponse";
+import { FullSyncReplication } from "./fullSyncReplication";
 
 import PouchDB from "pouchdb-browser";
 
 import * as PouchDBLoad from "pouchdb-load";
 import { repeat } from 'rxjs/operators';
+import { resolve } from "path";
+import { reject } from "q";
 
 /**
  * Created by charlesg on 10/01/2017.
@@ -24,6 +26,7 @@ export class C8oFullSyncDatabase {
      * The fullSync database name.
      */
     private databaseName: string;
+    private remotedatabaseName: string;
     private c8oFullSyncDatabaseUrl: string;
     /**
      * The fullSync Database instance.
@@ -60,15 +63,16 @@ export class C8oFullSyncDatabase {
         };
         Object.assign(header, this.c8o.headers);
         this.remotePouchHeader = {
-            fetch: (url, opts)=> {
+            fetch: (url, opts) => {
                 opts.credentials = 'include';
-                for(let key in header){
+                for (let key in header) {
                     opts.headers.set(key, header[key]);
                 }
                 return PouchDB.fetch(url, opts);
             }
         };
         this.c8oFullSyncDatabaseUrl = fullSyncDatabases + databaseName;
+        this.remotedatabaseName = databaseName;
         this.databaseName = databaseName + localSuffix;
         try {
             if (c8o.couchUrl != null) {
@@ -76,7 +80,7 @@ export class C8oFullSyncDatabase {
                 this.c8o.log._debug("PouchDb launched on couchbaselite");
             } else {
                 PouchDB.plugin(PouchDBLoad)
-                this.database = new PouchDB(databaseName);
+                this.database = new PouchDB(this.databaseName);
                 this.c8o.log._debug("PouchDb launched normally");
             }
         } catch (error) {
@@ -84,30 +88,115 @@ export class C8oFullSyncDatabase {
         }
     }
 
+    public async remoteDatabaseVersion() {
+        return new Promise((resolve)=>{
+            this.c8o.httpInterface.httpGetObservable(this.c8oFullSyncDatabaseUrl + "/_design/c8o")
+            .subscribe(
+                response => {
+                    if (response["~c8oDbVersion"] != null) {
+                        this.c8o.log._trace("Server support reset database, remote version for " + this.remotedatabaseName + " is " + response["~c8oDbVersion"]);
+                        resolve(response["~c8oDbVersion"])
+                    }
+                    else {
+                        resolve(false);
+                    }
+            },
+            error => {
+                this.c8o.log._trace("Server does not support reset database");
+                resolve(false);
+            })
+        });
+    }
+
+    public async localDatabaseVersion() {
+        try {
+            let info = await this.database.info();
+            let response = await this.database.get('_design/c8o')
+            if (response["~c8oDbVersion"] != null) {
+                this.c8o.log._trace("Version for local database,  " + this.databaseName + " is " + response["~c8oDbVersion"]);
+                return response["~c8oDbVersion"];
+            }
+            else {
+                return false;
+            }
+        }
+        catch (error) {
+            return false;
+        }
+
+    }
+
+    public async checkResetBase() {
+        let remoteVersion = await this.remoteDatabaseVersion();
+        let localVersion = await this.localDatabaseVersion();
+        let reset = false;
+        if (remoteVersion != false) {
+            if (localVersion != false) {
+                if (remoteVersion != localVersion) {
+                    // reset
+                    reset = true;
+                }
+            }
+            else {
+                //reset
+                reset = true;
+            }
+        }
+        if (reset) {
+            this.c8o.log._trace("Since remote database version is diffrent from local database, we will reset it");
+            await this.resetMyBase()
+        }
+        else {
+            this.c8o.log._trace("Remote database version and local database, had the same version, reset not needed");
+        }
+    }
+
+    async resetMyBase() {
+        try {
+            await this.database.destroy();
+            if (this.c8o.couchUrl != null) {
+                this.database = new PouchDB(this.c8o.couchUrl + "/" + this.databaseName);
+                this.c8o.log._debug("PouchDb launched on couchbaselite");
+            } else {
+                PouchDB.plugin(PouchDBLoad)
+                this.database = new PouchDB(this.databaseName);
+                this.c8o.log._debug("PouchDb launched normally");
+            }
+            this.c8o.log._debug("Database resetted sucessfully");
+        } catch (error) {
+            this.c8o.log._error("error resetting database");
+        }
+
+    }
+
     /**
      * Start pull and push replications.
      * @returns Promise<any>
      */
-    public startAllReplications(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any): Promise<any> {
-        return this.startSync(this.syncFullSyncReplication, parameters, c8oResponseListener, handler);        
+    public async startAllReplications(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any): Promise<any> {
+        await this.checkResetBase()
+        return this.startSync(this.syncFullSyncReplication, parameters, c8oResponseListener, handler);
+        
     }
 
     /**
      * Start pull replication.
      * @returns Promise<any>
      */
-    public startPullReplication(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any): Promise<any> {
+    public async startPullReplication(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any): Promise<any> {
+        await this.checkResetBase()
         return this.startReplication(this.pullFullSyncReplication, parameters, c8oResponseListener, handler);
-        
+
     }
 
     /**
      * Start push replication.
      * @returns Promise<any>
      */
-    public startPushReplication(parameters: Object, c8oResponseListener: C8oResponseListener, handler:any): Promise<any> {
+    public async startPushReplication(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any): Promise<any> {
+        await this.checkResetBase()
         return this.startReplication(this.pushFullSyncReplication, parameters, c8oResponseListener, handler);
-        
+
     }
 
     private startSync(fullSyncReplication: FullSyncReplication, parameters: Object, c8oResponseListener: C8oResponseListener, handler): Promise<any> {
@@ -139,7 +228,7 @@ export class C8oFullSyncDatabase {
         }
         // Set retry true by default...
         parametersObj["retry"] = true;
-        
+
         //check parameters to throw to pouchDB
         if (parameters["retry"] != null) {
             parametersObj["retry"] = parameters["retry"];
@@ -172,7 +261,7 @@ export class C8oFullSyncDatabase {
             parametersObj["batches_limit"] = parameters["batches_limit"];
         }
         if (parameters["back_off_function"] != null) {
-            parametersObj["back_off_function"]  = parameters["back_off_function"];
+            parametersObj["back_off_function"] = parameters["back_off_function"];
         }
         if (parameters["checkpoint"] != null) {
             parametersObj["checkpoint"] = parameters["checkpoint"];
@@ -249,7 +338,7 @@ export class C8oFullSyncDatabase {
                         param[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                         (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                     })
-                        .on("paused", function() {
+                        .on("paused", function () {
                             progress.finished = true;
                             (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                             if (progress.total === 0 && progress.current === 0) {
@@ -267,7 +356,7 @@ export class C8oFullSyncDatabase {
                                 if (err.code === "ETIMEDOUT" && err.status === 0) {
                                     if (parameters["force_retry"] == true) {
                                         this.c8o.log._warn("Timeout handle during fullsync replication (fs://.sync) \n Forcing Restarting replication");
-                                        this.database.sync(remoteDB, {timeout: 600000, retry: true});
+                                        this.database.sync(remoteDB, { timeout: 600000, retry: true });
                                     } else {
                                         this.c8o.log._warn("Timeout handle during fullsync replication (fs://.sync) \n Restarting automatically replication");
                                     }
@@ -280,7 +369,7 @@ export class C8oFullSyncDatabase {
                         });
 
                 }
-                else if (!continuous){
+                else if (!continuous) {
                     this.c8o.log._trace("Replication is finished, modifying its state");
                     handler();
                 }
@@ -295,7 +384,7 @@ export class C8oFullSyncDatabase {
                 } else if (err.code === "ETIMEDOUT" && err.status === 0) {
                     if (parameters["force_retry"] == true) {
                         this.c8o.log._warn("Timeout handle during fullsync replication (fs://.sync) \n Forcing Restarting replication");
-                        this.database.sync(remoteDB, {timeout: 600000, retry: true});
+                        this.database.sync(remoteDB, { timeout: 600000, retry: true });
                     } else {
                         this.c8o.log._warn("Timeout handle during fullsync replication (fs://.sync) \n Restarting automatically replication");
                     }
@@ -389,7 +478,7 @@ export class C8oFullSyncDatabase {
             parametersObj["batches_limit"] = parameters["batches_limit"];
         }
         if (parameters["back_off_function"] != null) {
-            parametersObj["back_off_function"]  = parameters["back_off_function"];
+            parametersObj["back_off_function"] = parameters["back_off_function"];
         }
         if (parameters["checkpoint"] != null) {
             parametersObj["checkpoint"] = parameters["checkpoint"];
@@ -453,7 +542,7 @@ export class C8oFullSyncDatabase {
                             }
                         });
                 }
-                else if (!continuous){
+                else if (!continuous) {
                     this.c8o.log._trace("Replication is finished, modifying its state");
                     handler();
                 }
@@ -523,8 +612,8 @@ export class C8oFullSyncDatabase {
     /**
      * cancel Pull Replication
      */
-    public cancelPullReplication(): void{
-        if(this.pullFullSyncReplication.replication != undefined){
+    public cancelPullReplication(): void {
+        if (this.pullFullSyncReplication.replication != undefined) {
             this.pullFullSyncReplication.replication.cancel();
         }
     }
@@ -532,8 +621,8 @@ export class C8oFullSyncDatabase {
     /**
      * cancel Push Replication
      */
-    public cancelPushReplication(): void{
-        if(this.pushFullSyncReplication.replication != undefined){
+    public cancelPushReplication(): void {
+        if (this.pushFullSyncReplication.replication != undefined) {
             this.pushFullSyncReplication.replication.cancel();
         }
     }
@@ -541,8 +630,8 @@ export class C8oFullSyncDatabase {
     /**
      * cancel Sync Replication
      */
-    public cancelSyncReplication(): void{
-        if(this.syncFullSyncReplication.replication != undefined){
+    public cancelSyncReplication(): void {
+        if (this.syncFullSyncReplication.replication != undefined) {
             this.syncFullSyncReplication.replication.cancel();
         }
     }
@@ -550,13 +639,13 @@ export class C8oFullSyncDatabase {
     /**
      * return current pull replication state or false if replication does not exists
      */
-  
+
 }
 
-export interface ReplicationState{
-    listener:any;
-    parameters:any;
-    type:any;
+export interface ReplicationState {
+    listener: any;
+    parameters: any;
+    type: any;
     database: C8oFullSyncDatabase;
     stopped: Boolean
 }

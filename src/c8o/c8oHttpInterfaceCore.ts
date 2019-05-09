@@ -70,12 +70,29 @@ export abstract class C8oHttpInterfaceCore {
      * Method to bastract http get
      * @param uri the uri for given request
      */
-    public httpGetObservable(uri, param1, param2) {
+    public httpGetObservable(uri, param1 = null, param2 = null) {
         if (this.js) {
-            return this.from(this.c8o.httpPublic.get(uri, param1, param2));
+            if(param1 == null){
+                return this.from(this.c8o.httpPublic.get(uri));
+            }
+            else if(param2 == null){
+                return this.from(this.c8o.httpPublic.get(uri, param1));
+            }
+            else{
+                return this.from(this.c8o.httpPublic.get(uri, param1, param2));
+            }
         }
         else {
-            return this.c8o.httpPublic.get(uri, param1, param2);
+            if(param1 == null){
+                return this.c8o.httpPublic.get(uri);
+            }
+            else if(param2 == null){
+                return this.c8o.httpPublic.get(uri, param1);
+            }
+            else{
+                return this.c8o.httpPublic.get(uri, param1, param2);
+            }
+            
         }
     }
 
