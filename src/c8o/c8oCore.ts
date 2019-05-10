@@ -281,6 +281,19 @@ export abstract class C8oCore extends C8oBase {
         return this._http;
     }
 
+    public get disableResetBase(): boolean {
+        return this._disableResetBase;
+    }
+
+    
+    public set keepSessionAlive(keepSessionAlive: boolean) {
+        this._keepSessionAlive = keepSessionAlive;
+    }
+
+    public set disableResetBase(disableResetBase: boolean) {
+        this._disableResetBase = disableResetBase;
+    }
+
     public abstract get sdkVersion(): string;
 
     public get coreVersion(): string {

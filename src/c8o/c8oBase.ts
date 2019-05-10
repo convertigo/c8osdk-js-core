@@ -37,6 +37,8 @@ export class C8oBase {
 
     protected _keepSessionAlive: boolean = true;
 
+    protected _disableResetBase: boolean = false;
+
     protected _headers: Object = {};
     
     protected _initalLogLevel: Boolean;
@@ -53,12 +55,21 @@ export class C8oBase {
     /**
      * Gets if session has to be keep alive.<br/>
      * Default is <b>true</b>.
-     * @returns The timeout.
+     * @returns The KeepSessionAlive status.
      */
     public get keepSessionAlive(): boolean {
         return this._keepSessionAlive;
     }
+    
 
+    /**
+     * Gets if reset database is disabled.<br/>
+     * Default is <b>false</b>.
+     * @returns The disable reset base status.
+     */
+    public get disableResetBase(): boolean {
+        return this._disableResetBase;
+    }
     /**
      * Gets the connection timeout to Convertigo in milliseconds. A value of zero means the timeout is not used.<br/>
      * Default is <b>0</b>.
@@ -185,6 +196,9 @@ export class C8oBase {
 
             /**Keep ALive */
             this._keepSessionAlive = c8oBase._keepSessionAlive;
+
+            /** Reset base */
+            this._disableResetBase = c8oBase._disableResetBase;
         }
     }
 }
