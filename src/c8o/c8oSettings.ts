@@ -49,11 +49,11 @@ export class C8oSettings extends C8oBase {
 
     /**
      * Sets the if base has to be reseted on dectecting diffrent versions<br/>
-     * @param disableResetBase if you want to disable reset base
+     * @param resetBase if you to able reset base
      * @returns The current <b>C8oSettings</b>, for chaining.
      */
-    public setDisableResetBase(disableResetBase: boolean): C8oSettings {
-        this._disableResetBase = disableResetBase;
+    public setDisableResetBase(resetBase: boolean): C8oSettings {
+        this._resetBase = resetBase;
         return this;
     }
 

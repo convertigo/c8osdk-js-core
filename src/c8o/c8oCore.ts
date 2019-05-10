@@ -281,12 +281,12 @@ export abstract class C8oCore extends C8oBase {
         return this._http;
     }
 
-    public get disableResetBase(): boolean {
-        return this._disableResetBase;
+    public get resetBase(): boolean {
+        return this._resetBase;
     }
 
-    public set disableResetBase(disableResetBase: boolean) {
-        this._disableResetBase = disableResetBase;
+    public set resetBase(resetBase: boolean) {
+        this._resetBase = resetBase;
     }
 
     public abstract get sdkVersion(): string;
@@ -511,13 +511,6 @@ export abstract class C8oCore extends C8oBase {
      */
     public handleNetworkEvents(): Subject<any> {
         return this.subscriber_network;
-    }
-
-    public reply(): Subject<any>{
-        this._reply.subscribe((res)=>{
-            console.log(res);
-        });
-        return this._reply;
     }
 
     /**

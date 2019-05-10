@@ -37,7 +37,8 @@ export class C8oBase {
 
     protected _keepSessionAlive: boolean = true;
 
-    protected _disableResetBase: boolean = false;
+    protected _resetBase: boolean = true;
+    
 
     protected _headers: Object = {};
     
@@ -67,8 +68,8 @@ export class C8oBase {
      * Default is <b>false</b>.
      * @returns The disable reset base status.
      */
-    public get disableResetBase(): boolean {
-        return this._disableResetBase;
+    public get resetBase(): boolean {
+        return this._resetBase;
     }
     /**
      * Gets the connection timeout to Convertigo in milliseconds. A value of zero means the timeout is not used.<br/>
@@ -198,7 +199,7 @@ export class C8oBase {
             this._keepSessionAlive = c8oBase._keepSessionAlive;
 
             /** Reset base */
-            this._disableResetBase = c8oBase._disableResetBase;
+            this._resetBase = c8oBase._resetBase;
         }
     }
 }

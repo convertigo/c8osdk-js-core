@@ -245,7 +245,6 @@ export class C8oManagerSession {
         clearTimeout(this.checker);
         this.checker = setTimeout(async () => {
             // get user informations
-            console.log("checkSession");
             let user = await this.checkUser();
             let _status = user != undefined ? user.authenticated : false;
             // if we are not anymore loggedin

@@ -180,7 +180,7 @@ export class C8oFullSyncDatabase {
      * @returns Promise<any>
      */
     public async startAllReplications(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any): Promise<any> {
-        if(!this.c8o.disableResetBase){
+        if(this.c8o.resetBase){
             await this.checkResetBase()
         }
         return this.startSync(this.syncFullSyncReplication, parameters, c8oResponseListener, handler);
@@ -192,7 +192,7 @@ export class C8oFullSyncDatabase {
      * @returns Promise<any>
      */
     public async startPullReplication(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any): Promise<any> {
-        if(!this.c8o.disableResetBase){
+        if(this.c8o.resetBase){
             await this.checkResetBase()
         }
         return this.startReplication(this.pullFullSyncReplication, parameters, c8oResponseListener, handler);
@@ -204,7 +204,7 @@ export class C8oFullSyncDatabase {
      * @returns Promise<any>
      */
     public async startPushReplication(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any): Promise<any> {
-        if(!this.c8o.disableResetBase){
+        if(this.c8o.resetBase){
             await this.checkResetBase()
         }
         return this.startReplication(this.pushFullSyncReplication, parameters, c8oResponseListener, handler);
