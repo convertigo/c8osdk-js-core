@@ -144,10 +144,13 @@ export class C8oFullSyncCbl extends C8oFullSync {
      * @throws C8oException Failed to create a new fullSync database.
      */
     public getOrCreateFullSyncDatabase(databaseName: string): C8oFullSyncDatabase {
-        const localDatabaseName: string = databaseName + this.localSuffix;
+        let localDatabaseName: string = databaseName + this.localSuffix;
+
+        localDatabaseName = this.c8o.database.localName(localDatabaseName, true);
+        let prefix = this.c8o.prefixBase == true ? this.c8o.session.user.name+"_": "";
 
         if (this.fullSyncDatabases[localDatabaseName] == null) {
-            this.fullSyncDatabases[localDatabaseName] = new C8oFullSyncDatabase(this.c8o, databaseName, this.fullSyncDatabaseUrlBase, this.localSuffix);
+            this.fullSyncDatabases[localDatabaseName] = new C8oFullSyncDatabase(this.c8o, databaseName, this.fullSyncDatabaseUrlBase, this.localSuffix, prefix);
         }
         return this.fullSyncDatabases[localDatabaseName];
     }
@@ -486,8 +489,8 @@ export class C8oFullSyncCbl extends C8oFullSync {
         return new Promise((resolve, reject) => {
             const localDatabaseName = databaseName + this.localSuffix;
             this.getOrCreateFullSyncDatabase(databaseName).deleteDB().then((response) => {
-                if (this.fullSyncDatabases[localDatabaseName] !== null) {
-                    delete this.fullSyncDatabases[localDatabaseName];
+                if (this.fullSyncDatabases[this.c8o.database.localName(localDatabaseName)] !== null) {
+                    delete this.fullSyncDatabases[this.c8o.database.localName(localDatabaseName)];
                 }
                 resolve(new FullSyncDefaultResponse(response.ok));
             }).catch((err) => {

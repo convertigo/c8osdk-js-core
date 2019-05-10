@@ -56,7 +56,7 @@ export class C8oFullSyncDatabase {
      * @param localSuffix
      * @throws C8oException Failed to get the fullSync database.
      */
-    constructor(c8o: C8oCore, databaseName: string, fullSyncDatabases: string, localSuffix: string) {
+    constructor(c8o: C8oCore, databaseName: string, fullSyncDatabases: string, localSuffix: string, localPrefix: string) {
         this.c8o = c8o;
         const header = {
             "x-convertigo-sdk": this.c8o.sdkVersion,
@@ -73,10 +73,10 @@ export class C8oFullSyncDatabase {
         };
         this.c8oFullSyncDatabaseUrl = fullSyncDatabases + databaseName;
         this.remotedatabaseName = databaseName;
-        this.databaseName = databaseName + localSuffix;
+        this.databaseName = localPrefix + databaseName + localSuffix;
         try {
             if (c8o.couchUrl != null) {
-                this.database = new PouchDB(c8o.couchUrl + "/" + databaseName);
+                this.database = new PouchDB(c8o.couchUrl + "/" + this.databaseName);
                 this.c8o.log._debug("PouchDb launched on couchbaselite");
             } else {
                 PouchDB.plugin(PouchDBLoad)

@@ -39,6 +39,7 @@ export class C8oBase {
 
     protected _resetBase: boolean = true;
     
+    protected _prefixBase: boolean = false;
 
     protected _headers: Object = {};
     
@@ -65,12 +66,22 @@ export class C8oBase {
 
     /**
      * Gets if reset database is disabled.<br/>
-     * Default is <b>false</b>.
+     * Default is <b>true</b>.
      * @returns The disable reset base status.
      */
     public get resetBase(): boolean {
         return this._resetBase;
     }
+
+    /**
+     * Gets if we have to prefix databases with user name.<br/>
+     * Default is <b>false</b>.
+     * @returns The prefix base status.
+     */
+    public get prefixBase(): boolean {
+        return this._prefixBase;
+    }
+    
     /**
      * Gets the connection timeout to Convertigo in milliseconds. A value of zero means the timeout is not used.<br/>
      * Default is <b>0</b>.
@@ -200,6 +211,9 @@ export class C8oBase {
 
             /** Reset base */
             this._resetBase = c8oBase._resetBase;
+            /** Reset base */
+            this._prefixBase = c8oBase._prefixBase;
+            
         }
     }
 }

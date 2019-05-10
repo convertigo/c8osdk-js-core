@@ -15,6 +15,18 @@ export class C8oManagerDatabase {
         this.c8o = c8o;
     }
 
+    public localName(baseName:string, log = false): string{
+        if(this.c8o.prefixBase){
+            if(log){
+                this.c8o.log._trace("Database will be seteed with prefix of user name");
+            }
+            return this.c8o.session.user.name + "_"+ baseName;
+        }
+        else{
+            return baseName;
+        }
+    }
+
     public get registeredReplications() {
         return this.replications;
     }

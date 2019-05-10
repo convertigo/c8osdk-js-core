@@ -289,6 +289,16 @@ export abstract class C8oCore extends C8oBase {
         this._resetBase = resetBase;
     }
 
+    public get prefixBase(): boolean {
+        return this._prefixBase;
+    }
+
+    public set prefixBase(resetBase: boolean) {
+        this._prefixBase = resetBase;
+    }
+
+    
+
     public abstract get sdkVersion(): string;
 
     public get coreVersion(): string {
