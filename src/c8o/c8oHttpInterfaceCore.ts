@@ -513,7 +513,12 @@ export abstract class C8oHttpInterfaceCore {
             }
         }
         else {
-            console.error("MUST BE DONE");
+            if(event.type == "progress"){
+                this.handleProgress(event.response, progress, parameters, c8oResponseListener, varNull);
+            }
+            else{
+                resolve(event.response);
+            }
         }
     }
 
