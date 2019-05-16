@@ -57,6 +57,16 @@ export class C8oSettings extends C8oBase {
         return this;
     }
 
+    /**
+     * Sets the if base has to be prefixed by user name<br/>
+     * @param prefixBase if you to able prefix base
+     * @returns The current <b>C8oSettings</b>, for chaining.
+     */
+    public setEnablePrefixBase(prefixBase: boolean): C8oSettings {
+        this._prefixBase = prefixBase;
+        return this;
+    }
+
     
 
     /**
