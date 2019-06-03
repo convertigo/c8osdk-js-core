@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@types/pouchdb": "6.3.3",
-    "pouchdb-browser-custom": "./src/pouchdb",
+    "pouchdb-browser": "7.0.0",
     "pouchdb-load": "1.4.6",
     "zone.js": "0.8.26"
   },
