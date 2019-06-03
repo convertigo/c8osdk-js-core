@@ -87,7 +87,14 @@ export class C8oFullSyncDatabase {
 
     public async remoteDatabaseVersion() {
         return new Promise((resolve)=>{
-            this.c8o.httpInterface.httpGetObservable(this.c8oFullSyncDatabaseUrl + "/_design/c8o")
+            let headersObject = { 'Accept': 'application/json', 'x-convertigo-sdk': this.c8o.sdkVersion };
+            Object.assign(headersObject, this.c8o.headers);
+            let headers =  this.c8o.httpInterface.getHeaders(headersObject);
+
+            this.c8o.httpInterface.httpGetObservable(this.c8oFullSyncDatabaseUrl + "/_design/c8o", {
+                headers: headers,
+                withCredentials: true
+            }, {})
             .subscribe(
                 response => {
                     if (response["~c8oDbVersion"] != null) {
