@@ -3,12 +3,9 @@ import { C8oProgress } from "./c8oProgress";
 import { C8oResponseListener, C8oResponseProgressListener } from "./c8oResponse";
 import { FullSyncReplication } from "./fullSyncReplication";
 
-import PouchDB from "pouchdb-browser";
+import PouchDB from "pouchdb-browser-custom";
 
 import * as PouchDBLoad from "pouchdb-load";
-import { repeat } from 'rxjs/operators';
-import { resolve } from "path";
-import { reject } from "q";
 
 /**
  * Created by charlesg on 10/01/2017.

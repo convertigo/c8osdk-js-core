@@ -11,7 +11,7 @@
     "tsconfig.json"
   ],
   "scripts": {
-    "clean": "rimraf bundles coverage src/**/*.d.ts src/**/*.metadata.json src/**/*.js src/**/*.js.map src/**/*.ngsummary.json",
+    "clean": "rimraf bundles coverage src/c8o/*.d.ts src/c8o/*.metadata.json src/c8o/*.js src/c8o/*.js.map src/c8o/*.ngsummary.json src/*.d.ts src/*.metadata.json src/*.js src/*.js.map src/*.ngsummary.json",
     "prepare": "npm run clean && tsc -p . && npm run build",
     "build": "webpack && cp bundles/index.umd.js bundles/index.js",
     "docs": "npm run typedoc -- --options typedoc.json --exclude '**/*.spec.ts' ./src/c8o/",
@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@types/pouchdb": "6.3.3",
-    "pouchdb-browser": "7.0.0",
+    "pouchdb-browser-custom": "./src/pouchdb",
     "pouchdb-load": "1.4.6",
     "zone.js": "0.8.26"
   },

@@ -7,8 +7,6 @@ import { C8oHttpRequestException } from "./Exception/c8oHttpRequestException";
 
 import { C8oExceptionMessage } from "./Exception/c8oExceptionMessage";
 import { Observable } from "rxjs";
-import { url } from 'inspector';
-import { resolve } from "path";
 
 declare const require: any;
 export abstract class C8oHttpInterfaceCore {
