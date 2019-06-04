@@ -462,7 +462,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
         const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
         return new Promise((resolve, reject) => {
             fullSyncDatabase.getdatabase.load(parameters["data"], {
-                proxy: this.c8o.endpointConvertigo + "/fullsync/" + fullSyncDatabase.getdatabseName
+                proxy: this.c8o.endpointConvertigo + "/fullsync/" + (fullSyncDatabase.getdatabseName).replace("_device", "")
             }).then(() => {
                 resolve(new FullSyncDefaultResponse(true));
             }).catch((err) => {
