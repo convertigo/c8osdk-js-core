@@ -5,7 +5,7 @@ import { FullSyncReplication } from "./fullSyncReplication";
 
 import PouchDB from "pouchdb-browser";
 
-import * as PouchDBLoad from "pouchdb-load";
+import {C8oLoad} from "./c8oload";
 
 /**
  * Created by charlesg on 10/01/2017.
@@ -54,6 +54,8 @@ export class C8oFullSyncDatabase {
      * @throws C8oException Failed to get the fullSync database.
      */
     constructor(c8o: C8oCore, databaseName: string, fullSyncDatabases: string, localSuffix: string, localPrefix: string) {
+        let c8oload: C8oLoad = new C8oLoad(c8o);
+        window["PouchDB"] =PouchDB;
         this.c8o = c8o;
         const header = {
             "x-convertigo-sdk": this.c8o.sdkVersion,
@@ -76,7 +78,7 @@ export class C8oFullSyncDatabase {
                 this.database = new PouchDB(c8o.couchUrl + "/" + this.databaseName);
                 this.c8o.log._debug("PouchDb launched on couchbaselite");
             } else {
-                PouchDB.plugin(PouchDBLoad)
+                PouchDB.plugin(c8oload.plugin);
                 this.database = new PouchDB(this.databaseName);
                 this.c8o.log._debug("PouchDb launched normally");
             }
@@ -168,7 +170,8 @@ export class C8oFullSyncDatabase {
                 this.database = new PouchDB(this.c8o.couchUrl + "/" + this.databaseName);
                 this.c8o.log._debug("PouchDb launched on couchbaselite");
             } else {
-                PouchDB.plugin(PouchDBLoad)
+                let c8oload: C8oLoad = new C8oLoad(this.c8o);
+                PouchDB.plugin(c8oload.plugin)
                 this.database = new PouchDB(this.databaseName);
                 this.c8o.log._debug("PouchDb launched normally");
             }

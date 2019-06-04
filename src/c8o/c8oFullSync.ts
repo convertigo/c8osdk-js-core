@@ -461,14 +461,52 @@ export class C8oFullSyncCbl extends C8oFullSync {
     public handleBulkRequest(databaseName: string, parameters: Object): Promise<FullSyncDefaultResponse> {
         const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
         return new Promise((resolve, reject) => {
-            fullSyncDatabase.getdatabase.load(parameters["data"], {
-                proxy: this.c8o.endpointConvertigo + "/fullsync/" + (fullSyncDatabase.getdatabseName).replace("_device", "")
-            }).then(() => {
+            const header = {
+                "x-convertigo-sdk": this.c8o.sdkVersion,
+            };
+            Object.assign(header, this.c8o.headers);
+            let remotePouchHeader = {
+                fetch: (url, opts) => {
+                    opts.credentials = 'include';
+                    for (let key in header) {
+                        opts.headers.set(key, header[key]);
+                    }
+                    return PouchDB.fetch(url, opts);
+                }
+            };
+            fullSyncDatabase.getdatabase.c8oload(parameters["data"],
+            
+            {
+                proxy: this.c8o.endpointConvertigo + "/fullsync/" + (fullSyncDatabase.getdatabseName).replace("_device", ""),
+                fetch: (url, opts) => {
+                    opts.credentials = 'include';
+                    for (let key in header) {
+                        opts.headers.set(key, header[key]);
+                    }
+                    return PouchDB.fetch(url, opts);
+                }
+            },
+            this.c8o
+            )
+            .then(() => {
                 resolve(new FullSyncDefaultResponse(true));
             }).catch((err) => {
                 //this.c8o.log._error("Error loading the " + parameters["data"] + " database resource" + JSON.stringify(err, Object.getOwnPropertyNames(err)))
                 reject(new C8oException("Bulk Load failed", err));
             })
+            /*fullSyncDatabase.getdatabase.load(parameters["data"], {
+                proxy: this.c8o.endpointConvertigo + "/fullsync/" + (fullSyncDatabase.getdatabseName).replace("_device", ""),
+                credentials: 'include',
+                ajax: {
+                    withCredentials: true
+                }
+            },remotePouchHeader
+            ).then(() => {
+                resolve(new FullSyncDefaultResponse(true));
+            }).catch((err) => {
+                //this.c8o.log._error("Error loading the " + parameters["data"] + " database resource" + JSON.stringify(err, Object.getOwnPropertyNames(err)))
+                reject(new C8oException("Bulk Load failed", err));
+            })*/
         })
     }
 
