@@ -1,6 +1,6 @@
 {
   "name": "c8osdkjscore",
-  "version": "3.0.0-beta12",
+  "version": "3.0.0-beta13",
   "description": "convertigo's sdk js core",
   "main": "bundle/index.umd.js",
   "module": "src/index.js",
@@ -14,8 +14,6 @@
     "clean": "rimraf bundles coverage src/c8o/*.d.ts src/c8o/*.metadata.json src/c8o/*.js src/c8o/*.js.map src/c8o/*.ngsummary.json src/*.d.ts src/*.metadata.json src/*.js src/*.js.map src/*.ngsummary.json",
     "prepare": "npm run clean && tsc -p . && npm run build",
     "build": "webpack && cp bundles/index.umd.js bundles/index.js",
-    "docs": "npm run typedoc -- --options typedoc.json --exclude '**/*.spec.ts' ./src/c8o/",
-    "typedoc": "typedoc",
     "build-dev": "tsc -p ."
   },
   "keywords": [
@@ -51,34 +49,33 @@
     "zone.js": "0.8.26"
   },
   "devDependencies": {
-    "rimraf": "2.6.1",
     "@types/jasmine": "2.8.2",
     "awesome-typescript-loader": "3.4.1",
+    "browserify": "16.2.0",
     "codelyzer": "4.0.1",
-    "commitizen": "2.9.6",
+    "commitizen": "^3.1.1",
     "concurrently": "3.5.1",
     "core-js": "2.5.1",
     "istanbul-instrumenter-loader": "3.0.0",
     "jasmine-core": "2.8.0",
-    "karma": "1.7.1",
+    "karma": "^4.1.0",
     "karma-chrome-launcher": "2.2.0",
+    "karma-coverage": "^1.1.2",
     "karma-firefox-launcher": "1.1.0",
-    "karma-coverage": "1.1.1",
     "karma-jasmine": "1.1.1",
     "karma-mocha-reporter": "2.2.5",
     "karma-remap-coverage": "0.1.4",
     "karma-sourcemap-loader": "0.3.7",
-    "karma-webpack": "2.0.6",
+    "karma-webpack": "^3.0.5",
     "loader-utils": "1.1.0",
     "reflect-metadata": "0.1.10",
+    "rimraf": "2.6.1",
     "source-map-loader": "0.2.3",
     "ts-helpers": "1.1.2",
     "tsify": "4.0.0",
     "tslint": "5.9.1",
     "tslint-loader": "3.6.0",
-    "typedoc": "0.9.0",
-    "webpack": "3.10.0",
-    "typescript": "2.6.2",
-    "browserify": "16.2.0"
+    "typescript": "3.5.1",
+    "webpack": "3.10.0"
   }
 }
