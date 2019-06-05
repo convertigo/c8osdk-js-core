@@ -439,6 +439,7 @@ export abstract class C8oCore extends C8oBase {
      * @return A C8oPromise that can deliver the JSON response
      */
     public callJsonObject(requestable: string, parameters: Object): C8oPromise<JSON> {
+        this.removeNull(parameters)
         const promise: C8oPromise<JSON> = new C8oPromise<JSON>(this);
         this.call(requestable, parameters, new C8oResponseJsonListener((response: any, requestParameters: Object) => {
             if (requestParameters == null) {
@@ -486,6 +487,20 @@ export abstract class C8oCore extends C8oBase {
             newParameters[parameters[i]] = parameters[i + 1];
         }
         return newParameters;
+    }
+    /**
+     * Remove null value from parameters
+     *
+     * @param parameters an object
+     * @return a Map that contains all parameters
+     */
+    public removeNull(parameters: any){
+        for(let val in parameters){
+            if(parameters[val]== null){
+                delete parameters[val];
+                this.log._trace("remove parameters "+ val+ " since its value is null or undefined");
+            }
+        }
     }
 
     /**
