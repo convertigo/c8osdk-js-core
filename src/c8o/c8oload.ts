@@ -1,12 +1,5 @@
 import "rxjs/add/operator/retry";
 import { C8oCore } from "./c8oCore";
-
-
-
-import * as Checkpointer from 'pouchdb-checkpointer';
-import * as genReplicationId from "pouchdb-generate-replication-id"
-import * as extend from "pouchdb-extend"
-
 export class C8oLoad {
 
     constructor(private c8o: C8oCore) {
