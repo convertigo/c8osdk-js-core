@@ -41,11 +41,11 @@
     "rxjs": "=> 5.5.11"
   },
   "dependencies": {
-    "pouchdb-checkpointer": "7.0.0",
+    "pouchdb-checkpointer": "7.1.1",
     "pouchdb-extend": "0.1.2",
-    "pouchdb-generate-replication-id": "7.0.0",
+    "pouchdb-generate-replication-id": "7.1.1",
     "@types/pouchdb": "6.3.3",
-    "pouchdb-browser": "7.0.0",
+    "pouchdb-browser": "7.1.1",
     "zone.js": "0.8.26"
   },
   "devDependencies": {
