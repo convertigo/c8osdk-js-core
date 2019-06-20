@@ -17,7 +17,7 @@ export class FullSyncRequestable {
 
     //noinspection JSUnusedLocalSymbols
     public static GET: FullSyncRequestable = new FullSyncRequestable("get", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             const docid: string = C8oUtilsCore.peekParameterStringValue(parameters, FullSyncGetDocumentParameter.DOCID.name, true);
             resolve(c8oFullSync.handleGetDocumentRequest(databaseName, docid, parameters));
         }).catch((error) => {
@@ -65,6 +65,16 @@ export class FullSyncRequestable {
             const contentType: string = C8oUtilsCore.getParameterStringValue(parameters, FullSyncAttachmentParameter.CONTENT_TYPE.name, false);
             const content = C8oUtilsCore.getParameterObjectValue(parameters, FullSyncAttachmentParameter.CONTENT.name, false);
             resolve(c8oFullSync.handlePutAttachmentRequest(databaseName, docid, name, contentType, content));
+        }).catch((error) => {
+            throw error;
+        });
+    });
+
+    public static GET_ATTACHMENT: FullSyncRequestable = new FullSyncRequestable("get_attachment", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
+        return new Promise((resolve) => {
+            const docid: string = C8oUtilsCore.peekParameterStringValue(parameters, FullSyncGetDocumentParameter.DOCID.name, false);
+            const name: string = C8oUtilsCore.getParameterStringValue(parameters, FullSyncAttachmentParameter.NAME.name, false);
+            resolve(c8oFullSync.handleGetAttachmentRequest(databaseName, docid, name, parameters));
         }).catch((error) => {
             throw error;
         });
@@ -285,7 +295,7 @@ export class FullSyncRequestable {
     }
 
     public static values(): FullSyncRequestable[] {
-        return [this.GET, this.DELETE, this.POST, this.ALL, this.ALL_LOCAL, this.VIEW, this.SYNC, this.REPLICATE_PULL, this.REPLICATE_PUSH, this.RESET, this.CREATE, this.DESTROY, this.PUT_ATTACHMENT, this.DELETE_ATTACHMENT, this.BULK, this.ALL, this.INFO];
+        return [this.GET, this.DELETE, this.POST, this.ALL, this.ALL_LOCAL, this.VIEW, this.SYNC, this.REPLICATE_PULL, this.REPLICATE_PUSH, this.RESET, this.CREATE, this.DESTROY, this.PUT_ATTACHMENT, this.GET_ATTACHMENT,this.DELETE_ATTACHMENT, this.BULK, this.INFO];
 
     }
 }

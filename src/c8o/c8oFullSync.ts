@@ -295,6 +295,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
         });
     }
 
+
     public handlePutAttachmentRequest(databaseName: string, docid: string, attachmentName: string, attachmentType: string, attachmentContent: any): Promise<any> {
         let document: any = null;
         const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
@@ -315,6 +316,20 @@ export class C8oFullSyncCbl extends C8oFullSync {
                     reject(new C8oRessourceNotFoundException("Cannot find document"));
                 }
 
+            });
+        });
+
+    }
+
+    public handleGetAttachmentRequest(databaseName: string, docid: string, attachmentName: string, parameters: any): Promise<any> {
+        let document: any = null;
+        const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
+        return new Promise((resolve, reject) => { 
+            fullSyncDatabase.getdatabase.getAttachment(docid, attachmentName, parameters)
+            .then((buffer) => {
+                resolve(buffer);
+            }).catch((err) => {
+                reject(new C8oCouchBaseLiteException("Unable to put the attachment " + attachmentName + " to the document " + docid + ".", err));
             });
         });
 
