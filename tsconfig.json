@@ -56,7 +56,8 @@
     "src/c8o/Exception/c8oHttpRequestException.ts",
     "src/c8o/Exception/c8oRessourceNotFoundException.ts",
     "src/c8o/Exception/c8oUnavailableLocalCacheException.ts",
-    "src/c8o/c8oload.ts"
+    "src/c8o/c8oload.ts",
+    "src/c8o/c8oAlldocsLocal.ts"
     
   ],
   "exclude": [

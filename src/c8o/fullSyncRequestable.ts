@@ -84,7 +84,19 @@ export class FullSyncRequestable {
     //noinspection JSUnusedLocalSymbols
     public static ALL: FullSyncRequestable = new FullSyncRequestable("all", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
         return new Promise((resolve) => {
-            c8oFullSync.handleAllDocumentsRequest(databaseName, parameters).then((result) => {
+            c8oFullSync.handleAllDocumentsRequest(databaseName, parameters)
+            .then((result) => {
+                resolve(result);
+            });
+        }).catch((error) => {
+            throw error;
+        });
+    });
+    //noinspection JSUnusedLocalSymbols
+    public static ALL_LOCAL: FullSyncRequestable = new FullSyncRequestable("all_local", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
+        return new Promise((resolve) => {
+            c8oFullSync.handleAllLocalDocumentsRequest(databaseName, parameters)
+            .then((result) => {
                 resolve(result);
             });
         }).catch((error) => {
@@ -273,7 +285,7 @@ export class FullSyncRequestable {
     }
 
     public static values(): FullSyncRequestable[] {
-        return [this.GET, this.DELETE, this.POST, this.ALL, this.VIEW, this.SYNC, this.REPLICATE_PULL, this.REPLICATE_PUSH, this.RESET, this.CREATE, this.DESTROY, this.PUT_ATTACHMENT, this.DELETE_ATTACHMENT, this.BULK, this.ALL, this.INFO];
+        return [this.GET, this.DELETE, this.POST, this.ALL, this.ALL_LOCAL, this.VIEW, this.SYNC, this.REPLICATE_PULL, this.REPLICATE_PUSH, this.RESET, this.CREATE, this.DESTROY, this.PUT_ATTACHMENT, this.DELETE_ATTACHMENT, this.BULK, this.ALL, this.INFO];
 
     }
 }

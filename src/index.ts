@@ -33,6 +33,7 @@ export * from "./c8o/c8oNetworkStatus"
 export * from "./c8o/C8oReplicationStatus"
 export * from "./c8o/c8oSessionStatus"
 export * from "./c8o/C8oSessionUser"
+export * from "./c8o/c8oAlldocsLocal";
 
 export * from "./c8o/Exception/c8oCouchBaseLiteException";
 export * from "./c8o/Exception/c8oException";
@@ -41,5 +42,6 @@ export * from "./c8o/Exception/c8oExceptionMessage";
 export * from "./c8o/Exception/c8oHttpRequestException";
 export * from "./c8o/Exception/c8oRessourceNotFoundException";
 export * from "./c8o/Exception/c8oUnavailableLocalCacheException";
+
 
 

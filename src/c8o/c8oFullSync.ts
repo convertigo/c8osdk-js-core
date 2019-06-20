@@ -121,13 +121,14 @@ export class C8oFullSync {
     }
 
 }
-import {ReplicationState} from "./fullSyncDatabase"
+import { ReplicationState } from "./fullSyncDatabase"
+import { C8oAlldocsLocal } from './c8oAlldocsLocal';
 export class C8oFullSyncCbl extends C8oFullSync {
     private static ATTACHMENT_PROPERTY_KEY_CONTENT_URL: string = "content_url";
     private fullSyncDatabases: Object;
     private fullSyncChangeListeners: C8oFullSyncChangeListener[][] = [];
     private cblChangeListeners: any[] = [];
-    public replicationsToRestart: Array<ReplicationState>  = [];
+    public replicationsToRestart: Array<ReplicationState> = [];
     public canceled = false;
 
     constructor(c8o: C8oCore) {
@@ -147,7 +148,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
         let localDatabaseName: string = databaseName + this.localSuffix;
 
         localDatabaseName = this.c8o.database.localName(localDatabaseName, true);
-        let prefix = this.c8o.prefixBase == true ? this.c8o.session.user.name+"_": "";
+        let prefix = this.c8o.prefixBase == true ? this.c8o.session.user.name + "_" : "";
 
         if (this.fullSyncDatabases[localDatabaseName] == null) {
             this.fullSyncDatabases[localDatabaseName] = new C8oFullSyncDatabase(this.c8o, databaseName, this.fullSyncDatabaseUrlBase, this.localSuffix, prefix);
@@ -357,6 +358,36 @@ export class C8oFullSyncCbl extends C8oFullSync {
                 });
         });
     }
+    public handleAllLocalDocumentsRequest(databaseName: string, parameters: Object): Promise<any> {
+        let fullSyncDatabase = null;
+        fullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
+        let c8oAlldocsLocal = new C8oAlldocsLocal();
+        return new Promise((resolve, reject) => {
+            c8oAlldocsLocal.alldocs(parameters, fullSyncDatabase.database)
+                .then((res) => {
+                    if(!res.err){
+                        resolve(res.result);
+                    }
+                    else{
+                        if(res["err"]["stack"]!= undefined){
+                            reject(new C8oException(res["err"]["stack"]));
+                        }
+                        else{
+                            reject(new C8oException(JSON.stringify(res["err"])))
+                        }
+                    }
+                   
+                })
+                .catch((err) => {
+                    if(err["err"]["stack"]!= undefined){
+                        reject(new C8oException(err["err"]["stack"]));
+                    }
+                    else{
+                        reject(new C8oException(JSON.stringify(err["err"])))
+                    }
+                });
+        });
+    }
 
     public handleGetViewRequest(databaseName: string, ddocName: string, viewName: string, parameters: Object): Promise<any> {
         let fullSyncDatabase = null;
@@ -404,43 +435,43 @@ export class C8oFullSyncCbl extends C8oFullSync {
     /**
      * Check network status before starting a replication
      */
-    private checkState(): boolean{
+    private checkState(): boolean {
         return this.c8o.reachable == undefined ? false : this.c8o.reachable;
     }
 
     public handleSyncRequest(databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
         const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
         let resp = this.c8o.database.registerRequest(c8oResponseListener, parameters, "sync", fullSyncDatabase);
-        if(!resp[0]){
+        if (!resp[0]) {
             return fullSyncDatabase.startAllReplications(parameters, c8oResponseListener, resp[1]);
         }
-        else{
+        else {
             this.c8o.log._trace("[c8ofullsync] waiting for network to start replication");
-            return new Promise(()=>{});
+            return new Promise(() => { });
         }
     }
 
     public handleReplicatePullRequest(databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
-        const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);        
+        const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
         let resp = this.c8o.database.registerRequest(c8oResponseListener, parameters, "pull", fullSyncDatabase);
-        if(!resp[0]){
+        if (!resp[0]) {
             return fullSyncDatabase.startPullReplication(parameters, c8oResponseListener, resp[1]);
         }
-        else{
+        else {
             this.c8o.log._trace("[c8ofullsync] waiting for network to start replication");
-            return new Promise(()=>{});
+            return new Promise(() => { });
         }
     }
 
     public handleReplicatePushRequest(databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
         const fullSyncDatabase: C8oFullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
         let resp = this.c8o.database.registerRequest(c8oResponseListener, parameters, "push", fullSyncDatabase);
-        if(!resp[0]){
+        if (!resp[0]) {
             return fullSyncDatabase.startPushReplication(parameters, c8oResponseListener, resp[1]);
         }
-        else{
+        else {
             this.c8o.log._trace("[c8ofullsync] waiting for network to start replication");
-            return new Promise(()=>{});
+            return new Promise(() => { });
         }
     }
 
@@ -475,25 +506,25 @@ export class C8oFullSyncCbl extends C8oFullSync {
                 }
             };
             fullSyncDatabase.getdatabase.c8oload(parameters["data"],
-            
-            {
-                proxy: this.c8o.endpointConvertigo + "/fullsync/" + (fullSyncDatabase.getdatabseName).replace("_device", ""),
-                fetch: (url, opts) => {
-                    opts.credentials = 'include';
-                    for (let key in header) {
-                        opts.headers.set(key, header[key]);
+
+                {
+                    proxy: this.c8o.endpointConvertigo + "/fullsync/" + (fullSyncDatabase.getdatabseName).replace("_device", ""),
+                    fetch: (url, opts) => {
+                        opts.credentials = 'include';
+                        for (let key in header) {
+                            opts.headers.set(key, header[key]);
+                        }
+                        return PouchDB.fetch(url, opts);
                     }
-                    return PouchDB.fetch(url, opts);
-                }
-            },
-            this.c8o
+                },
+                this.c8o
             )
-            .then(() => {
-                resolve(new FullSyncDefaultResponse(true));
-            }).catch((err) => {
-                //this.c8o.log._error("Error loading the " + parameters["data"] + " database resource" + JSON.stringify(err, Object.getOwnPropertyNames(err)))
-                reject(new C8oException("Bulk Load failed", err));
-            })
+                .then(() => {
+                    resolve(new FullSyncDefaultResponse(true));
+                }).catch((err) => {
+                    //this.c8o.log._error("Error loading the " + parameters["data"] + " database resource" + JSON.stringify(err, Object.getOwnPropertyNames(err)))
+                    reject(new C8oException("Bulk Load failed", err));
+                })
             /*fullSyncDatabase.getdatabase.load(parameters["data"], {
                 proxy: this.c8o.endpointConvertigo + "/fullsync/" + (fullSyncDatabase.getdatabseName).replace("_device", ""),
                 credentials: 'include',
