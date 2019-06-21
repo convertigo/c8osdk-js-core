@@ -1,8 +1,8 @@
-import PouchDB from "pouchdb-browser";
+import { C8oCore } from "./c8oCore";
 
 export class C8oAlldocsLocal {
 
-    constructor() {
+    constructor(private c8o: C8oCore) {
     }
     private DB_VERSION = 5;
     private LOCAL_STORE = 'local-store';
@@ -46,10 +46,10 @@ export class C8oAlldocsLocal {
             }
             let callback = (err, result) => {
                 if(!err){
-                    console.log(JSON.stringify(result))
+                    this.c8o.log._trace("[c8oAlldocsLocal], alldocs: ok" );
                 }
                 else{
-                    console.log(JSON.stringify(err))
+                    this.c8o.log._error("[c8oAlldocsLocal], alldocs: an error occured :", err);
                 }
 
                 resolve({ err: err, result: result})
