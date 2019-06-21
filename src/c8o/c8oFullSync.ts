@@ -376,7 +376,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
     public handleAllLocalDocumentsRequest(databaseName: string, parameters: Object): Promise<any> {
         let fullSyncDatabase = null;
         fullSyncDatabase = this.getOrCreateFullSyncDatabase(databaseName);
-        let c8oAlldocsLocal = new C8oAlldocsLocal();
+        let c8oAlldocsLocal = new C8oAlldocsLocal(this.c8o);
         return new Promise((resolve, reject) => {
             c8oAlldocsLocal.alldocs(parameters, fullSyncDatabase.database)
                 .then((res) => {
