@@ -152,7 +152,7 @@ export abstract class C8oHttpInterfaceCore {
     */
     public httpPost(url: string, parameters: Object): Promise<any> {
         parameters = this.transformRequest(parameters);
-        let headersObject = { "Content-Type": "application/x-www-form-urlencoded", "x-convertigo-sdk": this.c8o.sdkVersion };
+        let headersObject = { "Content-Type": "application/x-www-form-urlencoded", "x-convertigo-sdk": this.c8o.sdkVersion, headers: { 'Accept-Encoding': 'gzip' }  };
         Object.assign(headersObject, this.c8o.headers);
         let headers = this.getHeaders(headersObject);
         if (this.firstCall) {
