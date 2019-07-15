@@ -162,6 +162,7 @@ export abstract class C8oCore extends C8oBase {
 
     public subscriber_session: Subject<any>;
     public subscriber_network: Subject<any>;
+    public subscriber_login: Subject<any>;
 
     private _reply = new Subject<any>();
 
@@ -320,6 +321,7 @@ export abstract class C8oCore extends C8oBase {
         this.c8oLogger = new C8oLogger(this, true);
         this.subscriber_session = new Subject<any>();
         this.subscriber_network = new Subject<any>();
+        this.subscriber_login = new Subject<any>();
         this.network = new C8oManagerNetwork(this);
         this.database= new C8oManagerDatabase(this);
         this.session = new C8oManagerSession(this);
@@ -536,6 +538,13 @@ export abstract class C8oCore extends C8oBase {
      */
     public handleNetworkEvents(): Subject<any> {
         return this.subscriber_network;
+    }
+
+    /**
+     * Return an subject that call next if autologin is triggered with its result
+     */
+    public handleAutoLoginResponse(): Subject<any> {
+        return this.subscriber_login;
     }
 
     /**

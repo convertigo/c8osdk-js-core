@@ -18,11 +18,13 @@ export class C8oManagerLogin {
             if(this.requestLogin !=  undefined){
                 let resolve = (response)=>{
                     this.c8o.log._debug("[C8oManagerLogin] Auto Logins works");
+                    this.c8o.subscriber_login.next({status:true, response: response, error: null})
                     res({status:true, urlReq:this.requestLogin.url, parameters:this.requestLogin.parameters, headers: this.requestLogin.headers, response: response});
                 }
                 let reject = (err)=>{
                     this.c8o.log._debug("[C8oManagerLogin] Auto Logins failed");
                     res({status:false});
+                    this.c8o.subscriber_login.next({status:false, response: null, error: null})
                     this.c8o.subscriber_session.next();
                 }
                 this.c8o.httpInterface.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject);
