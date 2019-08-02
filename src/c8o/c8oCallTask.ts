@@ -161,6 +161,32 @@ export class C8oCallTask {
                         }).then(
                         async (result) => {
                             if (result !== undefined) {
+                                let isError = result["error"] != undefined ? result["error"]["code"] != undefined ? result["error"]["message"] != undefined ? result["error"]["details"] != undefined? true: false :false : false : false;
+                                if(isError){
+                                    if (localCacheEnabled) {
+                                        await (this.c8o.c8oFullSync as C8oFullSyncCbl).getResponseFromLocalCache(c8oCallRequestIdentifier,
+                                        ).then(
+                                            (localCacheResponse: C8oLocalCacheResponse) => {
+                                                try {
+                                                    if (!localCacheResponse.isExpired()) {
+                                                        if (responseType === C8oCore.RESPONSE_TYPE_JSON) {
+                                                            resolve(C8oTranslator.stringToJSON(localCacheResponse.getResponse()));
+                                                        }
+                                                    }
+                                                } catch (error) {
+                                                    // no entry
+                                                }
+                                            });
+                                    }
+                                    if(this.c8o.errorConvertigoIntoFail){
+                                        reject(result);
+                                    }
+                                    else{
+                                        resolve(result);
+                                    }
+                                    
+                                }
+                                else{
                                     let response: any;
                                     let responseString: string;
                                     if (this.c8oResponseListener instanceof C8oResponseJsonListener) {
@@ -194,6 +220,12 @@ export class C8oCallTask {
                                         }
                                     }
                                     resolve(response);
+                                }
+
+
+
+
+                                    
                             }
                         });
                 }

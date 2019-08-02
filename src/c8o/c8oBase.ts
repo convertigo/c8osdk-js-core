@@ -37,6 +37,8 @@ export class C8oBase {
 
     protected _keepSessionAlive: boolean = true;
 
+    protected _errorConvertigoIntoFail: boolean = false;
+
     protected _resetBase: boolean = true;
     
     protected _prefixBase: boolean = false;
@@ -61,6 +63,15 @@ export class C8oBase {
      */
     public get keepSessionAlive(): boolean {
         return this._keepSessionAlive;
+    }
+
+    /**
+     * Gets if error convertigo are thrown into fail.<br/>
+     * Default is <b>false</b>.
+     * @returns The errorConvertigoIntoFail status.
+     */
+    public get errorConvertigoIntoFail(): boolean {
+        return this._errorConvertigoIntoFail;
     }
     
 
@@ -213,6 +224,7 @@ export class C8oBase {
             this._resetBase = c8oBase._resetBase;
             /** Reset base */
             this._prefixBase = c8oBase._prefixBase;
+            this._errorConvertigoIntoFail = c8oBase._errorConvertigoIntoFail;
             
         }
     }

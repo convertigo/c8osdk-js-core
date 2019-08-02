@@ -48,6 +48,19 @@ export class C8oSettings extends C8oBase {
     }
 
     /**
+     * Sets if the error convertigo is throw in fail or not<br/>
+     * @param errorConvertigoIntoFail boolean
+     * @returns The current <b>C8oSettings</b>, for chaining.
+     */
+    public setErrorConvertigoIntoFail(errorConvertigoIntoFail: boolean): C8oSettings {
+        this._errorConvertigoIntoFail = errorConvertigoIntoFail;
+        return this;
+    }
+
+
+    
+
+    /**
      * Sets the if base has to be reseted on dectecting diffrent versions<br/>
      * @param resetBase if you to able reset base
      * @returns The current <b>C8oSettings</b>, for chaining.
