@@ -161,7 +161,9 @@ export class C8oCallTask {
                         }).then(
                         async (result) => {
                             if (result !== undefined) {
-                                let isError = result["error"] != undefined ? result["error"]["code"] != undefined ? result["error"]["message"] != undefined ? result["error"]["details"] != undefined? true: false :false : false : false;
+                                let isErrorR = result["error"] != undefined ? result["error"]["code"] != undefined ? result["error"]["message"] != undefined ? result["error"]["details"] != undefined? true: false :false : false : false;
+                                let isErrorDoc = result["document"]["error"] != undefined ? result["document"]["error"]["code"] != undefined ? result["document"]["error"]["message"] != undefined ? result["document"]["error"]["details"] != undefined? true: false :false : false : false;
+                                let isError = (isErrorR || isErrorDoc);
                                 if(isError){
                                     if (localCacheEnabled) {
                                         await (this.c8o.c8oFullSync as C8oFullSyncCbl).getResponseFromLocalCache(c8oCallRequestIdentifier,
