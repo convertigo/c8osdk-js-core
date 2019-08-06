@@ -7,6 +7,7 @@ import { C8oHttpRequestException } from "./Exception/c8oHttpRequestException";
 
 import { C8oExceptionMessage } from "./Exception/c8oExceptionMessage";
 import { Observable } from "rxjs";
+import { reject } from "q";
 
 declare const require: any;
 export abstract class C8oHttpInterfaceCore {
@@ -111,7 +112,7 @@ export abstract class C8oHttpInterfaceCore {
      * @param headers headers for request
      */
     public getUserServiceStatus(): Promise<any> {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             let headersObject = { 'Accept': 'application/json', 'x-convertigo-sdk': this.c8o.sdkVersion };
             Object.assign(headersObject, this.c8o.headers);
             let headers = this.getHeaders(headersObject);

@@ -43,7 +43,7 @@ export class C8oManagerNetwork {
     }
 
 
-    private listen() {
+    private async listen() {
         window.addEventListener("online", () => {
             this.processOnline();
 
@@ -52,11 +52,12 @@ export class C8oManagerNetwork {
             this.processOffline();
         }, false);
 
-        this.c8o.subscriber_network.subscribe((res)=>{
+        this.c8o.subscriber_network.subscribe(async (res)=>{
             this.c8o.log._debug("[handleNetworkEvents] Handle a network event: " + res);
             switch(res){
                 case C8oNetworkStatus.Reachable:
-                    this.c8o.database.restartReplications(this.c8o.session.user.name);
+                    // check session status              
+                    this.c8o.session.doAuthReachable();
                     this.c8o.database.restartReplications("anonymous");
                 break;
                 case C8oNetworkStatus.NotReachable:

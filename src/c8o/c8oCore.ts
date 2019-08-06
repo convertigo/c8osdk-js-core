@@ -525,6 +525,7 @@ export abstract class C8oCore extends C8oBase {
     public handleSessionLost(): Subject<any> {
         this.subscriber_session.subscribe((res)=>{
             this.c8oLogger.debug("[C8o][handleSessionLost] Handle a session lost");
+
 /*            (this.c8oFullSync as C8oFullSyncCbl).canceled = false;
             (this.c8oFullSync as C8oFullSyncCbl).cancelActiveReplications();
   */
