@@ -491,10 +491,13 @@ export class C8oFullSyncCbl extends C8oFullSync {
     }
 
     public handleResetDatabaseRequest(databaseName: string): Promise<FullSyncDefaultResponse> {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             this.handleDestroyDatabaseRequest(databaseName).then(() => {
                 resolve(this.handleCreateDatabaseRequest(databaseName));
-            });
+            })
+            .catch((err)=>{
+                reject(err);
+            })
         });
 
     }
@@ -578,7 +581,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
                 }
                 resolve(new FullSyncDefaultResponse(response.ok));
             }).catch((err) => {
-                reject(new C8oException(err.message, err));
+                reject(new C8oException(err.name, err));
             });
         });
     }

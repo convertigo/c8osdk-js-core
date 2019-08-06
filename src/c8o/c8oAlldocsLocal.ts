@@ -1,4 +1,5 @@
 import { C8oCore } from "./c8oCore";
+import { TouchSequence } from "selenium-webdriver";
 
 export class C8oAlldocsLocal {
 
@@ -58,17 +59,75 @@ export class C8oAlldocsLocal {
 
         });
     }
-    private openBase(DB_NAME) {
-        return new Promise((resolve)=>{
+    private openBase(DB_NAME, resolve = null, reject= null) {
+        if(resolve != null){
+            this.doOpenBase(DB_NAME, resolve, reject)
+        }
+        return new Promise((resolve, reject)=>{
+            this.doOpenBase(DB_NAME, resolve, reject)
+        });
+    }
+
+    private doOpenBase(DB_NAME, resolve = null, reject= null){
+        try {
             let req = window.indexedDB.open(DB_NAME, this.DB_VERSION);
             req.onsuccess = (event) => {
-               resolve(req.result);
+                if(req.result.objectStoreNames.length == 0){
+                    this.c8o.log._debug("[alldocs] database is corrupted, we need to re-initialized it");
+                    this.restaureDb(DB_NAME)
+                    .then(()=>{
+                        this.c8o.log._debug("[alldocs] database has been re-initialized, we will execute all docs");
+                        this.openBase(DB_NAME, resolve, reject)
+                    })
+                    .catch((err)=>{
+                        reject(err)
+                    })
+                    
+                }
+                else{
+                    resolve(req.result);
+                }
+               
            }
-        });
+        }
+        catch(err){
+            reject(err);
+        }
+    }
+
+    private restaureDb(DB_NAME){
+        return new Promise((resolve, reject)=>{
+            var dbDeleteRequest = window.indexedDB.deleteDatabase(DB_NAME);
+            dbDeleteRequest.onerror = (event)=> {
+                this.c8o.log._error("[alldocs] database is corrupted, failed to re-initialized database");
+                reject(event)
+            };
+        
+            dbDeleteRequest.onsuccess = (event)=> {
+                this.c8o.log._debug("[alldocs] database is corrupted, deletion successfull");
+                // Let us open our database
+                var DBOpenRequest = window.indexedDB.open(DB_NAME, 5);
+        
+                DBOpenRequest.onsuccess = (event)=> {
+                    this.c8o.log._debug("[alldocs] database is corrupted, creation successfull");
+                    resolve();
+                };
+        
+                DBOpenRequest.onupgradeneeded = (event)=> {
+                    this.c8o.log._debug("[alldocs] database is corrupted, database need to be upgraded");
+                };
+                DBOpenRequest.onerror = (event: any)=> {
+                    this.c8o.log._error("[alldocs] database is corrupted, creation errored", event);
+                    reject(event)
+                };
+            };
+        })
+        
     }
 
     private async idbAllDocs(opts, callback, DB_NAME) {
         let idb = await this.openBase(DB_NAME)
+
         var start = 'startkey' in opts ? opts.startkey : false;
         var end = 'endkey' in opts ? opts.endkey : false;
         var key = 'key' in opts ? opts.key : false;

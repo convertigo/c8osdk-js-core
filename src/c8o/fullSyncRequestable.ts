@@ -220,9 +220,7 @@ export class FullSyncRequestable {
             }).catch((error) => {
                 reject(error);
             });
-        }).catch((error) => {
-            throw error;
-        });
+        })
     });
 
     //noinspection JSUnusedLocalSymbols,JSUnusedLocalSymbols
