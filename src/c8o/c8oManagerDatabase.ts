@@ -65,7 +65,7 @@ export class C8oManagerDatabase {
                         if (rep.finished != true) {
                             switch (rep.type) {
                                 case "sync":
-                                    this.c8o.log._trace("restartStoppedReplications] restarting replication for database " + rep.database.getdatabseName + " and verb sync " + (rep.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
+                                    this.c8o.log._trace("[restartStoppedReplications] restarting replication for database " + rep.database.getdatabseName + " and verb sync " + (rep.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
                                     let handler1 = () => {
                                         rep.finished = true;
                                     }

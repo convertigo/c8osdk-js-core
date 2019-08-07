@@ -25,8 +25,8 @@ export class C8oManagerLogin {
                     else{
                         this.c8o.log._debug("[C8oManagerLogin] Auto Logins failed");
                         res({status:false});
-                        this.c8o.subscriber_login.next({status:false, response: null, error: "error, we are not authenticated"})
-                        this.c8o.subscriber_session.next();
+                        this.c8o.subscriber_login.next({status:false, response: response, error: "error, we are not authenticated"})
+                        //this.c8o.subscriber_session.next();
                     }
                     
                 }
