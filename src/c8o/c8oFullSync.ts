@@ -4,7 +4,7 @@ import { C8oFullSyncChangeListener } from "./c8oFullSyncChangeListener";
 import { C8oFullSyncTranslator } from "./c8oFullSyncTranslator";
 import { C8oLocalCacheResponse } from "./c8oLocalCacheResponse";
 import { C8oResponseJsonListener, C8oResponseListener } from "./c8oResponse";
-import { C8oUtilsCore } from "./c8oUtilsCore";
+import { C8oUtilsCore, Semaphore } from "./c8oUtilsCore";
 import { C8oCouchBaseLiteException } from "./Exception/c8oCouchBaseLiteException";
 import { C8oException } from "./Exception/c8oException";
 import { C8oExceptionMessage } from "./Exception/c8oExceptionMessage";
@@ -14,7 +14,6 @@ import { C8oFullSyncDatabase } from "./fullSyncDatabase";
 import { FullSyncDeleteDocumentParameter } from "./fullSyncDeleteDocumentParameter";
 import { FullSyncRequestable } from "./fullSyncRequestable";
 import { FullSyncDefaultResponse, FullSyncDocumentOperationResponse } from "./fullSyncResponse";
-import {Mutex} from 'await-semaphore';
 
 export class C8oFullSync {
     private static FULL_SYNC_URL_PATH: string = "/fullsync/";
@@ -149,9 +148,8 @@ export class C8oFullSyncCbl extends C8oFullSync {
      * @throws C8oException Failed to create a new fullSync database.
      */
     public async getOrCreateFullSyncDatabase(databaseName: string): Promise<C8oFullSyncDatabase> {
-        let mutex = window["C8oFullSyncCbl"][databaseName] == undefined ? window["C8oFullSyncCbl"][databaseName] = new Mutex(): window["C8oFullSyncCbl"][databaseName];
-        var release = await mutex.acquire();
-        
+        let mutex = window["C8oFullSyncCbl"][databaseName] == undefined ? window["C8oFullSyncCbl"][databaseName] = new Semaphore(1): window["C8oFullSyncCbl"][databaseName];
+        await mutex.acquire();
         let localDatabaseName: string = databaseName + this.localSuffix;
 
         localDatabaseName = this.c8o.database.localName(localDatabaseName, true);
@@ -160,7 +158,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
         if (this.fullSyncDatabases[localDatabaseName] == null) {
             this.fullSyncDatabases[localDatabaseName] = new C8oFullSyncDatabase(this.c8o, databaseName, this.fullSyncDatabaseUrlBase, this.localSuffix, prefix);
         }
-        release();
+        mutex.release();
         return this.fullSyncDatabases[localDatabaseName];
     }
 
