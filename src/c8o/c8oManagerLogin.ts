@@ -17,9 +17,18 @@ export class C8oManagerLogin {
         return new Promise((res)=>{
             if(this.requestLogin !=  undefined){
                 let resolve = (response)=>{
-                    this.c8o.log._debug("[C8oManagerLogin] Auto Logins works");
-                    this.c8o.subscriber_login.next({status:true, response: response, error: null})
-                    res({status:true, urlReq:this.requestLogin.url, parameters:this.requestLogin.parameters, headers: this.requestLogin.headers, response: response});
+                    if(response.headers.get("X-Convertigo-Authenticated") != undefined){
+                        this.c8o.log._debug("[C8oManagerLogin] Auto Logins works");
+                        this.c8o.subscriber_login.next({status:true, response: response.response, error: null})
+                        res({status:true, urlReq:this.requestLogin.url, parameters:this.requestLogin.parameters, headers: this.requestLogin.headers, response: response.response});
+                    }
+                    else{
+                        this.c8o.log._debug("[C8oManagerLogin] Auto Logins failed");
+                        res({status:false});
+                        this.c8o.subscriber_login.next({status:false, response: null, error: "error, we are not authenticated"})
+                        this.c8o.subscriber_session.next();
+                    }
+                    
                 }
                 let reject = (err)=>{
                     this.c8o.log._debug("[C8oManagerLogin] Auto Logins failed");
@@ -27,7 +36,7 @@ export class C8oManagerLogin {
                     this.c8o.subscriber_login.next({status:false, response: null, error: err})
                     this.c8o.subscriber_session.next();
                 }
-                this.c8o.httpInterface.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject);
+                this.c8o.httpInterface.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject, true);
             } 
         })
          

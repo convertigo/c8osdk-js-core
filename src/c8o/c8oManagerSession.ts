@@ -191,9 +191,9 @@ export class C8oManagerSession {
                     }
                 }
                 else{
-                    this._status = C8oSessionStatus.HasBeenDisconnected;
-                    this.c8o.subscriber_session.next();
-                    this.c8o.database.stopReplications(this.user.name);
+                    this._status = C8oSessionStatus.Connected;
+                    this.c8o.database.restartReplications(this.user.name)
+                    this.checkSession(null, 0);
                 }
             }
             catch(e){

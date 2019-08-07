@@ -182,7 +182,7 @@ export abstract class C8oHttpInterfaceCore {
      * @param resolve 
      * @param reject 
      */
-    public execHttpPosts(url: string, parameters: any, headers: any, resolve, reject) {
+    public execHttpPosts(url: string, parameters: any, headers: any, resolve, reject, headers_return= false) {
         this.httpPostObservable(url, parameters, {
             headers: headers,
             withCredentials: true,
@@ -191,7 +191,7 @@ export abstract class C8oHttpInterfaceCore {
             .retry(1)
             .subscribe(
                 response => {
-                    this.handleResponseHttpPost(response, headers, resolve, url, parameters, headers);
+                    this.handleResponseHttpPost(response, headers, resolve, url, parameters, headers, headers_return);
                 },
                 error => {
                     this.handleErrorHttpPost(error, reject);
@@ -205,13 +205,19 @@ export abstract class C8oHttpInterfaceCore {
      * @param headers 
      * @param resolve 
      */
-    private handleResponseHttpPost(response: any, headers: any, resolve: any, urlReq: string, parametersReq: any, headersReq: any) {
+    private handleResponseHttpPost(response: any, headers: any, resolve: any, urlReq: string, parametersReq: any, headersReq: any, returns_header = false) {
         //this.checkReachable();
         //this.triggerSessionCheck(response, headers, urlReq, parametersReq, headersReq);
         if(urlReq.indexOf(".json") != -1){
             this.c8o.session.sort(response, headers, urlReq, parametersReq, headersReq)
             .then(()=>{
-                resolve(response.body);
+                if(returns_header){
+                    resolve({body: response["body"], headers: response["headers"]});
+                }
+                else{
+                    resolve(response.body);
+                }
+                
             })
         }
         else{
