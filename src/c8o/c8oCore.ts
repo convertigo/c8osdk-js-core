@@ -556,13 +556,13 @@ export abstract class C8oCore extends C8oBase {
      *
      * @returns a promise containing a buffer
      */
-    public get_attachment(id: string, attachment_name: string, database_name?: string): Promise<any> {
-        return new Promise((resolve, reject) => {
+    public async get_attachment(id: string, attachment_name: string, database_name?: string): Promise<any> {
+        return new Promise(async (resolve, reject) => {
             if (database_name == null) {
                 database_name = this.defaultDatabaseName;
             }
             if ((this.c8oFullSync as C8oFullSyncCbl) != undefined) {
-                const fullsyncdb = (this.c8oFullSync as C8oFullSyncCbl).getOrCreateFullSyncDatabase(database_name);
+                const fullsyncdb = await (this.c8oFullSync as C8oFullSyncCbl).getOrCreateFullSyncDatabase(database_name);
                 fullsyncdb.getdatabase.getAttachment(id, attachment_name).then((buffer) => {
                     resolve(buffer);
                 }).catch((err) => {

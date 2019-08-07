@@ -217,6 +217,7 @@ export class C8oCallTask {
                                                 .then(() => {
                                                     resolve(response);
                                                 });
+                                            
                                         } catch (error) {
                                             reject(new C8oException(C8oExceptionMessage.saveResponseToLocalCache()));
                                         }

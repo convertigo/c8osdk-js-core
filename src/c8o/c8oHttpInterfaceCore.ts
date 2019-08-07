@@ -168,7 +168,7 @@ export abstract class C8oHttpInterfaceCore {
                 Promise.all([this.p1]).then(() => {
                     this.execHttpPosts(url, parameters, headers, resolve, reject);
                 }).catch((error) => {
-                    reject(error);
+                    this.execHttpPosts(url, parameters, headers, resolve, reject);
                 });
             });
         }
@@ -445,7 +445,20 @@ export abstract class C8oHttpInterfaceCore {
                 })), ((err) => {
                     reject(err);
                 }), options);
-            });
+            })
+            .catch(()=>{
+                var ft = new window["FileTransfer"]();
+                ft.onprogress = (progressEvent) => {
+                    if (progressEvent.lengthComputable) {
+                        this.handleProgress(progressEvent, progress, parameters, c8oResponseListener, varNull);
+                    }
+                };
+                ft.upload(files[0][1], encodeURI(url), ((resp => {
+                    resolve(resp);
+                })), ((err) => {
+                    reject(err);
+                }), options);
+            })
         });
     }
 
@@ -489,6 +502,16 @@ export abstract class C8oHttpInterfaceCore {
                             error => {
                                 this.handleErrorFileUpload(error, resolve);
                             });
+                })
+                .catch(()=>{
+                    this.getuploadRequester(url, form, headersObject)
+                    .subscribe(
+                        event => {
+                            this.handleResponseFileUpload(event, progress, parameters, c8oResponseListener, varNull, resolve);
+                        },
+                        error => {
+                            this.handleErrorFileUpload(error, resolve);
+                        });
                 });
             });
         }
