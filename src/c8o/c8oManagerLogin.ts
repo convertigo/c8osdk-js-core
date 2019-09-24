@@ -19,13 +19,13 @@ export class C8oManagerLogin {
                 let resolve = (response)=>{
                     if(response.headers.get("X-Convertigo-Authenticated") != undefined){
                         this.c8o.log._debug("[C8oManagerLogin] Auto Logins works");
-                        this.c8o.subscriber_login.next({status:true, response: response.response, error: null})
+                        this.c8o.subscriber_login.next({status:true, response: response.body, error: null})
                         res({status:true, urlReq:this.requestLogin.url, parameters:this.requestLogin.parameters, headers: this.requestLogin.headers, response: response.response});
                     }
                     else{
                         this.c8o.log._debug("[C8oManagerLogin] Auto Logins failed");
                         res({status:false});
-                        this.c8o.subscriber_login.next({status:false, response: response, error: "error, we are not authenticated"})
+                        this.c8o.subscriber_login.next({status:false, response: response.body, error: "error, we are not authenticated"})
                         //this.c8o.subscriber_session.next();
                     }
                     
