@@ -190,7 +190,7 @@ export abstract class C8oHttpInterfaceCore {
             .retry(1)
             .subscribe(
                 response => {
-                    this.handleResponseHttpPost(response, headers, resolve, url, parameters, headers, headers_return);
+                    this.handleResponseHttpPost(response, headers, resolve, url, parameters, headers, headers_return, reject);
                 },
                 error => {
                     this.handleErrorHttpPost(error, reject);
@@ -204,7 +204,7 @@ export abstract class C8oHttpInterfaceCore {
      * @param headers 
      * @param resolve 
      */
-    private handleResponseHttpPost(response: any, headers: any, resolve: any, urlReq: string, parametersReq: any, headersReq: any, returns_header = false) {
+    private handleResponseHttpPost(response: any, headers: any, resolve: any, urlReq: string, parametersReq: any, headersReq: any, returns_header = false, reject = null) {
         //this.checkReachable();
         //this.triggerSessionCheck(response, headers, urlReq, parametersReq, headersReq);
         if(urlReq.indexOf(".json") != -1){
