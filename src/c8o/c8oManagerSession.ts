@@ -93,7 +93,7 @@ export class C8oManagerSession {
                         if(this.c8o.keepSessionAlive){
                             this.loginManager.doLogin()
                             .then((res)=>{
-                                resolve();
+                                resolve(true);
                             })
                             
                         }
@@ -334,6 +334,45 @@ export class C8oManagerSession {
             }
             else {
                 this._status = C8oSessionStatus.Connected;
+                document.addEventListener("resume", ()=>{
+                    setTimeout(async ()=> {
+                        this.c8o.log.debug("[C8oSessionManager]: onResume checking user status");
+                        let user = await this.checkUser();
+                        let _status = user != undefined ? user.authenticated : false;
+                        // if we are not anymore loggedin
+                        if (!_status) {
+                            this.c8o.log.debug("[C8oSessionManager]: onResume user is no longer logged");
+                            if (this.c8o.keepSessionAlive) {
+                                this.c8o.log.debug("[C8oSessionManager]: onResume keepAlive session activated, we will try to autologin");
+                                // try to login
+                                let success = await this.loginManager.doLogin();
+                                if (success.status == false) {
+                                    this.c8o.log.debug("[C8oSessionManager]: onResume autologin failed");
+                                    this.c8o.database.stopReplications(this.user.name);
+                                    this._user = new C8oSessionUser();
+                                    this._status = C8oSessionStatus.HasBeenDisconnected;
+                                    this.c8o.subscriber_session.next();
+                                    resolve();
+                                }
+                                else {
+                                    this.c8o.log.debug("[C8oSessionManager]: onResume autologin worked");
+                                    this.checkSession(headers, 0, resolve);
+                                }
+                            }
+                            else {
+                                this.c8o.log.debug("[C8oSessionManager]: onResume stopping replications");
+                                this.c8o.database.stopReplications(this.user.name);
+                                this._user = new C8oSessionUser();
+                                this._status = C8oSessionStatus.HasBeenDisconnected;
+                                this.c8o.subscriber_session.next();
+                                resolve();
+                            }
+                        }
+                        else{
+                            this._status = C8oSessionStatus.Connected;
+                        }
+                    }, 0);
+                }, false);
                 this.c8o.database.restartReplications(this.user.name);
                 let timeR = +user['maxInactive'] * 0.95 * 1000;
                 if (this.c8o.keepSessionAlive) {

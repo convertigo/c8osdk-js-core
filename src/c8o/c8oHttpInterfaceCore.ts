@@ -210,13 +210,19 @@ export abstract class C8oHttpInterfaceCore {
         //this.triggerSessionCheck(response, headers, urlReq, parametersReq, headersReq);
         if(urlReq.indexOf(".json") != -1){
             this.c8o.session.sort(response, headers, urlReq, parametersReq, headersReq)
-            .then(()=>{
-                if(returns_header){
-                    resolve({body: response["body"], headers: response["headers"]});
+            .then((res)=>{
+                if(res != true){
+                    if(returns_header){
+                        resolve({body: response["body"], headers: response["headers"]});
+                    }
+                    else{
+                        resolve(response.body);
+                    }
                 }
                 else{
-                    resolve(response.body);
+                    this.execHttpPosts(urlReq, parametersReq, headersReq, resolve, reject, returns_header)
                 }
+                
                 
             })
         }

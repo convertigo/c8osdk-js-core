@@ -890,6 +890,7 @@ export class FullSyncPolicy {
     constructor(value: string, action: (_Object, Object) => any) {
         this.value = value;
         this.action = action;
+        
     }
 
     public static values(): FullSyncPolicy[] {
