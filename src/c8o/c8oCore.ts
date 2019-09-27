@@ -275,7 +275,7 @@ export abstract class C8oCore extends C8oBase {
     }
 
     public get deviceUUID(): string {
-        if(this.deviceUUID == undefined){
+        if(C8oCore.deviceUUID == undefined){
             C8oCore.deviceUUID = C8oUtilsCore.getNewGUIDString();
         }
         return C8oCore.deviceUUID;
