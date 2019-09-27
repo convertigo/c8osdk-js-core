@@ -54,7 +54,7 @@ export class C8oLogger {
             this.uidRemoteLogs = Math.round((new Date().getTime() * Math.random())).toString(36);
             const obj = {};
             obj["uid"] = this.uidRemoteLogs.toUpperCase();
-            obj["uuid"] = C8oCore.deviceUUID.toUpperCase();
+            obj["uuid"] = this.c8o.deviceUUID.toUpperCase();
             obj["project"] = "";
             this.env = JSON.stringify(obj);
         } else {
@@ -70,7 +70,7 @@ export class C8oLogger {
             this.uidRemoteLogs = Math.round((new Date().getTime() * Math.random())).toString(36);
             const obj = {};
             obj["uid"] = this.uidRemoteLogs.toUpperCase();
-            obj["uuid"] = C8oCore.deviceUUID.toUpperCase();
+            obj["uuid"] = this.c8o.deviceUUID.toUpperCase();
             obj["project"] = encodeURIComponent(c8o.endpointProject.toString());
             this.env = JSON.stringify(obj);
         }

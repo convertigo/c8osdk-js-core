@@ -127,7 +127,7 @@ export abstract class C8oCore extends C8oBase {
     public static RESPONSE_TYPE_JSON: string = "json";
 
     /* Static configuration */
-    public static deviceUUID: string = C8oUtilsCore.getNewGUIDString();
+    private static deviceUUID: string;
 
     /** Network **/
 
@@ -275,6 +275,9 @@ export abstract class C8oCore extends C8oBase {
     }
 
     public get deviceUUID(): string {
+        if(this.deviceUUID == undefined){
+            C8oCore.deviceUUID = C8oUtilsCore.getNewGUIDString();
+        }
         return C8oCore.deviceUUID;
     }
 
