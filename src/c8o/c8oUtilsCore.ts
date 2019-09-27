@@ -23,12 +23,32 @@ export class C8oUtilsCore {
     }
 
     public static getNewGUIDString(): string {
-        let d = new Date().getTime();
-        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-            const r = (d + Math.random() * 16) % 16 | 0;
-            d = Math.floor(d / 16);
-            return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
-        });
+        if(window["device"] != undefined){
+            let platform: string = window["device"]["platform"];
+            platform = platform.substring(0,3);
+            let uuid = platform +"-"+ window["device"]["uuid"];
+            return uuid;
+        }
+        else{
+            let uuidStored: string = localStorage.getItem("__c8o_uuid");
+
+            if(uuidStored != undefined && uuidStored != ""){
+                return uuidStored;
+            }
+            else{
+                let platform: string = "web-";
+                let d = new Date().getTime();
+                let uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+                    const r = (d + Math.random() * 16) % 16 | 0;
+                    d = Math.floor(d / 16);
+                    return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
+                });
+                uuid = platform + uuid;
+                localStorage.setItem("__c8o_uuid", uuid);
+                return uuid;
+            }
+        }
+        
     }
 
     /** TAG Parameter **/
