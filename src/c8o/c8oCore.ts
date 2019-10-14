@@ -274,11 +274,29 @@ export abstract class C8oCore extends C8oBase {
         this._endpointProject = value;
     }
 
-    public get deviceUUID(): string {
-        if(C8oCore.deviceUUID == undefined){
-            C8oCore.deviceUUID = C8oUtilsCore.getNewGUIDString();
-        }
-        return C8oCore.deviceUUID;
+    public get deviceUUID(): Promise<string> {
+        
+            return new Promise((resolve)=>{
+                if(window["cordova"]!=undefined){
+                    document.addEventListener("deviceready", ()=>{
+                        if(C8oCore.deviceUUID == undefined){
+                            C8oCore.deviceUUID = C8oUtilsCore.getNewGUIDString();
+                        }
+                        resolve(C8oCore.deviceUUID);
+                    }, false);
+                }
+                else{
+                    if(C8oCore.deviceUUID == undefined){
+                        C8oCore.deviceUUID = C8oUtilsCore.getNewGUIDString();
+                    }
+                    resolve(C8oCore.deviceUUID);
+                }
+        
+        
+        
+            
+        })
+        
     }
 
     public get httpPublic(): any {
@@ -711,14 +729,17 @@ export abstract class C8oCore extends C8oBase {
                 this.copy(c8oSettings);
                 this.initC8oHttInterface();
                 this.c8oLogger.affect_val(this, false);
-                this.c8oLogger.logRemoteInit();
-                //Listen for offline status
-                //this.listenOffline();
-                //Listen for online status
-                //this.listenOnLine();
-                this.c8oLogger.logMethodCall("C8o Constructor");
-                this.c8oFullSync = new C8oFullSyncCbl(this);
-                resolve();
+                this.c8oLogger.logRemoteInit()
+                .then(()=>{
+                    //Listen for offline status
+                    //this.listenOffline();
+                    //Listen for online status
+                    //this.listenOnLine();
+                    this.c8oLogger.logMethodCall("C8o Constructor");
+                    this.c8oFullSync = new C8oFullSyncCbl(this);
+                    resolve();
+                })
+                
             });
         });
         return this.promiseInit;

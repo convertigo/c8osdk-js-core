@@ -131,7 +131,7 @@ export class C8oCallTask {
                         }
                     }
                     // Get Response
-                    this.parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = this.c8o.deviceUUID;
+                    this.parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = await this.c8o.deviceUUID;
                     this.c8oCallUrl = this.c8o.endpoint + "/." + responseType;
                     let params: Object = new Object();
                     params = Object.assign(params, this.parameters);

@@ -36,44 +36,49 @@ export class C8oLogger {
     private c8o: C8oCore;
 
     private env: string;
-
+    private pInit: Promise<any>;
     constructor(c8o: C8oCore, first: boolean) {
-        this.affect_val(c8o, first);
+        this.pInit = this.affect_val(c8o, first);
     }
     public affect_val(c8o: C8oCore, first: boolean) {
-        if (first) {
-            this.c8o = c8o;
-            this.remoteLogUrl = "";
-            this.remoteLogs = new Queue<JSON>();
-            this.pending_remoteLogsLevel = new Queue<C8oLogLevel>();
-            this.pending_remoteLogs = new Queue<JSON>();
-            this.alreadyRemoteLogging = [];
-            this.alreadyRemoteLogging.push(false);
-            this.remoteLogLevel = C8oLogLevel.TRACE;
-            this.startTimeRemoteLog = new Date().getTime();
-            this.uidRemoteLogs = Math.round((new Date().getTime() * Math.random())).toString(36);
-            const obj = {};
-            obj["uid"] = this.uidRemoteLogs.toUpperCase();
-            obj["uuid"] = this.c8o.deviceUUID.toUpperCase();
-            obj["project"] = "";
-            this.env = JSON.stringify(obj);
-        } else {
-            this.c8o = c8o;
+        return new Promise(async (resolve)=>{
 
-            this.remoteLogUrl = c8o.endpointConvertigo + "/admin/services/logs.Add";
-            this.remoteLogs = new Queue<JSON>();
-            this.alreadyRemoteLogging = [];
-            this.alreadyRemoteLogging.push(false);
-
-            this.remoteLogLevel = C8oLogLevel.TRACE;
-            this.startTimeRemoteLog = new Date().getTime();
-            this.uidRemoteLogs = Math.round((new Date().getTime() * Math.random())).toString(36);
-            const obj = {};
-            obj["uid"] = this.uidRemoteLogs.toUpperCase();
-            obj["uuid"] = this.c8o.deviceUUID.toUpperCase();
-            obj["project"] = encodeURIComponent(c8o.endpointProject.toString());
-            this.env = JSON.stringify(obj);
-        }
+            if (first) {
+                this.c8o = c8o;
+                this.remoteLogUrl = "";
+                this.remoteLogs = new Queue<JSON>();
+                this.pending_remoteLogsLevel = new Queue<C8oLogLevel>();
+                this.pending_remoteLogs = new Queue<JSON>();
+                this.alreadyRemoteLogging = [];
+                this.alreadyRemoteLogging.push(false);
+                this.remoteLogLevel = C8oLogLevel.TRACE;
+                this.startTimeRemoteLog = new Date().getTime();
+                this.uidRemoteLogs = Math.round((new Date().getTime() * Math.random())).toString(36);
+                const obj = {};
+                obj["uid"] = this.uidRemoteLogs.toUpperCase();
+                obj["uuid"] = (await this.c8o.deviceUUID).toUpperCase();
+                obj["project"] = "";
+                this.env = JSON.stringify(obj);
+                resolve();
+            } else {
+                this.c8o = c8o;
+    
+                this.remoteLogUrl = c8o.endpointConvertigo + "/admin/services/logs.Add";
+                this.remoteLogs = new Queue<JSON>();
+                this.alreadyRemoteLogging = [];
+                this.alreadyRemoteLogging.push(false);
+    
+                this.remoteLogLevel = C8oLogLevel.TRACE;
+                this.startTimeRemoteLog = new Date().getTime();
+                this.uidRemoteLogs = Math.round((new Date().getTime() * Math.random())).toString(36);
+                const obj = {};
+                obj["uid"] = this.uidRemoteLogs.toUpperCase();
+                obj["uuid"] = (await this.c8o.deviceUUID).toUpperCase();
+                obj["project"] = encodeURIComponent(c8o.endpointProject.toString());
+                this.env = JSON.stringify(obj);
+                resolve();
+            }
+        });
 
     }
 
@@ -207,64 +212,67 @@ export class C8oLogger {
         this._log(C8oLogLevel.TRACE, message, exceptions);
     }
 
-    public logRemoteInit() {
-        this.initDone = true;
+    public async logRemoteInit() {
+        this.pInit.then(async()=>{
+            this.initDone = true;
 
-        let count: number = 0;
-        const listSize: number = this.pending_remoteLogs.count();
-        const logsArray = new Array<any>();
-
-        while (count < listSize && count < C8oLogger.REMOTE_LOG_LIMIT) {
-            const logLvl = this.pending_remoteLogsLevel.pop();
-            const mvar = this.pending_remoteLogs.pop();
-
-            if (this.isLoggableConsole(logLvl)) {
-                console.log("(" + mvar["time"] + ") [" + logLvl.name + "] " + mvar["msg"]);
+            let count: number = 0;
+            const listSize: number = this.pending_remoteLogs.count();
+            const logsArray = new Array<any>();
+    
+            while (count < listSize && count < C8oLogger.REMOTE_LOG_LIMIT) {
+                const logLvl = this.pending_remoteLogsLevel.pop();
+                const mvar = this.pending_remoteLogs.pop();
+    
+                if (this.isLoggableConsole(logLvl)) {
+                    console.log("(" + mvar["time"] + ") [" + logLvl.name + "] " + mvar["msg"]);
+                }
+                if (this.isLoggableRemote(logLvl)) {
+                    logsArray.push(mvar);
+                    count += 1;
+                }
+    
             }
-            if (this.isLoggableRemote(logLvl)) {
-                logsArray.push(mvar);
-                count += 1;
+            //noinspection JSUnusedAssignment
+            let canLog: boolean = false;
+            canLog = logsArray.length > 0;
+            if (canLog) {
+                this.alreadyRemoteLogging[0] = true;
             }
-
-        }
-        //noinspection JSUnusedAssignment
-        let canLog: boolean = false;
-        canLog = logsArray.length > 0;
-        if (canLog) {
-            this.alreadyRemoteLogging[0] = true;
-        }
-        const parameters: Object = {};
-        parameters[C8oLogger.JSON_KEY_LOGS.valueOf()] = JSON.stringify(logsArray);
-        parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = this.c8o.deviceUUID;
-        parameters[C8oLogger.JSON_KEY_ENV] = this.env;
-
-        this.c8o.httpInterface.handleRequest(this.remoteLogUrl, parameters)
-            .then((response) => {
-                if (response !== undefined) {
-                    if (response.error !== undefined) {
-                        this.c8o.logRemote = false;
-                        if (this.c8o.logOnFail != null) {
-                            this.c8o.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail(), response.error), null);
+            const parameters: Object = {};
+            parameters[C8oLogger.JSON_KEY_LOGS.valueOf()] = JSON.stringify(logsArray);
+            parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = await this.c8o.deviceUUID;
+            parameters[C8oLogger.JSON_KEY_ENV] = this.env;
+    
+            this.c8o.httpInterface.handleRequest(this.remoteLogUrl, parameters)
+                .then((response) => {
+                    if (response !== undefined) {
+                        if (response.error !== undefined) {
+                            this.c8o.logRemote = false;
+                            if (this.c8o.logOnFail != null) {
+                                this.c8o.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail(), response.error), null);
+                            }
                         }
                     }
-                }
-                const logLevelResponse = response[C8oLogger.JSON_KEY_REMOTE_LOG_LEVEL.toString()];
-                if (logLevelResponse != null) {
-                    const logLevelResponseStr: string = logLevelResponse.toString();
-                    const c8oLogLevel = C8oLogLevel.getC8oLogLevel(logLevelResponseStr);
-                    if (c8oLogLevel != null) {
-                        this.remoteLogLevel = c8oLogLevel;
+                    const logLevelResponse = response[C8oLogger.JSON_KEY_REMOTE_LOG_LEVEL.toString()];
+                    if (logLevelResponse != null) {
+                        const logLevelResponseStr: string = logLevelResponse.toString();
+                        const c8oLogLevel = C8oLogLevel.getC8oLogLevel(logLevelResponseStr);
+                        if (c8oLogLevel != null) {
+                            this.remoteLogLevel = c8oLogLevel;
+                        }
+                        this.alreadyRemoteLogging[0] = false;
+                        this.logRemote();
                     }
-                    this.alreadyRemoteLogging[0] = false;
-                    this.logRemote();
-                }
-            })
-            .catch((error) => {
-                this.c8o.logRemote = false;
-                if (this.c8o.logOnFail != null) {
-                    this.c8o.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail(), error), null);
-                }
-            });
+                })
+                .catch((error) => {
+                    this.c8o.logRemote = false;
+                    if (this.c8o.logOnFail != null) {
+                        this.c8o.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail(), error), null);
+                    }
+                });
+        })
+        
     }
 
     checkInitDone(resolve = null):Promise<any>{
@@ -307,7 +315,7 @@ export class C8oLogger {
     }
 
     private logTestAction(): Promise<any>{
-        return new Promise((resolve, reject)=>{
+        return new Promise(async (resolve, reject)=>{
                 const message = "[c8o] Testing if endpoint is reachable";
                 const time: string = (((new Date().getTime().valueOf()) - (this.startTimeRemoteLog)) / 1000).toString();
                 const obj = {};
@@ -316,7 +324,7 @@ export class C8oLogger {
                 obj[(C8oLogger.JSON_KEY_MESSAGE.valueOf())] = message;
                 const parameters: Object = {};
                 parameters[C8oLogger.JSON_KEY_LOGS.valueOf()] = JSON.stringify([obj]);
-                parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = this.c8o.deviceUUID;
+                parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = await this.c8o.deviceUUID;
                 parameters[C8oLogger.JSON_KEY_ENV] = this.env;
                 this.c8o.httpInterface.handleRequest(this.remoteLogUrl, parameters)
                 .then((response) => {
@@ -328,7 +336,7 @@ export class C8oLogger {
             });
     }
 
-    public logRemote() {
+    public async logRemote() {
 
         //noinspection JSUnusedAssignment
         let canLog: boolean = false;
@@ -351,7 +359,7 @@ export class C8oLogger {
             }
             const parameters: Object = {};
             parameters[C8oLogger.JSON_KEY_LOGS.valueOf()] = JSON.stringify(logsArray);
-            parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = this.c8o.deviceUUID;
+            parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = await this.c8o.deviceUUID;
             parameters[C8oLogger.JSON_KEY_ENV] = this.env;
 
             this.c8o.httpInterface.handleRequest(this.remoteLogUrl, parameters)
