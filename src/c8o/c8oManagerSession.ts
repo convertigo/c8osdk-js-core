@@ -15,6 +15,7 @@ export class C8oManagerSession {
     private _user: C8oSessionUser;
     private _olduser: C8oSessionUser;
     private ignored;
+    private resumeListener = undefined;
 
     constructor(c8o: C8oCore) {
         // When the app begins, session is not connected*
@@ -23,6 +24,8 @@ export class C8oManagerSession {
         this.loginManager = new C8oManagerLogin(c8o);
         this.ignored = 0;
         this._user = new C8oSessionUser();
+
+        
     }
 
     /**
@@ -334,7 +337,7 @@ export class C8oManagerSession {
             }
             else {
                 this._status = C8oSessionStatus.Connected;
-                document.addEventListener("resume", ()=>{
+                let funclistener = ()=> {
                     setTimeout(async ()=> {
                         this.c8o.log.debug("[C8oSessionManager]: onResume checking user status");
                         let user = await this.checkUser();
@@ -372,7 +375,26 @@ export class C8oManagerSession {
                             this._status = C8oSessionStatus.Connected;
                         }
                     }, 0);
-                }, false);
+                };
+
+
+
+
+
+                try {
+                    if(this.resumeListener != undefined){
+                        document.removeEventListener("resume", this.resumeListener, false);
+                    }
+                }
+                catch(e){   
+                    console.log("eeee");
+                    console.log(e);
+                }
+                
+                this.resumeListener = funclistener;
+                document.addEventListener("resume",funclistener , false);
+                
+                
                 this.c8o.database.restartReplications(this.user.name);
                 let timeR = +user['maxInactive'] * 0.95 * 1000;
                 if (this.c8o.keepSessionAlive) {
