@@ -210,7 +210,7 @@ export abstract class C8oHttpInterfaceCore {
         if(urlReq.indexOf(".json") != -1){
             this.c8o.session.sort(response, headers, urlReq, parametersReq, headersReq)
             .then((res)=>{
-                if(res != true){
+                if(res != true || parametersReq[C8oCore.SEQ_AUTO_LOGIN_OFF] === true){
                     if(returns_header){
                         resolve({body: response["body"], headers: response["headers"]});
                     }

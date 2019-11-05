@@ -94,11 +94,18 @@ export class C8oManagerSession {
                         break;
                     case C8oSessionStatus.HasBeenDisconnected:
                         if(this.c8o.keepSessionAlive){
-                            this.loginManager.doLogin()
-                            .then((res)=>{
-                                resolve(true);
-                            })
-                            
+                            if(!(parametersReq[C8oCore.SEQ_AUTO_LOGIN_OFF] === true)){
+                                this.loginManager.doLogin()
+                                .then((res)=>{
+                                    resolve(true);
+                                })
+                            }
+                            else{
+                                this.c8o.database.stopReplications(this.user.name);
+                                this._user = new C8oSessionUser();
+                                this.c8o.subscriber_session.next();
+                                resolve();
+                            }
                         }
                         else{
                             this.c8o.database.stopReplications(this.user.name);

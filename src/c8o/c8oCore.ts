@@ -106,6 +106,12 @@ export abstract class C8oCore extends C8oBase {
      This key allow to override the sub key separator in case of document depth modification.
      */
     public static FS_SUBKEY_SEPARATOR: string = "_use_subkey_separator";
+    /**
+     Use it with "project.sequence". Default value is ".".
+
+     This key allow to disable autologin feature for a given callJson
+     */
+    public static SEQ_AUTO_LOGIN_OFF: string = "__disableAutologin";
 
     /**
      * Use it with "fs://" request as parameter to enable the live request feature.<br/>
