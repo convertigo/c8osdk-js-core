@@ -128,7 +128,34 @@ export class C8oLogger {
 
         if (isLogConsole || isLogRemote) {
             if (exception != null) {
-                message += "\n" + exception.toString();
+                let messageB = false;
+                let messageS = false;
+                try {
+                    if(exception.message != undefined){
+                        message += " : " + JSON.stringify(exception.message);
+                    }
+                    else{
+                        messageB = true;
+                    }
+                    if(exception.stack != undefined){
+                        message += "\n" + JSON.stringify(exception.stack); 
+                    }
+                    else{
+                        messageS = true;
+                    }
+                }
+                catch(e){
+                    message += "\n" + exception.toString();
+                }
+                if(messageB && messageS){
+                    try{
+                        message += "\n" + JSON.stringify(exception);
+                    }
+                    catch(e){
+                        message += "\n" + exception.toString();
+                    }
+                }
+                
             }
 
             const time: string = (((new Date().getTime().valueOf()) - (this.startTimeRemoteLog)) / 1000).toString();
