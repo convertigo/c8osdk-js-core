@@ -655,7 +655,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
             try {
                 c8oFullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
             } catch (err) {
-                reject(new C8oException(C8oExceptionMessage.fullSyncGetOrCreateDatabase(databaseName)));
+                reject(new C8oException(C8oExceptionMessage.fullSyncGetOrCreateDatabase(databaseName), err));
             }
             c8oFullSyncDatabase.getdatabase().get(documentId).then((result) => {
                 resolve(result);
@@ -722,7 +722,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
                 resolve(new C8oLocalCacheResponse(responseString, responseTypeString, expirationDateNumber));
             }).catch((err) => {
                 if (err.status === 404) {
-                    resolve(new C8oUnavailableLocalCacheException(C8oExceptionMessage.localCacheDocumentJustCreated()));
+                    resolve(new C8oUnavailableLocalCacheException(C8oExceptionMessage.localCacheDocumentJustCreated(), err));
                 } else {
                     reject(err);
                 }
