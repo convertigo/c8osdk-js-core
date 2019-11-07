@@ -94,7 +94,14 @@ export class C8oManagerSession {
                         break;
                     case C8oSessionStatus.HasBeenDisconnected:
                         if(this.c8o.keepSessionAlive){
-                            if(!(parametersReq[C8oCore.SEQ_AUTO_LOGIN_OFF] === true)){
+                            let objParams  = parametersReq.split('&')
+                                            .reduce((a, c) => {
+                                                let [key, value] = c.split('=');
+                                                a[key] = value;
+                                                return a;
+                                            }, {});
+
+                            if(!(objParams[C8oCore.SEQ_AUTO_LOGIN_OFF] === "true")){
                                 this.loginManager.doLogin()
                                 .then((res)=>{
                                     resolve(true);
