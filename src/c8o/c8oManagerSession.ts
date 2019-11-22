@@ -1,7 +1,7 @@
 import "rxjs/add/operator/retry";
 import { C8oCore } from "./c8oCore";
 import { C8oSessionStatus } from './c8oSessionStatus';
-import { C8oUtilsCore } from './c8oUtilsCore';
+import { C8oUtilsCore, Semaphore } from './c8oUtilsCore';
 import { C8oManagerLogin } from './c8oManagerLogin';
 import { C8oSessionUser } from './C8oSessionUser';
 
@@ -16,6 +16,8 @@ export class C8oManagerSession {
     private _olduser: C8oSessionUser;
     private ignored;
     private resumeListener = undefined;
+    public mutex : Semaphore;
+    public mutexNetwork : Semaphore;
 
     constructor(c8o: C8oCore) {
         // When the app begins, session is not connected*
@@ -24,8 +26,8 @@ export class C8oManagerSession {
         this.loginManager = new C8oManagerLogin(c8o);
         this.ignored = 0;
         this._user = new C8oSessionUser();
-
-        
+        this.mutex = new Semaphore(1);
+        this.mutexNetwork = new Semaphore(100000);
     }
 
     /**
@@ -186,6 +188,7 @@ export class C8oManagerSession {
 
     public async doAuthReachable(){
         if(this.c8o.session.user.authenticated == true){
+            await this.mutex.acquire();
             let err;
             try {
                 let user = await this.c8o.httpInterface.getUserServiceStatus()
@@ -196,25 +199,29 @@ export class C8oManagerSession {
                             
                             this._status = C8oSessionStatus.HasBeenDisconnected;
                             this.c8o.subscriber_session.next();
-    
+                            this.mutex.release();
                         }
                         else {
                             this.c8o.database.restartReplications(this.user.name)
                             this.checkSession(null, 0);
+                            this.mutex.release();
                         }
                     }
                     else{
                         this.c8o.subscriber_session.next();
+                        this.mutex.release();
                     }
                 }
                 else{
                     this._status = C8oSessionStatus.Connected;
                     this.c8o.database.restartReplications(this.user.name)
                     this.checkSession(null, 0);
+                    await this.mutex.release();
                 }
             }
             catch(e){
                 this._status = C8oSessionStatus.HasBeenDisconnected;
+                this.mutex.release();
             }
             
             
@@ -324,21 +331,29 @@ export class C8oManagerSession {
             let _status = user != undefined ? user.authenticated : false;
             // if we are not anymore loggedin
             if (!_status) {
-                this.c8o.log._debug("[C8oSessionManager] Session is not authentified");
+                this.c8o.log._debug("[C8oSessionManager] Session is not authenticated");
                 // if we want to keepAlive session
                 if (this.c8o.keepSessionAlive) {
                     // try to login
-                    let success = await this.loginManager.doLogin();
-                    if (success.status == false) {
-                        this.c8o.database.stopReplications(this.user.name);
-                        this._user = new C8oSessionUser();
-                        this._status = C8oSessionStatus.HasBeenDisconnected;
-                        this.c8o.subscriber_session.next();
-                        resolve();
+                    await this.mutex.acquire();
+                    await this.mutex.release();
+                    if(this._status == C8oSessionStatus.Connected || this._status == C8oSessionStatus.HasBeenConnected){
+                        resolve(true);
                     }
                     else {
-                        this.checkSession(headers, 0, resolve);
+                        let success = await this.loginManager.doLogin();
+                        if (success.status == false) {
+                            this.c8o.database.stopReplications(this.user.name);
+                            this._user = new C8oSessionUser();
+                            this._status = C8oSessionStatus.HasBeenDisconnected;
+                            this.c8o.subscriber_session.next();
+                            resolve();
+                        }
+                        else {
+                            this.checkSession(headers, 0, resolve);
+                        }
                     }
+                    
                 }
                 else {
                     this.c8o.database.stopReplications(this.user.name);
@@ -352,7 +367,10 @@ export class C8oManagerSession {
             else {
                 this._status = C8oSessionStatus.Connected;
                 let funclistener = ()=> {
+                    this.c8o.httpInterface.p1 = new Promise((resolve)=>{});
+                    this.c8o.httpInterface.firstCall = true;
                     setTimeout(async ()=> {
+                        this.mutex.acquire();
                         this.c8o.log.debug("[C8oSessionManager]: onResume checking user status");
                         let user = await this.checkUser();
                         let _status = user != undefined ? user.authenticated : false;
@@ -369,11 +387,15 @@ export class C8oManagerSession {
                                     this._user = new C8oSessionUser();
                                     this._status = C8oSessionStatus.HasBeenDisconnected;
                                     this.c8o.subscriber_session.next();
+                                    this.mutex.release();
+                                    this.c8o.httpInterface.p1 = Promise.resolve(true);
                                     resolve();
                                 }
                                 else {
                                     this.c8o.log.debug("[C8oSessionManager]: onResume autologin worked");
                                     this.checkSession(headers, 0, resolve);
+                                    this.mutex.release();
+                                    this.c8o.httpInterface.p1 = Promise.resolve(true);
                                 }
                             }
                             else {
@@ -382,11 +404,13 @@ export class C8oManagerSession {
                                 this._user = new C8oSessionUser();
                                 this._status = C8oSessionStatus.HasBeenDisconnected;
                                 this.c8o.subscriber_session.next();
+                                this.mutex.release();
                                 resolve();
                             }
                         }
                         else{
                             this._status = C8oSessionStatus.Connected;
+                            this.mutex.release();
                         }
                     }, 0);
                 };
@@ -401,7 +425,6 @@ export class C8oManagerSession {
                     }
                 }
                 catch(e){   
-                    console.log("eeee");
                     console.log(e);
                 }
                 
@@ -412,7 +435,7 @@ export class C8oManagerSession {
                 this.c8o.database.restartReplications(this.user.name);
                 let timeR = +user['maxInactive'] * 0.95 * 1000;
                 if (this.c8o.keepSessionAlive) {
-                    this.c8o.log._debug("[C8oSessionManager] Pooling for session, next check will be in " + timeR + "ms");
+                    this.c8o.log._debug("[C8oSessionManager] Poling for session, next check will be in " + timeR + "ms");
                     this.checker = this.checkSession(headers, timeR);
                     resolve();
                 }

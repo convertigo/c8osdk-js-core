@@ -128,19 +128,7 @@ export abstract class C8oHttpInterfaceCore {
 
     }
 
-    /**
-     * Check if session is ok
-     * @param parameters 
-     */
-    public checkSession(): Observable<any> {
-        let headersObject = { 'Accept': 'application/json', 'x-convertigo-sdk': this.c8o.sdkVersion };
-        Object.assign(headersObject, this.c8o.headers);
-        let headers = this.getHeaders(headersObject);
-        return this.httpPostObservable(this.c8o.endpointConvertigo + "/services/user.Get", {}, {
-            headers: headers,
-            withCredentials: true
-        })
-    }
+    
 
     
 
@@ -181,7 +169,7 @@ export abstract class C8oHttpInterfaceCore {
      * @param resolve 
      * @param reject 
      */
-    public execHttpPosts(url: string, parameters: any, headers: any, resolve, reject, headers_return= false) {
+    public execHttpPosts(url: string, parameters: any, headers: any, resolve, reject, headers_return= false, doLogin = false) {
         this.httpPostObservable(url, parameters, {
             headers: headers,
             withCredentials: true,
@@ -190,7 +178,7 @@ export abstract class C8oHttpInterfaceCore {
             .retry(1)
             .subscribe(
                 response => {
-                    this.handleResponseHttpPost(response, headers, resolve, url, parameters, headers, headers_return, reject);
+                    this.handleResponseHttpPost(response, headers, resolve, url, parameters, headers, headers_return, reject, doLogin);
                 },
                 error => {
                     this.handleErrorHttpPost(error, reject);
@@ -204,26 +192,30 @@ export abstract class C8oHttpInterfaceCore {
      * @param headers 
      * @param resolve 
      */
-    private handleResponseHttpPost(response: any, headers: any, resolve: any, urlReq: string, parametersReq: any, headersReq: any, returns_header = false, reject = null) {
+    private handleResponseHttpPost(response: any, headers: any, resolve: any, urlReq: string, parametersReq: any, headersReq: any, returns_header = false, reject = null, doLogin = false) {
         //this.checkReachable();
         //this.triggerSessionCheck(response, headers, urlReq, parametersReq, headersReq);
         if(urlReq.indexOf(".json") != -1){
-            this.c8o.session.sort(response, headers, urlReq, parametersReq, headersReq)
-            .then((res)=>{
-                if(res != true || parametersReq[C8oCore.SEQ_AUTO_LOGIN_OFF] === true){
-                    if(returns_header){
-                        resolve({body: response["body"], headers: response["headers"]});
+            if(doLogin == true){
+                resolve({body: response["body"], headers: response["headers"]});
+            }
+            else{
+                this.c8o.session.sort(response, headers, urlReq, parametersReq, headersReq)
+                .then((res)=>{
+                    if(res != true || parametersReq[C8oCore.SEQ_AUTO_LOGIN_OFF] === true){
+                        if(returns_header){
+                            resolve({body: response["body"], headers: response["headers"]});
+                        }
+                        else{
+                            resolve(response.body);
+                        }
                     }
                     else{
-                        resolve(response.body);
+                        this.execHttpPosts(urlReq, parametersReq, headersReq, resolve, reject, returns_header)
                     }
-                }
-                else{
-                    this.execHttpPosts(urlReq, parametersReq, headersReq, resolve, reject, returns_header)
-                }
-                
-                
-            })
+                })
+            }
+            
         }
         else{
             resolve(response.body);

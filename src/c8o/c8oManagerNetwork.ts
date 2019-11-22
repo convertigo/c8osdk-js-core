@@ -25,6 +25,7 @@ export class C8oManagerNetwork {
      */
     public set status(c8oNetworkStatus: C8oNetworkStatus){
         // if the status has not changed do nothing
+        //this.c8o.log.warn("through set network status")
         if(this._status == c8oNetworkStatus){
                 return;    
         }

@@ -1,5 +1,6 @@
 import "rxjs/add/operator/retry";
 import {C8oCore} from "./c8oCore";
+import { C8oSessionStatus } from "./c8oSessionStatus";
 
 declare const require: any;
 export class C8oManagerLogin {
@@ -15,29 +16,32 @@ export class C8oManagerLogin {
 
     public doLogin(): Promise<any>{
         return new Promise((res)=>{
-            if(this.requestLogin !=  undefined){
-                let resolve = (response)=>{
-                    if(response.headers.get("X-Convertigo-Authenticated") != undefined){
-                        this.c8o.log._debug("[C8oManagerLogin] Auto Logins works");
-                        this.c8o.subscriber_login.next({status:true, response: response.body, error: null})
-                        res({status:true, urlReq:this.requestLogin.url, parameters:this.requestLogin.parameters, headers: this.requestLogin.headers, response: response.response});
+            if(this.c8o.session.status == C8oSessionStatus.Connected || this.c8o.session.status == C8oSessionStatus.HasBeenConnected){
+                if(this.requestLogin !=  undefined){
+                    let resolve = (response)=>{
+                        if(response.headers.get("X-Convertigo-Authenticated") != undefined){
+                            this.c8o.log._debug("[C8oManagerLogin] Auto Logins works");
+                            this.c8o.subscriber_login.next({status:true, response: response.body, error: null})
+                            res({status:true, urlReq:this.requestLogin.url, parameters:this.requestLogin.parameters, headers: this.requestLogin.headers, response: response.response});
+                        }
+                        else{
+                            this.c8o.log._debug("[C8oManagerLogin] Auto Logins failed");
+                            res({status:false});
+                            this.c8o.subscriber_login.next({status:false, response: response.body, error: "error, we are not authenticated"})
+                            //this.c8o.subscriber_session.next();
+                        }
+                        
                     }
-                    else{
+                    let reject = (err)=>{
                         this.c8o.log._debug("[C8oManagerLogin] Auto Logins failed");
                         res({status:false});
-                        this.c8o.subscriber_login.next({status:false, response: response.body, error: "error, we are not authenticated"})
-                        //this.c8o.subscriber_session.next();
+                        this.c8o.subscriber_login.next({status:false, response: null, error: err})
+                        this.c8o.subscriber_session.next();
                     }
-                    
-                }
-                let reject = (err)=>{
-                    this.c8o.log._debug("[C8oManagerLogin] Auto Logins failed");
-                    res({status:false});
-                    this.c8o.subscriber_login.next({status:false, response: null, error: err})
-                    this.c8o.subscriber_session.next();
-                }
-                this.c8o.httpInterface.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject, true);
-            } 
+                    this.c8o.httpInterface.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject, true);
+                } 
+            }
+             
         })
          
     }

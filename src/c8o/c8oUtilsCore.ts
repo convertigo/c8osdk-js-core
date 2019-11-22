@@ -186,7 +186,7 @@ export class Semaphore {
       }
     }
       
-    public release () {
+    public release (arg = null) {
      this.counter--;
      this.take();
     }
