@@ -369,6 +369,13 @@ export class C8oManagerSession {
                 let funclistener = ()=> {
                     this.c8o.httpInterface.p1 = new Promise((resolve)=>{});
                     this.c8o.httpInterface.firstCall = true;
+                    
+                    try{
+                        clearTimeout(this.checker);
+                    }
+                    catch(e){
+                        
+                    }
                     setTimeout(async ()=> {
                         this.mutex.acquire();
                         this.c8o.log.debug("[C8oSessionManager]: onResume checking user status");
@@ -436,12 +443,26 @@ export class C8oManagerSession {
                 let timeR = +user['maxInactive'] * 0.95 * 1000;
                 if (this.c8o.keepSessionAlive) {
                     this.c8o.log._debug("[C8oSessionManager] Poling for session, next check will be in " + timeR + "ms");
+                    if(this.checker != undefined){
+                        try{
+                            clearTimeout(this.checker);
+                        }
+                        catch(e){
+
+                        }
+                        
+                    }
                     this.checker = this.checkSession(headers, timeR);
                     resolve();
                 }
                 else {
                     if (this.checker != undefined) {
-                        clearTimeout(this.checker);
+                        try{
+                            clearTimeout(this.checker);
+                        }
+                        catch(e){
+                            
+                        }
                     }
                     this.checker =
                         setTimeout(async () => {
