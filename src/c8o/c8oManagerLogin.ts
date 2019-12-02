@@ -1,14 +1,17 @@
 import "rxjs/add/operator/retry";
 import {C8oCore} from "./c8oCore";
 import { C8oSessionStatus } from "./c8oSessionStatus";
+import { Semaphore } from './c8oUtilsCore';
 
 declare const require: any;
 export class C8oManagerLogin {
     public c8o: C8oCore;
     private requestLogin;
+    private mutexL : Semaphore;
     
     constructor(c8o: C8oCore) {
         this.c8o = c8o;
+        this.mutexL = new Semaphore(1);
     }
     public setRequestLogin(url: string, parameters: Object, headers: Object){
         this.requestLogin = {url: url, parameters: parameters, headers: headers};
@@ -16,6 +19,7 @@ export class C8oManagerLogin {
 
     public doLogin(): Promise<any>{
         return new Promise((res)=>{
+            this.mutexL.acquire();
             if(!(this.c8o.session.status == C8oSessionStatus.Connected || this.c8o.session.status == C8oSessionStatus.HasBeenConnected)){
                 if(this.requestLogin !=  undefined){
                     let resolve = (response)=>{
@@ -30,6 +34,7 @@ export class C8oManagerLogin {
                             this.c8o.subscriber_login.next({status:false, response: response.body, error: "error, we are not authenticated"})
                             //this.c8o.subscriber_session.next();
                         }
+                        this.mutexL.release();
                         
                     }
                     let reject = (err)=>{
@@ -37,6 +42,7 @@ export class C8oManagerLogin {
                         res({status:false});
                         this.c8o.subscriber_login.next({status:false, response: null, error: err})
                         this.c8o.subscriber_session.next();
+                        this.mutexL.release();
                     }
                     this.c8o.httpInterface.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject, true);
                 } 
