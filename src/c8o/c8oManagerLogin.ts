@@ -16,7 +16,7 @@ export class C8oManagerLogin {
 
     public doLogin(): Promise<any>{
         return new Promise((res)=>{
-            if(this.c8o.session.status == C8oSessionStatus.Connected || this.c8o.session.status == C8oSessionStatus.HasBeenConnected){
+            if(!(this.c8o.session.status == C8oSessionStatus.Connected || this.c8o.session.status == C8oSessionStatus.HasBeenConnected)){
                 if(this.requestLogin !=  undefined){
                     let resolve = (response)=>{
                         if(response.headers.get("X-Convertigo-Authenticated") != undefined){
