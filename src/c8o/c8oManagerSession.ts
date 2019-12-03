@@ -18,6 +18,7 @@ export class C8oManagerSession {
     private resumeListener = undefined;
     public mutex : Semaphore;
     public mutexNetwork : Semaphore;
+    public mutexCheckSession : Semaphore;
 
     constructor(c8o: C8oCore) {
         // When the app begins, session is not connected*
@@ -27,7 +28,8 @@ export class C8oManagerSession {
         this.ignored = 0;
         this._user = new C8oSessionUser();
         this.mutex = new Semaphore(1);
-        this.mutexNetwork = new Semaphore(100000);
+        this.mutexNetwork = new Semaphore(10000000000);
+        this.mutexCheckSession = new Semaphore(1);
     }
 
     /**
@@ -44,6 +46,10 @@ export class C8oManagerSession {
      */
     public get status(): C8oSessionStatus {
         return this._status;
+    }
+
+    public set status(status:C8oSessionStatus) {
+        this._status = status;
     }
 
     /**
@@ -140,49 +146,6 @@ export class C8oManagerSession {
                 }
             
         })
-        
-        
-
-
-        /**
-         * define _status:
-         * if haderStatus is not null => we are connected
-         * else if headerStatus is not null and this.id is not null, we has lost session
-         * else we were never connected 
-         * 
-         *  
-        headerStatus != null ? this._status = C8oSessionStatus.Connected : (this.id != null ? C8oSessionStatus.HasBeenLost : C8oSessionStatus.NotConnected);
-
-        // if id is not null it meabs that we are logged in session
-        if (headerStatus != null) {
-            // if id was null it means that we were not logged in previously and notify by a log
-            if (this.id == null) {
-                this.c8o.log._debug("[C8oSessionManager] we are now logged in session");
-                // register Login
-                this.loginManager.setRequestLogin(urlReq, parametersReq, headersReq);
-                this.checkSession(headers, 0)
-
-            }
-            // so we set a new _status and affect new value of id
-            this._status = C8oSessionStatus.Connected;
-            this.id = headerStatus;
-        }
-        else {
-            // if id is null and id of manager is not null it means that we were logged in and we just lost it
-            if (this.id != null) {
-                this._status = C8oSessionStatus.HasBeenLost;
-                this.id = null;
-                // if keep session alive is set to true, then try to login
-                if (this.c8o.keepSessionAlive == true) {
-                    this.loginManager.doLogin();
-                }
-                else {
-                    // we must notify handle session lost
-                }
-
-            }
-        }
-        */
     }
 
 
@@ -285,16 +248,6 @@ export class C8oManagerSession {
         }
     }
 
-    /*
-
-     private hasBeenLogeed(headers, urlReq, parametersReq, headersReq){
-        this.c8o.log._debug("[C8oSessionManager] we are now logged in session");
-        // register Login
-        this.loginManager.setRequestLogin(urlReq, parametersReq, headersReq);
-        this.checkSession(headers,0)
-    }
-    */
-
     private async checkUser() {
         let user : any = this._user;
         try {
@@ -365,11 +318,12 @@ export class C8oManagerSession {
 
             }
             else {
+                // if we are still connected
                 this._status = C8oSessionStatus.Connected;
-                let funclistener = ()=> {
+                var funclistener = ()=> {
                     this.c8o.httpInterface.p1 = new Promise((resolve)=>{});
                     this.c8o.httpInterface.firstCall = true;
-                    
+                    // safe delete previous Checker
                     try{
                         clearTimeout(this.checker);
                     }
@@ -386,6 +340,7 @@ export class C8oManagerSession {
                             this.c8o.log.debug("[C8oSessionManager]: onResume user is no longer logged");
                             if (this.c8o.keepSessionAlive) {
                                 this.c8o.log.debug("[C8oSessionManager]: onResume keepAlive session activated, we will try to autologin");
+                                this.c8o.session.status = C8oSessionStatus.HasBeenDisconnected;
                                 // try to login
                                 let success = await this.loginManager.doLogin();
                                 if (success.status == false) {
@@ -400,8 +355,8 @@ export class C8oManagerSession {
                                 }
                                 else {
                                     this.c8o.log.debug("[C8oSessionManager]: onResume autologin worked");
-                                    this.checkSession(headers, 0, resolve);
                                     this.mutex.release();
+                                    this.checkSession(headers, 0, resolve);
                                     this.c8o.httpInterface.p1 = Promise.resolve(true);
                                 }
                             }
@@ -422,10 +377,6 @@ export class C8oManagerSession {
                     }, 0);
                 };
 
-
-
-
-
                 try {
                     if(this.resumeListener != undefined){
                         document.removeEventListener("resume", this.resumeListener, false);
@@ -443,16 +394,7 @@ export class C8oManagerSession {
                 let timeR = +user['maxInactive'] * 0.95 * 1000;
                 if (this.c8o.keepSessionAlive) {
                     this.c8o.log._debug("[C8oSessionManager] Poling for session, next check will be in " + timeR + "ms");
-                    if(this.checker != undefined){
-                        try{
-                            clearTimeout(this.checker);
-                        }
-                        catch(e){
-
-                        }
-                        
-                    }
-                    this.checker = this.checkSession(headers, timeR);
+                    this.checkSession(headers, timeR);
                     resolve();
                 }
                 else {

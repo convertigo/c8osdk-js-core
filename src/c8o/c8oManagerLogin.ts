@@ -47,6 +47,9 @@ export class C8oManagerLogin {
                     this.c8o.httpInterface.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject, true);
                 } 
             }
+            else{
+                this.c8o.log.warn("Into else");
+            }
              
         })
          
