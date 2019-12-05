@@ -181,7 +181,7 @@ export abstract class C8oHttpInterfaceCore {
                     this.handleResponseHttpPost(response, headers, resolve, url, parameters, headers, headers_return, reject, doLogin);
                 },
                 error => {
-                    this.handleErrorHttpPost(error, reject);
+                    this.handleErrorHttpPost(error, reject, url);
                 }
             );
     }
@@ -229,7 +229,12 @@ export abstract class C8oHttpInterfaceCore {
      * @param error 
      * @param reject 
      */
-    private handleErrorHttpPost(error: any, reject: any) {
+    private handleErrorHttpPost(error: any, reject: any, url = undefined) {
+        if(url != undefined){
+            if(url.indexOf(".Add") == -1){
+                this.c8o.network.init();
+            }
+        }
         reject((new C8oHttpRequestException(C8oExceptionMessage.runHttpRequest(), error)));
     }
 
