@@ -190,7 +190,6 @@ export class C8oFullSyncCbl extends C8oFullSync {
 
     public async handleGetDocumentRequest(fullSyncDatabaseName: string, docid: string, parameters: Object): Promise<any> {
         let fullSyncDatabase: C8oFullSyncDatabase = null;
-        let dictDoc: Object = {};
         let param: Object;
         param = parameters["attachments"] ? { attachments: true } : {};
         parameters["binary"] ? param["binary"] = true : {};
@@ -198,26 +197,13 @@ export class C8oFullSyncCbl extends C8oFullSync {
         fullSyncDatabase = await this.getOrCreateFullSyncDatabase(fullSyncDatabaseName);
         return new Promise((resolve, reject) => {
             fullSyncDatabase.getdatabase.get(docid, param).then((document) => {
-                if (document != null) {
-                    dictDoc = document;
-                    const attachments = document[C8oFullSync.FULL_SYNC__ATTACHMENTS];
-                    if (attachments != null) {
-                        for (const attachmentName of attachments) {
-                            const url = attachments.url;
-                            const attachmentDesc: Object = attachments[attachmentName];
-                            attachmentDesc[C8oFullSyncCbl.ATTACHMENT_PROPERTY_KEY_CONTENT_URL] = url.toString();
-                            const dictAny: Object = {};
-                            dictAny[attachmentName] = attachmentDesc;
-                            dictDoc[C8oFullSyncCbl.FULL_SYNC__ATTACHMENTS] = dictAny;
-                        }
-                    }
-                } else {
+                if (document == null) {
                     reject(new C8oRessourceNotFoundException((C8oExceptionMessage.ressourceNotFound("requested document \"" + docid + "\""))));
                 }
-                if (dictDoc === null) {
-                    dictDoc = {};
+                if (document === null) {
+                    document = {};
                 }
-                resolve(dictDoc);
+                resolve(document);
             })
                 .catch((error) => {
                     reject(error);
