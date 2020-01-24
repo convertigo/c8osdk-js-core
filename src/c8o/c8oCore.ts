@@ -355,6 +355,11 @@ export abstract class C8oCore extends C8oBase {
         this.promiseManagerNetwork = this.network.init();
     }
 
+    public importLoginState(c8o: C8oCore){
+        let session = c8o.session;
+        this.session = session;
+    }
+
     protected extractendpoint() {
         if (!C8oUtilsCore.isValidUrl(this.endpoint)) {
             throw new C8oException(C8oExceptionMessage.illegalArgumentInvalidURL(this.endpoint).toString());
