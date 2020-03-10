@@ -65,6 +65,7 @@ export abstract class C8oCore extends C8oBase {
      * FULLSYNC parameters
      */
 
+    public static use_merge_prefix: string = "_use_merge";
     /**
      * Constant to use as a parameter for a Call of "fs://.post" and must be followed by a FS_POLICY_* constant.
      * <pre>{@code
@@ -878,40 +879,57 @@ export class FullSyncPolicy {
         });
     });
 
-    public static MERGE: FullSyncPolicy = new FullSyncPolicy(C8oCore.FS_POLICY_MERGE, (database: any, newProperties: Object) => {
+    public static MERGE: FullSyncPolicy = new FullSyncPolicy(C8oCore.FS_POLICY_MERGE, (database: any, newProperties: Object, subPolicy = null) => {
         return new Promise((resolve, reject) => {
             try {
                 const documentId: string = C8oUtilsCore.getParameterStringValue(newProperties, C8oFullSync.FULL_SYNC__ID, false);
                 // delete newProperties[C8oFullSync.FULL_SYNC__ID];
                 delete newProperties[C8oFullSync.FULL_SYNC__REV];
-
+                // copy newProperties object to be able to apply subPolicy merge
+                let copyNewProperties = C8oFullSyncCbl.deepCloneObject(newProperties);
                 if (documentId == null) {
-                    database.put(newProperties).then((createdDocument) => {
-                        resolve(createdDocument);
-                    }).catch((error) => {
-                        reject(new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error));
-                    });
-                } else {
-                    database.get(documentId).then((doc) => {
-                        C8oFullSyncCbl.mergeProperties(newProperties, doc);
-                        database.put(newProperties).then((createdDocument) => {
+                    // Apply subPolicy for merge (here can only be delete since, there is no previous doc)
+                    C8oFullSyncCbl.applySubPolicyForMerge(false, copyNewProperties, newProperties , subPolicy);
+                    // Put document
+                    database.put(newProperties)
+                        .then((createdDocument) => {
                             resolve(createdDocument);
-                        })
-                            .catch((error) => {
-                                reject(new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error));
-                            });
-                    }).catch((error) => {
-                        if (error.status === 404) {
-                            database.put(newProperties).then((createdDocument) => {
-                                resolve(createdDocument);
-                            })
+                        }).catch((error) => {
+                            reject(new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error));
+                        });
+
+                } else {
+                    database.get(documentId)
+                        .then((doc) => {
+                            // Apply Policy merge
+                            C8oFullSyncCbl.mergeProperties(newProperties, doc);
+                            // Apply subPolicy for merge
+                            C8oFullSyncCbl.applySubPolicyForMerge(true, copyNewProperties, newProperties , subPolicy);
+                            // Put document
+                            database.put(newProperties)
+                                .then((createdDocument) => {
+                                    resolve(createdDocument);
+                                })
                                 .catch((error) => {
                                     reject(new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error));
                                 });
-                        } else {
-                            reject(new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error));
-                        }
-                    });
+
+                        }).catch((error) => {
+                            if (error.status === 404) {
+                                // Apply subPolicy for merge (here can only be delete since, there is no previous doc)
+                                C8oFullSyncCbl.applySubPolicyForMerge(false, copyNewProperties, newProperties , subPolicy);
+                                // Put document
+                                database.put(newProperties)
+                                    .then((createdDocument) => {
+                                        resolve(createdDocument);
+                                    })
+                                    .catch((error) => {
+                                        reject(new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error));
+                                    });
+                            } else {
+                                reject(new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error));
+                            }
+                        });
                 }
             } catch (error) {
                 reject(new C8oCouchBaseLiteException(C8oExceptionMessage.fullSyncPutProperties(newProperties), error));
@@ -920,7 +938,7 @@ export class FullSyncPolicy {
     });
 
     public value: string;
-    public action: (PouchDB, Object) => any;
+    public action: (PouchDB, Object, subPolicy?) => any;
 
     constructor(value: string, action: (_Object, Object) => any) {
         this.value = value;
