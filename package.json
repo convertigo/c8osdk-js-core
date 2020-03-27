@@ -1,6 +1,6 @@
 {
   "name": "c8osdkjscore",
-  "version": "3.0.8-beta1",
+  "version": "3.0.8-beta5",
   "description": "convertigo's sdk js core",
   "main": "bundle/index.umd.js",
   "module": "src/index.js",
@@ -50,6 +50,7 @@
     "zone.js": "0.8.26"
   },
   "devDependencies": {
+    "@types/node": "^12.0.10",
     "rimraf": "2.6.1",
     "@types/jasmine": "2.8.2",
     "awesome-typescript-loader": "3.4.1",

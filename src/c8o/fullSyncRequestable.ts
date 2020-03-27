@@ -1,4 +1,4 @@
-import {FullSyncPolicy, FullSyncPostDocumentParameter} from "./c8oCore";
+import {C8oCore, FullSyncPolicy, FullSyncPostDocumentParameter} from "./c8oCore";
 import {C8oFullSync, C8oFullSyncCbl} from "./c8oFullSync";
 import {
     C8oResponseJsonListener,
@@ -46,7 +46,17 @@ export class FullSyncRequestable {
             try {
                 const fullSyncPolicyParameter: string = C8oUtilsCore.peekParameterStringValue(parameters, FullSyncPostDocumentParameter.POLICY.name, false);
                 const fullSyncPolicy: FullSyncPolicy = FullSyncPolicy.getFullSyncPolicy(fullSyncPolicyParameter);
-                resolve(c8oFullSync.handlePostDocumentRequest(databaseName, fullSyncPolicy, parameters));
+                let fullSyncPolicySubMerge = [];
+                if(fullSyncPolicyParameter == "merge"){
+                    for(let elem in parameters){
+                        if(elem.indexOf("_use_merge") == 0){
+                            let key = elem.substring(11);
+                            let value = parameters[elem];
+                            fullSyncPolicySubMerge.push({key:key, value: value});
+                        }
+                    }
+                }
+                resolve(c8oFullSync.handlePostDocumentRequest(databaseName, fullSyncPolicy, parameters, fullSyncPolicySubMerge));
             } catch (error) {
                 reject(error);
             }

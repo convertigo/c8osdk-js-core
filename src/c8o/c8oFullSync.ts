@@ -134,7 +134,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
     constructor(c8o: C8oCore) {
         super(c8o);
         this.fullSyncDatabases = {};
-        if(window["C8oFullSyncCbl"] == undefined){
+        if (window["C8oFullSyncCbl"] == undefined) {
             window["C8oFullSyncCbl"] = [];
         }
     }
@@ -148,7 +148,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
      * @throws C8oException Failed to create a new fullSync database.
      */
     public async getOrCreateFullSyncDatabase(databaseName: string): Promise<C8oFullSyncDatabase> {
-        let mutex = window["C8oFullSyncCbl"][databaseName] == undefined ? window["C8oFullSyncCbl"][databaseName] = new Semaphore(1): window["C8oFullSyncCbl"][databaseName];
+        let mutex = window["C8oFullSyncCbl"][databaseName] == undefined ? window["C8oFullSyncCbl"][databaseName] = new Semaphore(1) : window["C8oFullSyncCbl"][databaseName];
         await mutex.acquire();
         let localDatabaseName: string = databaseName + this.localSuffix;
 
@@ -245,7 +245,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
         });
     }
 
-    public async handlePostDocumentRequest(databaseName: string, fullSyncPolicy: FullSyncPolicy, parameters: Object): Promise<any> {
+    public async handlePostDocumentRequest(databaseName: string, fullSyncPolicy: FullSyncPolicy, parameters: Object, fullsyncPolicySubMerge = null): Promise<any> {
         let fullSyncDatabase: C8oFullSyncDatabase;
         fullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
         let subkeySeparatorParameterValue: string = C8oUtilsCore.getParameterStringValue(parameters, C8oCore.FS_SUBKEY_SEPARATOR, false);
@@ -275,16 +275,20 @@ export class C8oFullSyncCbl extends C8oFullSync {
                 newProperties[parameterName] = objectParameterValue;
             }
 
+
+        }
+        if (fullsyncPolicySubMerge != null) {
+
         }
         const db = fullSyncDatabase.getdatabase;
         return new Promise((resolve, reject) => {
-            fullSyncPolicy.action(db, newProperties)
-            .then((createdDocument: any) => {
-                const fsDocOpeResp: FullSyncDocumentOperationResponse = new FullSyncDocumentOperationResponse(createdDocument.id, createdDocument.rev, createdDocument.ok);
-                resolve(fsDocOpeResp);
-            }).catch((error) => {
-                reject(error);
-            });
+            fullSyncPolicy.action(db, newProperties, { fullsyncPolicySubMerge: fullsyncPolicySubMerge, subkeySeparatorParameterValue: subkeySeparatorParameterValue })
+                .then((createdDocument: any) => {
+                    const fsDocOpeResp: FullSyncDocumentOperationResponse = new FullSyncDocumentOperationResponse(createdDocument.id, createdDocument.rev, createdDocument.ok);
+                    resolve(fsDocOpeResp);
+                }).catch((error) => {
+                    reject(error);
+                });
         });
     }
 
@@ -317,13 +321,13 @@ export class C8oFullSyncCbl extends C8oFullSync {
     public async  handleGetAttachmentRequest(databaseName: string, docid: string, attachmentName: string, parameters: any): Promise<any> {
         let document: any = null;
         const fullSyncDatabase: C8oFullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
-        return new Promise((resolve, reject) => { 
+        return new Promise((resolve, reject) => {
             fullSyncDatabase.getdatabase.getAttachment(docid, attachmentName, parameters)
-            .then((buffer) => {
-                resolve(buffer);
-            }).catch((err) => {
-                reject(new C8oCouchBaseLiteException("Unable to put the attachment " + attachmentName + " to the document " + docid + ".", err));
-            });
+                .then((buffer) => {
+                    resolve(buffer);
+                }).catch((err) => {
+                    reject(new C8oCouchBaseLiteException("Unable to put the attachment " + attachmentName + " to the document " + docid + ".", err));
+                });
         });
 
     }
@@ -373,24 +377,24 @@ export class C8oFullSyncCbl extends C8oFullSync {
         return new Promise((resolve, reject) => {
             c8oAlldocsLocal.alldocs(parameters, fullSyncDatabase.database)
                 .then((res) => {
-                    if(!res.err){
+                    if (!res.err) {
                         resolve(res.result);
                     }
-                    else{
-                        if(res["err"]["stack"]!= undefined){
+                    else {
+                        if (res["err"]["stack"] != undefined) {
                             reject(new C8oException(res["err"]["stack"]));
                         }
-                        else{
+                        else {
                             reject(new C8oException(JSON.stringify(res["err"])))
                         }
                     }
-                   
+
                 })
                 .catch((err) => {
-                    if(err["err"]["stack"]!= undefined){
+                    if (err["err"]["stack"] != undefined) {
                         reject(new C8oException(err["err"]["stack"]));
                     }
-                    else{
+                    else {
                         reject(new C8oException(JSON.stringify(err["err"])))
                     }
                 });
@@ -487,17 +491,17 @@ export class C8oFullSyncCbl extends C8oFullSync {
         return new Promise((resolve, reject) => {
             this.handleDestroyDatabaseRequest(databaseName).then(() => {
                 this.handleCreateDatabaseRequest(databaseName).
-                then((res)=>{
-                    resolve(res);
-                })
-                .catch((err)=>{
+                    then((res) => {
+                        resolve(res);
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    })
+
+            })
+                .catch((err) => {
                     reject(err);
                 })
-                
-            })
-            .catch((err)=>{
-                reject(err);
-            })
         });
 
     }
@@ -586,7 +590,95 @@ export class C8oFullSyncCbl extends C8oFullSync {
         });
     }
 
-    public static mergeProperties(newProperties: Object, oldProperties: Object) {
+    /**
+     * Allow to clone object whithout reference
+     * 
+     * @param obj Object: object to be cloned 
+     */
+    public static deepCloneObject(obj) {
+        if (obj === null || typeof obj !== 'object') {
+            return obj;
+        }
+        var temporarystorage = obj.constructor();
+        for (var key in obj) {
+            temporarystorage[key] = C8oFullSyncCbl.deepCloneObject(obj[key]);
+        }
+        return temporarystorage;
+    }
+
+    /**
+     * Recursive function that browse object to be modified and apply delete
+     * 
+     * @param objToChange Object: the object to be modified
+     * @param path string: The path where to find object to be modified
+     * @param index number: index
+     * @param subPolicy Object: subPolicy to be applied
+     */
+    public static applySubPolicyDelete (objToChange, path, index, subPolicy) {
+        let arrayPath = path.split(subPolicy.subkeySeparatorParameterValue);
+        let length = arrayPath.length;
+        if(index + 1 == length){
+            // delete key
+            delete objToChange[arrayPath[index]];
+        }
+        else{
+            //recursive call to navigate to property
+            C8oFullSyncCbl.applySubPolicyDelete(objToChange[arrayPath[index]],path, index + 1, subPolicy);
+        }
+    }
+
+    /**
+     * Recursive function that browse object to be modified and apply override
+     * 
+     * @param objToChange Object: the object to be modified
+     * @param path string: The path where to find object to be modified
+     * @param index number: index
+     * @param source Object: the object posted
+     * @param subPolicy Object: subPolicy to be applied
+     */
+    public static applySubPolicyOverride(objToChange, path, index, source, subPolicy) {
+        let arrayPath = path.split(subPolicy.subkeySeparatorParameterValue);
+        let length = arrayPath.length;
+        if(index + 1 == length){
+            // change key
+            // user has not given object to override
+            if(source == undefined){
+               
+            }
+            else if(source[arrayPath[index]] != null){
+                objToChange[arrayPath[index]] = source[arrayPath[index]];
+            }
+        }
+        else{
+            //recursive call to navigate to property
+            C8oFullSyncCbl.applySubPolicyOverride(objToChange[arrayPath[index]],path, index + 1, source[arrayPath[index]], subPolicy);
+        }
+    }
+
+    /**
+     * Global function that will apply sub policy for merge
+     * 
+     * @param override boolean: if we have to perform override sub policy or not
+     * @param source Object: the object posted
+     * @param objToChange Object: the object to be modified
+     * @param subPolicy Object: subPolicy to be applied
+     */
+    public static applySubPolicyForMerge(override, source, objToChange, subPolicy){
+        for(let elem of subPolicy.fullsyncPolicySubMerge){
+            switch(elem.value){
+                case "override":
+                    if(override){
+                        C8oFullSyncCbl.applySubPolicyOverride(objToChange, elem.key, 0, source, subPolicy);
+                    }
+                break;
+                case "delete":
+                    C8oFullSyncCbl.applySubPolicyDelete(objToChange,elem.key, 0,subPolicy);
+                break;
+            }
+        }
+    }
+
+    public static mergeProperties(newProperties: Object, oldProperties: Object, useMergePolicy = "none") {
         for (let i = 0; i < Object.keys(oldProperties).length; i++) {
             const oldPropertyKey = Object.keys(oldProperties)[i];
             const oldPropertyValue = oldProperties[Object.keys(oldProperties)[i]];
