@@ -645,7 +645,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
             if(source == undefined){
                
             }
-            else{
+            else if(source[arrayPath[index]] != null){
                 objToChange[arrayPath[index]] = source[arrayPath[index]];
             }
         }
