@@ -640,12 +640,13 @@ export class C8oFullSyncCbl extends C8oFullSync {
         let arrayPath = path.split(subPolicy.subkeySeparatorParameterValue);
         let length = arrayPath.length;
         if(index + 1 == length){
-            // chnage key
-            if(source[arrayPath[index]] != null){
-                objToChange[arrayPath[index]] = source[arrayPath[index]];
+            // change key
+            // user has not given object to override
+            if(source == undefined){
+               
             }
             else{
-                console.log("this is null");
+                objToChange[arrayPath[index]] = source[arrayPath[index]];
             }
         }
         else{
