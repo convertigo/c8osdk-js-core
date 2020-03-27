@@ -651,7 +651,13 @@ export class C8oFullSyncCbl extends C8oFullSync {
         }
         else{
             //recursive call to navigate to property
-            C8oFullSyncCbl.applySubPolicyOverride(objToChange[arrayPath[index]],path, index + 1, source[arrayPath[index]], subPolicy);
+            if(source != undefined){
+                if(objToChange == undefined){
+                    objToChange = {};
+                }
+                C8oFullSyncCbl.applySubPolicyOverride(objToChange[arrayPath[index]],path, index + 1, source[arrayPath[index]], subPolicy);
+            }
+            
         }
     }
 
