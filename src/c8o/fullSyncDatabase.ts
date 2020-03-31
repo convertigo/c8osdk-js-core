@@ -60,6 +60,9 @@ export class C8oFullSyncDatabase {
         const header = {
             "x-convertigo-sdk": this.c8o.sdkVersion,
         };
+        const headerName = "x-xsrf-token";
+        const fetch = "Fetch";
+        header[headerName] = window.localStorage.getItem(headerName) != undefined ? window.localStorage.getItem(headerName) : fetch;
         Object.assign(header, this.c8o.headers);
         this.remotePouchHeader = {
             fetch: (url, opts) => {
