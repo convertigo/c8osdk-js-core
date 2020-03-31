@@ -60,15 +60,9 @@ export class C8oFullSyncDatabase {
         const header = {
             "x-convertigo-sdk": this.c8o.sdkVersion,
         };
-        let cookies = document["cookie"];
-        if(cookies != null){
-            for(let cookie of cookies.split(";")){
-                if(cookie.indexOf("XSRF-TOKEN=")!= -1){
-                    header["XSRF-TOKEN"] = cookie.substring(cookie.indexOf("XSRF-TOKEN=")+ 11);
-                }
-            } 
-        }
-        
+        const headerName = "x-xsrf-token";
+        const fetch = "Fetch";
+        header[headerName] = window.localStorage.getItem(headerName) != undefined ? window.localStorage.getItem(headerName) : fetch;
         Object.assign(header, this.c8o.headers);
         this.remotePouchHeader = {
             fetch: (url, opts) => {
