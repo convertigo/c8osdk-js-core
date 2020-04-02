@@ -60,9 +60,11 @@ export class C8oFullSyncDatabase {
         const header = {
             "x-convertigo-sdk": this.c8o.sdkVersion,
         };
-        const headerName = "x-xsrf-token";
-        const fetch = "Fetch";
-        header[headerName] = window.localStorage.getItem(headerName) != undefined ? window.localStorage.getItem(headerName) : fetch;
+        if(this.c8o.xsrfUsed){
+            const headerName = "x-xsrf-token";
+            const fetch = "Fetch";
+            header[headerName] = window.localStorage.getItem(headerName) != undefined ? window.localStorage.getItem(headerName) : fetch;
+        }      
         Object.assign(header, this.c8o.headers);
         this.remotePouchHeader = {
             fetch: (url, opts) => {
@@ -193,6 +195,7 @@ export class C8oFullSyncDatabase {
         if(this.c8o.resetBase){
             await this.checkResetBase()
         }
+        let resp =  await this.c8o.log.logTest();
         return this.startSync(this.syncFullSyncReplication, parameters, c8oResponseListener, handler);
         
     }
@@ -205,6 +208,7 @@ export class C8oFullSyncDatabase {
         if(this.c8o.resetBase){
             await this.checkResetBase()
         }
+        let resp =  await this.c8o.log.logTest();
         return this.startReplication(this.pullFullSyncReplication, parameters, c8oResponseListener, handler);
 
     }
@@ -217,6 +221,7 @@ export class C8oFullSyncDatabase {
         if(this.c8o.resetBase){
             await this.checkResetBase()
         }
+        let resp =  await this.c8o.log.logTest();
         return this.startReplication(this.pushFullSyncReplication, parameters, c8oResponseListener, handler);
 
     }

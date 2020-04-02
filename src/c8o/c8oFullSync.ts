@@ -517,9 +517,11 @@ export class C8oFullSyncCbl extends C8oFullSync {
             const header = {
                 "x-convertigo-sdk": this.c8o.sdkVersion,
             };
-            const headerName = "x-xsrf-token";
-            const fetch = "Fetch";
-            header[headerName] = window.localStorage.getItem(headerName) != undefined ? window.localStorage.getItem(headerName) : fetch;
+            if(this.c8o.xsrfUsed){
+                const headerName = "x-xsrf-token";
+                const fetch = "Fetch";
+                header[headerName] = window.localStorage.getItem(headerName) != undefined ? window.localStorage.getItem(headerName) : fetch;
+            }
             Object.assign(header, this.c8o.headers);
             fullSyncDatabase.getdatabase.c8oload(parameters["data"],
 

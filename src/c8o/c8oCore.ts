@@ -334,6 +334,8 @@ export abstract class C8oCore extends C8oBase {
         return "1.0.7";//require("../../package.json").version;
     }
 
+    public xsrfUsed = false;
+
     /**
      * This is the base object representing a Convertigo Server end point. This object should be instantiated
      * when the apps starts and be accessible from any class of the app. Although this is not common , you may have
