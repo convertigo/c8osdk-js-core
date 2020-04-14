@@ -150,7 +150,7 @@ export class C8oManagerSession {
 
 
     public async doAuthReachable(){
-        if(this.c8o.session.user.authenticated == true){
+        /*if(this.c8o.session.user.authenticated == true){
             await this.mutex.acquire();
             let err;
             try {
@@ -188,7 +188,7 @@ export class C8oManagerSession {
             }
             
             
-        }
+        }*/
     }
     /**
      * defineSessionStatus
