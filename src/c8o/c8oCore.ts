@@ -742,6 +742,7 @@ export abstract class C8oCore extends C8oBase {
             return new Promise((resolve) => {
                 this.copy(c8oSettings);
                 this.initC8oHttInterface();
+                this.session.getInitalState()
                 this.c8oLogger.affect_val(this, false);
                 this.c8oLogger.logRemoteInit()
                 .then(()=>{

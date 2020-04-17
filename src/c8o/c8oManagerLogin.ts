@@ -1,7 +1,7 @@
 import "rxjs/add/operator/retry";
 import {C8oCore} from "./c8oCore";
 import { C8oSessionStatus } from "./c8oSessionStatus";
-import { Semaphore } from './c8oUtilsCore';
+import { Semaphore, C8oUtilsCore } from './c8oUtilsCore';
 
 declare const require: any;
 export class C8oManagerLogin {
@@ -13,9 +13,62 @@ export class C8oManagerLogin {
         this.c8o = c8o;
         this.mutexL = new Semaphore(1);
     }
-    public setRequestLogin(url: string, parameters: Object, headers: Object){
-        this.requestLogin = {url: url, parameters: parameters, headers: headers};
+    public async setRequestLogin(url: string, parameters: Object, headers: Object, id: string){
+        if(url != null && parameters != null && headers != null){
+            this.requestLogin = {url: url, parameters: parameters, headers: headers};
+        }
+        if(id != null && this.requestLogin != undefined){
+        /**  must encrypt and save requestLogin there **/
+
+        //define buffer to save
+        const data = Buffer.from(JSON.stringify(this.requestLogin), 'utf-8');
+        // generate random iv and store it
+        const iv: any = crypto.getRandomValues(new Uint8Array(16));
+        window["localStorage"]["setItem"]("_c8o_iv", Buffer.from(iv).toString('utf-8'));
+        // get key and hash it 128 bits
+        const key = C8oUtilsCore.MD5ArrayBuffer(id);
+        // defined key
+        const key_encoded = await crypto.subtle.importKey(  "raw",    <any>key.buffer,   'AES-CTR' ,  false,   ["encrypt", "decrypt"]);
+        // encrypt data
+        const encrypted_content = await window.crypto.subtle.encrypt(
+            {
+              name: "AES-CTR",
+              counter: iv,
+              length: 128
+            },
+            key_encoded,
+            data
+        );
+        // store encrypted data
+        window.localStorage.setItem("_c8o_secret", Buffer.from(encrypted_content).toString('utf-8'));
+        }    
     }
+    public async defineRequestLogin(id){
+        //if requestLogin is'nt into this.requestLogin, get it and assign it to requestLogin from local encrypted data.
+        try{
+            if(this.requestLogin == undefined && window["localStorage"]["getItem"]("_c8o_secret") != undefined){
+                const iv: any = Buffer.from(window["localStorage"]["getItem"]("_c8o_iv"), 'utf-8');
+                const key = C8oUtilsCore.MD5ArrayBuffer(id);
+                const encrypted_content = Buffer.from(window.localStorage.getItem("_c8o_secret"), 'utf-8');
+                const key_encoded = await crypto.subtle.importKey(  "raw",    <any>key.buffer,   'AES-CTR' ,  false,   ["encrypt", "decrypt"]);
+                const decrypted_content: any  = await window.crypto.subtle.decrypt(
+                    {
+                      name: "AES-CTR",
+                      counter: iv,
+                      length: 128
+                    },
+                    key_encoded,
+                    encrypted_content
+                );
+                this.requestLogin = JSON.parse(Buffer.from(decrypted_content).toString('utf-8'));
+            }
+        }
+        catch(e){
+            console.dir(e);
+            debugger;
+        }
+    }
+    
 
     public doLogin(): Promise<any>{
         return new Promise((res)=>{

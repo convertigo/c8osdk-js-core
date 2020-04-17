@@ -19,6 +19,7 @@ export class C8oManagerSession {
     public mutex : Semaphore;
     public mutexNetwork : Semaphore;
     public mutexCheckSession : Semaphore;
+    private sessId : string;
 
     constructor(c8o: C8oCore) {
         // When the app begins, session is not connected*
@@ -88,7 +89,26 @@ export class C8oManagerSession {
         this._user = user;
     }
 
-    public async sort(response: any, headers: any, urlReq, parametersReq, headersReq, resolve = null) {
+    public async getInitalState(){
+        try{
+            debugger;
+            const resp: any = await this.c8o.httpInterface.getUserServiceStatus(true);
+            if(resp.body.authenticated){
+                this.sessId = resp.body.session;
+                
+                await this.loginManager.defineRequestLogin(resp.body.session);
+                this.user = new C8oSessionUser(resp.body);
+                this.status = C8oSessionStatus.HasBeenConnected;
+
+            }
+        }
+        catch(e){
+            this.c8o.log.error("[C8oManagerSession][getInitalState] Impossible to define user service status", e)
+        }
+        
+    }
+
+    public async sort(response: any, headers?: any, urlReq?, parametersReq?, headersReq?, resolve?) {
         // update _status if this is a sequence
         return new Promise(async (resolve, reject)=>{
                 let _status: C8oSessionStatus = await this.defineSessionStatus(response, headers, urlReq, parametersReq, headersReq);
@@ -98,6 +118,7 @@ export class C8oManagerSession {
                         resolve();
                         break;
                     case C8oSessionStatus.HasBeenConnected:
+                        // we just has been connected, check session status...
                         this.checkSession(headers, 0, resolve);
                         break;
                     case C8oSessionStatus.HasBeenDisconnected:
@@ -150,7 +171,7 @@ export class C8oManagerSession {
 
 
     public async doAuthReachable(){
-        /*if(this.c8o.session.user.authenticated == true){
+        if(this.c8o.session.user.authenticated == true){
             await this.mutex.acquire();
             let err;
             try {
@@ -171,11 +192,13 @@ export class C8oManagerSession {
                         }
                     }
                     else{
+                        this.sessId = user.session;
                         this.c8o.subscriber_session.next();
                         this.mutex.release();
                     }
                 }
                 else{
+                    this.sessId = user.session;
                     this._status = C8oSessionStatus.Connected;
                     this.c8o.database.restartReplications(this.user.name)
                     this.checkSession(null, 0);
@@ -188,7 +211,7 @@ export class C8oManagerSession {
             }
             
             
-        }*/
+        }
     }
     /**
      * defineSessionStatus
@@ -209,7 +232,7 @@ export class C8oManagerSession {
                 return C8oSessionStatus.Connected;
             }
             else {
-                this.loginManager.setRequestLogin(urlReq, parametersReq, headersReq);
+                this.loginManager.setRequestLogin(urlReq, parametersReq, headersReq, this.sessId);
                 this._status = C8oSessionStatus.HasBeenConnected;
                 this.id = headerStatus;
                 return C8oSessionStatus.HasBeenConnected;
@@ -223,6 +246,7 @@ export class C8oManagerSession {
                     try {
                         user = await this.c8o.httpInterface.getUserServiceStatus();
                         cancel = user != undefined ? user.authenticated : false;
+                        this.sessId = user.session;
                     }
                     catch(e){
                         cancel = false;
@@ -252,6 +276,7 @@ export class C8oManagerSession {
         let user : any = this._user;
         try {
              user = await this.c8o.httpInterface.getUserServiceStatus()
+             user.session != undefined ? this.sessId = user.session : null;
             if (this._user.name != user.user && this._user.name != "anonymous") {
                 // remove & stop all replications for older user
                 this.c8o.database.removeReplications(this._user.name);
@@ -273,7 +298,7 @@ export class C8oManagerSession {
 
     }
 
-    public async checkSession(headers: any, time: number, resolve = null) {
+    public async checkSession(headers: any, time: number, resolve?, hasbeenExecuted?) {
         if(resolve == null){
             resolve = (()=>{});
         }
@@ -320,6 +345,7 @@ export class C8oManagerSession {
             else {
                 // if we are still connected
                 this._status = C8oSessionStatus.Connected;
+                this.loginManager.setRequestLogin(null,null,null,user.session);
                 var funclistener = ()=> {
                     this.c8o.httpInterface.p1 = new Promise((resolve)=>{});
                     this.c8o.httpInterface.firstCall = true;
