@@ -64,8 +64,7 @@ export class C8oManagerLogin {
             }
         }
         catch(e){
-            console.dir(e);
-            debugger;
+            this.c8o.log.error("[C8oManagerLogin][defineRequestLogin], failed to define request login", e);
         }
     }
     

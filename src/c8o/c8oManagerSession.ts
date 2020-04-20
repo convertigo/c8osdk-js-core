@@ -91,15 +91,12 @@ export class C8oManagerSession {
 
     public async getInitalState(){
         try{
-            debugger;
             const resp: any = await this.c8o.httpInterface.getUserServiceStatus(true);
             if(resp.body.authenticated){
                 this.sessId = resp.body.session;
-                
                 await this.loginManager.defineRequestLogin(resp.body.session);
                 this.user = new C8oSessionUser(resp.body);
                 this.status = C8oSessionStatus.HasBeenConnected;
-
             }
         }
         catch(e){

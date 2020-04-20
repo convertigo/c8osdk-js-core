@@ -738,11 +738,11 @@ export abstract class C8oCore extends C8oBase {
             });
         }
 
-        this.promiseInit = Promise.all([this.promiseConstructor]).then(() => {
-            return new Promise((resolve) => {
+        this.promiseInit = Promise.all([this.promiseConstructor]).then( async () => {
+            return new Promise(async (resolve) => {
                 this.copy(c8oSettings);
                 this.initC8oHttInterface();
-                this.session.getInitalState()
+                await this.session.getInitalState()
                 this.c8oLogger.affect_val(this, false);
                 this.c8oLogger.logRemoteInit()
                 .then(()=>{
