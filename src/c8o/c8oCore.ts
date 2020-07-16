@@ -613,8 +613,8 @@ export abstract class C8oCore extends C8oBase {
      * @param db the name of the fullsync database to monitor. Use the default database for a blank or a null value.
      * @param listener the listener to trigger on change.
      */
-    public addFullSyncChangeListener(db: string, listener: C8oFullSyncChangeListener) {
-        (this.c8oFullSync as C8oFullSyncCbl).addFullSyncChangeListener(db, listener);
+    public addFullSyncChangeListener(db: string, listener: C8oFullSyncChangeListener, parameters: Object = {}) {
+        (this.c8oFullSync as C8oFullSyncCbl).addFullSyncChangeListener(db, listener, parameters);
     }
 
     /**

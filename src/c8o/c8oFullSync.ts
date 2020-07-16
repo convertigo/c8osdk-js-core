@@ -835,7 +835,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
         });
     }
 
-    public async addFullSyncChangeListener(db: string, listener: C8oFullSyncChangeListener) {
+    public async addFullSyncChangeListener(db: string, listener: C8oFullSyncChangeListener, parameters: Object = {}) {
         if (db === null || db === "") {
             db = this.c8o.defaultDatabaseName;
         }
@@ -846,13 +846,18 @@ export class C8oFullSyncCbl extends C8oFullSync {
         } else {
             listeners[0] = [];
             this.fullSyncChangeListeners[db] = listeners[0];
+            if(parameters["since"] == undefined){
+                parameters["since"] =  "now";
+            }
+            if(parameters["live"] == undefined){
+                parameters["live"] =  true;
+            }
+            if(parameters["include_docs"] == undefined){
+                parameters["include_docs"] =  true;
+            }
             //noinspection UnnecessaryLocalVariableJS
             const evtHandler = (await this.getOrCreateFullSyncDatabase(db)).getdatabase
-                .changes({
-                    since: "now",
-                    live: true,
-                    include_docs: true,
-                }).on("change", function (change) {
+                .changes(parameters).on("change", function (change) {
                     const changes: Object = {};
                     const docs: Object[] = [];
                     // docs["isExternal"] = false;
