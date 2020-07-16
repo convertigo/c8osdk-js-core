@@ -110,19 +110,25 @@ export abstract class C8oHttpInterfaceCore {
      * Call user service
      * @param headers headers for request
      */
-    public getUserServiceStatus(): Promise<any> {
+    public getUserServiceStatus(observe?): Promise<any> {
         return new Promise((resolve, reject) => {
             let headersObject = { 'Accept': 'application/json', 'x-convertigo-sdk': this.c8o.sdkVersion };
             Object.assign(headersObject, this.c8o.headers);
-            let headers = this.getHeaders(headersObject);
-            this.httpPostObservable(this.c8o.endpointConvertigo + "/services/user.Get", {}, {
-                headers: headers,
-                withCredentials: true
-            })
+            let params = {
+                headers: this.getHeaders(headersObject),
+                withCredentials: true,
+            }
+            if(observe){
+                params["observe"] = "response";
+            }
+            this.httpPostObservable(this.c8o.endpointConvertigo + "/services/user.Get", {}, params)
                 .retry(1)
                 .subscribe(
                     response => {
-                        resolve(response)
+                        resolve(response);
+                    },
+                    error =>{
+                        reject(error);
                     })
         })
 

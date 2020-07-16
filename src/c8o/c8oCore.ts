@@ -739,20 +739,25 @@ export abstract class C8oCore extends C8oBase {
         }
 
         this.promiseInit = Promise.all([this.promiseConstructor]).then(() => {
-            return new Promise((resolve) => {
+            return new Promise(async (resolve) => {
                 this.copy(c8oSettings);
                 this.initC8oHttInterface();
+                try{
+                    await this.session.setInitalState();
+                }
+                catch(e){
+                    console.error("Error calling setInitalState", e);
+                }
                 this.c8oLogger.affect_val(this, false);
-                this.c8oLogger.logRemoteInit()
-                .then(()=>{
-                    //Listen for offline status
-                    //this.listenOffline();
-                    //Listen for online status
-                    //this.listenOnLine();
-                    this.c8oLogger.logMethodCall("C8o Constructor");
-                    this.c8oFullSync = new C8oFullSyncCbl(this);
-                    resolve();
-                })
+                try{
+                    await this.c8oLogger.logRemoteInit()
+                }
+                catch(e){
+                    console.error("Error calling logRemoteInit", e);
+                }
+                this.c8oLogger.logMethodCall("C8o Constructor");
+                this.c8oFullSync = new C8oFullSyncCbl(this);
+                resolve();
                 
             });
         });
