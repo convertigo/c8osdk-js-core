@@ -147,13 +147,13 @@ export class C8oFullSyncCbl extends C8oFullSync {
      * @return C8oFullSyncDatabase
      * @throws C8oException Failed to create a new fullSync database.
      */
-    public async getOrCreateFullSyncDatabase(databaseName: string): Promise<C8oFullSyncDatabase> {
+    public async getOrCreateFullSyncDatabase(databaseName: string, isLocalCache = false): Promise<C8oFullSyncDatabase> {
         let mutex = window["C8oFullSyncCbl"][databaseName] == undefined ? window["C8oFullSyncCbl"][databaseName] = new Semaphore(1) : window["C8oFullSyncCbl"][databaseName];
         await mutex.acquire();
         let localDatabaseName: string = databaseName + this.localSuffix;
 
         localDatabaseName = this.c8o.database.localName(localDatabaseName, true);
-        let prefix = this.c8o.prefixBase == true ? this.c8o.session.user.name + "_" : "";
+        let prefix = this.c8o.prefixBase == true && isLocalCache == false ? this.c8o.session.user.name + "_" : "";
 
         if (this.fullSyncDatabases[localDatabaseName] == null) {
             this.fullSyncDatabases[localDatabaseName] = new C8oFullSyncDatabase(this.c8o, databaseName, this.fullSyncDatabaseUrlBase, this.localSuffix, prefix);
