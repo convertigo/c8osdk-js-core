@@ -747,7 +747,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
     }
 
     public async getResponseFromLocalCache(c8oCallRequestIdentifier: string): Promise<any> {
-        const fullSyncDatabase = await this.getOrCreateFullSyncDatabase(C8oCore.LOCAL_CACHE_DATABASE_NAME);
+        const fullSyncDatabase = await this.getOrCreateFullSyncDatabase(C8oCore.LOCAL_CACHE_DATABASE_NAME, true);
         let localCacheDocument = null;
         return new Promise((resolve, reject) => {
             fullSyncDatabase.getdatabase.get(c8oCallRequestIdentifier).then((result) => {
@@ -799,7 +799,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
     }
 
     public async saveResponseToLocalCache(c8oCallRequestIdentifier: string, localCacheResponse: C8oLocalCacheResponse): Promise<any> {
-        const fullSyncDatabase: C8oFullSyncDatabase = await this.getOrCreateFullSyncDatabase(C8oCore.LOCAL_CACHE_DATABASE_NAME);
+        const fullSyncDatabase: C8oFullSyncDatabase = await this.getOrCreateFullSyncDatabase(C8oCore.LOCAL_CACHE_DATABASE_NAME,true);
         return new Promise((resolve) => {
             fullSyncDatabase.getdatabase.get(c8oCallRequestIdentifier).then((localCacheDocument) => {
                 const properties = {};
