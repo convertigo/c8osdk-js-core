@@ -9,8 +9,9 @@ export class C8oReplicationStatus{
     public authenticated: boolean;
     public canceled: boolean;
     public finished:boolean;
+    public id: string;
     database: any;
-    constructor(user: C8oSessionUser, listener: C8oResponseListener, parameters: Object, type: string, authenticated: boolean, canceled: boolean,finished:boolean, fullSyncDatabase: any){
+    constructor(user: C8oSessionUser, listener: C8oResponseListener, parameters: Object, type: string, authenticated: boolean, canceled: boolean,finished:boolean, fullSyncDatabase: any, id: string){
         this.user = user;
         this.listener = listener;
         this.parameters = parameters;
@@ -19,5 +20,6 @@ export class C8oReplicationStatus{
         this.canceled = canceled;
         this.database = fullSyncDatabase;
         this.finished = finished;
+        this.id = id;
     }
 }
