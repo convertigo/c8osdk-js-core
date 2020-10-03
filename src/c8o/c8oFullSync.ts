@@ -455,7 +455,8 @@ export class C8oFullSyncCbl extends C8oFullSync {
         const fullSyncDatabase: C8oFullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
         let resp = this.c8o.database.registerRequest(c8oResponseListener, parameters, "sync", fullSyncDatabase);
         if (!resp[0]) {
-            return fullSyncDatabase.startAllReplications(parameters, c8oResponseListener, resp[1], resp[2]);
+            this.c8o.session.mutexCheckSession.acquire();
+            return fullSyncDatabase.startAllReplications(parameters, c8oResponseListener, resp[1], resp[2], this.c8o.session.mutexCheckSession);
         }
         else {
             this.c8o.log._trace("[c8ofullsync] waiting for network to start replication");
@@ -467,7 +468,8 @@ export class C8oFullSyncCbl extends C8oFullSync {
         const fullSyncDatabase: C8oFullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
         let resp = this.c8o.database.registerRequest(c8oResponseListener, parameters, "pull", fullSyncDatabase);
         if (!resp[0]) {
-            return fullSyncDatabase.startPullReplication(parameters, c8oResponseListener, resp[1]);
+            this.c8o.session.mutexCheckSession.acquire();
+            return fullSyncDatabase.startPullReplication(parameters, c8oResponseListener, resp[1], resp[2], this.c8o.session.mutexCheckSession);
         }
         else {
             this.c8o.log._trace("[c8ofullsync] waiting for network to start replication");
@@ -479,7 +481,8 @@ export class C8oFullSyncCbl extends C8oFullSync {
         const fullSyncDatabase: C8oFullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
         let resp = this.c8o.database.registerRequest(c8oResponseListener, parameters, "push", fullSyncDatabase);
         if (!resp[0]) {
-            return fullSyncDatabase.startPushReplication(parameters, c8oResponseListener, resp[1]);
+            this.c8o.session.mutexCheckSession.acquire();
+            return fullSyncDatabase.startPushReplication(parameters, c8oResponseListener, resp[1], resp[2], this.c8o.session.mutexCheckSession);
         }
         else {
             this.c8o.log._trace("[c8ofullsync] waiting for network to start replication");

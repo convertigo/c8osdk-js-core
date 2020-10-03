@@ -10,10 +10,12 @@ declare const require: any;
 export class C8oManagerDatabase {
     public c8o: C8oCore;
     private replications: Object;
+    private mutexCreateReplication: Semaphore;
 
     constructor(c8o: C8oCore) {
         this.replications = new Object();
         this.c8o = c8o;
+        this.mutexCreateReplication = new Semaphore(1);
     }
 
     public localName(baseName:string, log = false): string{
@@ -62,6 +64,7 @@ export class C8oManagerDatabase {
                 this.c8o.log._debug("[c8oManagerDatabase] cancelAndPopRequest => canceling  and removing replication: " +this.replications[user.name][i].database.getdatabase.name);
                 this.replications[user.name][i].database.syncFullSyncReplication.replication.cancel();
                 this.replications[user.name].splice(i, 1);
+                break;
             }
         }
         this.c8o.log._debug("[c8oManagerDatabase] cancelAndPopRequest => done, replication still actives: " +JSON.stringify(this.replications[user.name].map(x=> x.database.getdatabase.name)));
@@ -84,32 +87,35 @@ export class C8oManagerDatabase {
                         if (rep.finished != true) {
                             switch (rep.type) {
                                 case "sync":
+                                    this.mutexCreateReplication.acquire();
                                     this.c8o.log._trace("[restartStoppedReplications] restarting replication for database " + rep.database.getdatabseName + " and verb sync " + (rep.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
                                     let handler1 = () => {
                                         rep.finished = true;
                                     }
                                     rep.finished = false;
                                     rep.canceled = false;
-                                    rep.database.startAllReplications(rep.parameters, rep.listener, handler1, rep.id);
+                                    rep.database.startAllReplications(rep.parameters, rep.listener, handler1, rep.id, this.mutexCreateReplication);
                                     break;
                                 case "push":
+                                    this.mutexCreateReplication.acquire();
                                     this.c8o.log._trace("[restartStoppedReplications] restarting replication for database " + rep.database.getdatabseName + " and verb push " + (rep.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
                                     let handler2 = () => {
                                         rep.finished = true;
                                     }
                                     rep.finished = false;
                                     rep.canceled = false;
-                                    rep.database.startPushReplication(rep.parameters, rep.listener, handler2, rep.id);
+                                    rep.database.startPushReplication(rep.parameters, rep.listener, handler2, rep.id, this.mutexCreateReplication);
 
                                     break;
                                 case "pull":
+                                    this.mutexCreateReplication.acquire();
                                     this.c8o.log._trace("[restartStoppedReplications] restarting replication for database " + rep.database.getdatabseName + " and verb pull " + (rep.parameters["continuous"] == true ? "in continous mode" : "since replication was not finished"));
                                     let handler3 = () => {
                                         rep.finished = true;
                                     }
                                     rep.canceled = false;
                                     rep.finished = false;
-                                    rep.database.startPullReplication(rep.parameters, rep.listener, handler3, rep.id);
+                                    rep.database.startPullReplication(rep.parameters, rep.listener, handler3, rep.id, this.mutexCreateReplication);
                                     break;
                             }
                         }
