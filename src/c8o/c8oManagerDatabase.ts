@@ -62,7 +62,8 @@ export class C8oManagerDatabase {
         for (var i in this.replications[user.name]) {
             if(this.replications[user.name][i].id == id){
                 this.c8o.log._debug("[c8oManagerDatabase] cancelAndPopRequest => canceling  and removing replication: " +this.replications[user.name][i].database.getdatabase.name);
-                this.replications[user.name][i].database.syncFullSyncReplication.replication.cancel();
+                let repToCancel = this.replications[user.name][i].database.syncFullSyncReplication.replication;
+                repToCancel.cancel();
                 this.replications[user.name].splice(i, 1);
                 break;
             }

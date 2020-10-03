@@ -234,12 +234,8 @@ export class C8oFullSyncDatabase {
         const parametersObj: Object = {};
         //stop replication if exists
         if (fullSyncReplication.replication != null) {
-            // this.id.cancel and pop
-            if(id != this._id){
-                this.c8o.database.cancelAndPopRequest(this._id);
-            }
-            //this.cancel(fullSyncReplication);
-            //fullSyncReplication.replication.cancel();
+            this.c8o.database.cancelAndPopRequest(this._id);
+            fullSyncReplication.replication.cancel();
         }
         this._id = id;
         //check continuous flag
@@ -382,7 +378,16 @@ export class C8oFullSyncDatabase {
                         param[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                         (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                     })
-                        .on("paused", function () {
+                        .on("paused", () => {
+                            try{
+                                if(((<Array<any>>this.c8o.database["replications"]).map(x=>x.id == id)).length > 0){
+                                    rep.cancel();
+                                }
+                            }
+                            catch(e){
+                                
+                            }
+                            
                             progress.finished = true;
                             (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                             if (progress.total === 0 && progress.current === 0) {
@@ -479,10 +484,7 @@ export class C8oFullSyncDatabase {
         const parametersObj: Object = {};
         //stop replication if exists
         if (fullSyncReplication.replication != null) {
-            // this.id.cancel and pop
-            if(id != this._id){
-                this.c8o.database.cancelAndPopRequest(this._id);
-            }
+            this.c8o.database.cancelAndPopRequest(this._id);
             fullSyncReplication.replication.cancel();
         }
         this._id = id;
@@ -568,8 +570,16 @@ export class C8oFullSyncDatabase {
                 progress.status = "complete";
                 parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                 (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
-                rep.cancel();
+                if(rep.canceled == true && continuous){
+                    this.c8o.log._trace("Replication is continuous but has been canceled");
+                    rep.cancel();
+                    if(mutex != undefined){
+                        mutex.release();
+                    }
+                    handler();
+                }
                 if (continuous) {
+                    rep.cancel();
                     if(mutex != undefined){
                         mutex.release();
                     }
@@ -586,25 +596,36 @@ export class C8oFullSyncDatabase {
                         parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                         (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
                     })
-                        .on("error", (err) => {
-                            if (err.message === "Unexpected end of JSON input") {
-                                progress.finished = true;
-                                progress.status = "live";
-                                (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
-
-                            } else {
+                    .on("paused", () => {
+                        try{
+                            if(((<Array<any>>this.c8o.database["replications"]).map(x=>x.id == id)).length > 0){
                                 rep.cancel();
-                                if (err.code === "ETIMEDOUT" && err.status === 0) {
-                                    reject("TIMEOUT");
-                                } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
-                                    reject("NO_NETWORK");
-                                } else {
-                                    reject(err);
-                                }
                             }
-                        });
+                        }
+                        catch(e){
+                            
+                        }
+                    })
+                    .on("error", (err) => {
+                        if (err.message === "Unexpected end of JSON input") {
+                            progress.finished = true;
+                            progress.status = "live";
+                            (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
+
+                        } else {
+                            rep.cancel();
+                            if (err.code === "ETIMEDOUT" && err.status === 0) {
+                                reject("TIMEOUT");
+                            } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
+                                reject("NO_NETWORK");
+                            } else {
+                                reject(err);
+                            }
+                        }
+                    });
                 }
                 else if (!continuous) {
+                    rep.cancel();
                     if(mutex != undefined){
                         mutex.release();
                     }
@@ -612,6 +633,7 @@ export class C8oFullSyncDatabase {
                     handler();
                 }
             }).on("error", (err) => {
+                rep.cancel();
                 if(mutex != undefined){
                     mutex.release();
                 }
