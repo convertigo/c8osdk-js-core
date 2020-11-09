@@ -613,8 +613,8 @@ export abstract class C8oCore extends C8oBase {
      * @param db the name of the fullsync database to monitor. Use the default database for a blank or a null value.
      * @param listener the listener to trigger on change.
      */
-    public addFullSyncChangeListener(db: string, listener: C8oFullSyncChangeListener) {
-        (this.c8oFullSync as C8oFullSyncCbl).addFullSyncChangeListener(db, listener);
+    public addFullSyncChangeListener(db: string, listener: C8oFullSyncChangeListener, parameters: Object = {}) {
+        (this.c8oFullSync as C8oFullSyncCbl).addFullSyncChangeListener(db, listener, parameters);
     }
 
     /**
@@ -738,22 +738,26 @@ export abstract class C8oCore extends C8oBase {
             });
         }
 
-        this.promiseInit = Promise.all([this.promiseConstructor]).then( async () => {
+        this.promiseInit = Promise.all([this.promiseConstructor]).then(() => {
             return new Promise(async (resolve) => {
                 this.copy(c8oSettings);
                 this.initC8oHttInterface();
-                await this.session.getInitalState()
+                try{
+                    await this.session.setInitalState();
+                }
+                catch(e){
+                    console.error("Error calling setInitalState", e);
+                }
                 this.c8oLogger.affect_val(this, false);
-                this.c8oLogger.logRemoteInit()
-                .then(()=>{
-                    //Listen for offline status
-                    //this.listenOffline();
-                    //Listen for online status
-                    //this.listenOnLine();
-                    this.c8oLogger.logMethodCall("C8o Constructor");
-                    this.c8oFullSync = new C8oFullSyncCbl(this);
-                    resolve();
-                })
+                try{
+                    await this.c8oLogger.logRemoteInit()
+                }
+                catch(e){
+                    console.error("Error calling logRemoteInit", e);
+                }
+                this.c8oLogger.logMethodCall("C8o Constructor");
+                this.c8oFullSync = new C8oFullSyncCbl(this);
+                resolve();
                 
             });
         });

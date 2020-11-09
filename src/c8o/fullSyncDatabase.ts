@@ -43,6 +43,8 @@ export class C8oFullSyncDatabase {
     private syncFullSyncReplication: FullSyncReplication = new FullSyncReplication();
 
     private remotePouchHeader;
+    private _id;
+    private to_cancel = [];
 
     /**
      * Creates a fullSync database with the specified name and its location.
@@ -191,12 +193,12 @@ export class C8oFullSyncDatabase {
      * Start pull and push replications.
      * @returns Promise<any>
      */
-    public async startAllReplications(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any): Promise<any> {
+    public async startAllReplications(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any, id = null, mutex = null): Promise<any> {
         if(this.c8o.resetBase){
             await this.checkResetBase()
         }
         let resp =  await this.c8o.log.logTest();
-        return this.startSync(this.syncFullSyncReplication, parameters, c8oResponseListener, handler);
+        return this.startSync(this.syncFullSyncReplication, parameters, c8oResponseListener, handler, id, mutex);
         
     }
 
@@ -204,12 +206,12 @@ export class C8oFullSyncDatabase {
      * Start pull replication.
      * @returns Promise<any>
      */
-    public async startPullReplication(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any): Promise<any> {
+    public async startPullReplication(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any, id = null, mutex = null): Promise<any> {
         if(this.c8o.resetBase){
             await this.checkResetBase()
         }
         let resp =  await this.c8o.log.logTest();
-        return this.startReplication(this.pullFullSyncReplication, parameters, c8oResponseListener, handler);
+        return this.startReplication(this.pullFullSyncReplication, parameters, c8oResponseListener, handler, id, mutex);
 
     }
 
@@ -217,25 +219,25 @@ export class C8oFullSyncDatabase {
      * Start push replication.
      * @returns Promise<any>
      */
-    public async startPushReplication(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any): Promise<any> {
+    public async startPushReplication(parameters: Object, c8oResponseListener: C8oResponseListener, handler: any, id = null, mutex = null): Promise<any> {
         if(this.c8o.resetBase){
             await this.checkResetBase()
         }
         let resp =  await this.c8o.log.logTest();
-        return this.startReplication(this.pushFullSyncReplication, parameters, c8oResponseListener, handler);
+        return this.startReplication(this.pushFullSyncReplication, parameters, c8oResponseListener, handler, id, mutex);
 
     }
 
-    private startSync(fullSyncReplication: FullSyncReplication, parameters: Object, c8oResponseListener: C8oResponseListener, handler): Promise<any> {
+    private startSync(fullSyncReplication: FullSyncReplication, parameters: Object, c8oResponseListener: C8oResponseListener, handler, id = null, mutex = null): Promise<any> {
         let continuous: boolean = false;
         let cancel: boolean = false;
         const parametersObj: Object = {};
-
         //stop replication if exists
         if (fullSyncReplication.replication != null) {
+            this.c8o.database.cancelAndPopRequest(this._id);
             fullSyncReplication.replication.cancel();
         }
-
+        this._id = id;
         //check continuous flag
         if (parameters["continuous"] != null) {
             if (parameters["continuous"] as boolean === true) {
@@ -334,9 +336,16 @@ export class C8oFullSyncDatabase {
                 progress.total = info.pull.docs_read;
                 progress.current = info.pull.docs_written;
                 (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
-                rep.cancel();
-
-                if (continuous) {
+                if(rep.canceled == true && continuous){
+                    this.c8o.log._trace("Replication is continuous but has been canceled");
+                    rep.cancel();
+                    if(mutex != undefined){
+                        mutex.release();
+                    }
+                    handler();
+                }
+                else if (continuous) {
+                    rep.cancel();
                     parametersObj["live"] = true;
                     rep = fullSyncReplication.replication = this.database.sync(remoteDB, parametersObj);
                     progress.continuous = true;
@@ -351,6 +360,10 @@ export class C8oFullSyncDatabase {
                     (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                     progress.pull = false;
                     (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
+
+                    if(mutex != undefined){
+                        mutex.release();
+                    }
                     rep.on("change", (info) => {
                         progress.finished = false;
                         if (info.direction === "pull") {
@@ -365,7 +378,16 @@ export class C8oFullSyncDatabase {
                         param[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                         (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                     })
-                        .on("paused", function () {
+                        .on("paused", () => {
+                            try{
+                                if(((<Array<any>>this.c8o.database["replications"]).map(x=>x.id == id)).length > 0){
+                                    rep.cancel();
+                                }
+                            }
+                            catch(e){
+                                
+                            }
+                            
                             progress.finished = true;
                             (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, param);
                             if (progress.total === 0 && progress.current === 0) {
@@ -397,11 +419,18 @@ export class C8oFullSyncDatabase {
 
                 }
                 else if (!continuous) {
+                    rep.cancel();
+                    if(mutex != undefined){
+                        mutex.release();
+                    }
                     this.c8o.log._trace("Replication is finished, modifying its state");
                     handler();
                 }
             }).on("error", (err) => {
                 rep.cancel();
+                if(mutex != undefined){
+                    mutex.release();
+                }
                 if (err.message === "Unexpected end of JSON input") {
                     progress.finished = true;
                     progress.status = "Complete";
@@ -432,6 +461,9 @@ export class C8oFullSyncDatabase {
                         c8oResponseListener.onProgressResponse(progress, parameters);
                     }
                 }
+                if(mutex != undefined){
+                    mutex.release();
+                }
             }
         }).catch((error) => {
             throw error.toString();
@@ -446,14 +478,16 @@ export class C8oFullSyncDatabase {
      * @param c8oResponseListener
      * @param parameters
      */
-    private startReplication(fullSyncReplication: FullSyncReplication, parameters: Object, c8oResponseListener: C8oResponseListener, handler): Promise<any> {
+    private startReplication(fullSyncReplication: FullSyncReplication, parameters: Object, c8oResponseListener: C8oResponseListener, handler, id = null, mutex = null): Promise<any> {
         let continuous: boolean = false;
         let cancel: boolean = false;
         const parametersObj: Object = {};
         //stop replication if exists
         if (fullSyncReplication.replication != null) {
+            this.c8o.database.cancelAndPopRequest(this._id);
             fullSyncReplication.replication.cancel();
         }
+        this._id = id;
         //check continuous flag
         if (parameters["continuous"] != null) {
             if (parameters["continuous"] as boolean == true) {
@@ -536,8 +570,19 @@ export class C8oFullSyncDatabase {
                 progress.status = "complete";
                 parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                 (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
-                rep.cancel();
+                if(rep.canceled == true && continuous){
+                    this.c8o.log._trace("Replication is continuous but has been canceled");
+                    rep.cancel();
+                    if(mutex != undefined){
+                        mutex.release();
+                    }
+                    handler();
+                }
                 if (continuous) {
+                    rep.cancel();
+                    if(mutex != undefined){
+                        mutex.release();
+                    }
                     parametersObj["live"] = true;
                     rep = fullSyncReplication.replication = fullSyncReplication.pull ? this.database.replicate.from(remoteDB, parametersObj) : this.database.replicate.to(remoteDB, parametersObj);
                     progress.continuous = true;
@@ -551,29 +596,47 @@ export class C8oFullSyncDatabase {
                         parameters[C8oCore.ENGINE_PARAMETER_PROGRESS] = progress;
                         (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
                     })
-                        .on("error", (err) => {
-                            if (err.message === "Unexpected end of JSON input") {
-                                progress.finished = true;
-                                progress.status = "live";
-                                (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
-
-                            } else {
+                    .on("paused", () => {
+                        try{
+                            if(((<Array<any>>this.c8o.database["replications"]).map(x=>x.id == id)).length > 0){
                                 rep.cancel();
-                                if (err.code === "ETIMEDOUT" && err.status === 0) {
-                                    reject("TIMEOUT");
-                                } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
-                                    reject("NO_NETWORK");
-                                } else {
-                                    reject(err);
-                                }
                             }
-                        });
+                        }
+                        catch(e){
+                            
+                        }
+                    })
+                    .on("error", (err) => {
+                        if (err.message === "Unexpected end of JSON input") {
+                            progress.finished = true;
+                            progress.status = "live";
+                            (c8oResponseListener as C8oResponseProgressListener).onProgressResponse(progress, parameters);
+
+                        } else {
+                            rep.cancel();
+                            if (err.code === "ETIMEDOUT" && err.status === 0) {
+                                reject("TIMEOUT");
+                            } else if (err.name === "unknown" && err.status === 0 && err.message === "getCheckpoint rejected with ") {
+                                reject("NO_NETWORK");
+                            } else {
+                                reject(err);
+                            }
+                        }
+                    });
                 }
                 else if (!continuous) {
+                    rep.cancel();
+                    if(mutex != undefined){
+                        mutex.release();
+                    }
                     this.c8o.log._trace("Replication is finished, modifying its state");
                     handler();
                 }
             }).on("error", (err) => {
+                rep.cancel();
+                if(mutex != undefined){
+                    mutex.release();
+                }
                 if (err.message === "Unexpected end of JSON input") {
                     progress.finished = true;
                     progress.status = "complete";
@@ -590,6 +653,9 @@ export class C8oFullSyncDatabase {
             });
 
             if (cancel) {
+                if(mutex != undefined){
+                    mutex.release();
+                }
                 if (rep != null) {
                     this.c8o.log._trace("Replication canceled called, modifying its state");
                     handler();

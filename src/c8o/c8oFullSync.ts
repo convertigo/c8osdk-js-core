@@ -147,13 +147,13 @@ export class C8oFullSyncCbl extends C8oFullSync {
      * @return C8oFullSyncDatabase
      * @throws C8oException Failed to create a new fullSync database.
      */
-    public async getOrCreateFullSyncDatabase(databaseName: string): Promise<C8oFullSyncDatabase> {
+    public async getOrCreateFullSyncDatabase(databaseName: string, isLocalCache = false): Promise<C8oFullSyncDatabase> {
         let mutex = window["C8oFullSyncCbl"][databaseName] == undefined ? window["C8oFullSyncCbl"][databaseName] = new Semaphore(1) : window["C8oFullSyncCbl"][databaseName];
         await mutex.acquire();
         let localDatabaseName: string = databaseName + this.localSuffix;
 
         localDatabaseName = this.c8o.database.localName(localDatabaseName, true);
-        let prefix = this.c8o.prefixBase == true ? this.c8o.session.user.name + "_" : "";
+        let prefix = this.c8o.prefixBase == true && isLocalCache == false ? this.c8o.session.user.name + "_" : "";
 
         if (this.fullSyncDatabases[localDatabaseName] == null) {
             this.fullSyncDatabases[localDatabaseName] = new C8oFullSyncDatabase(this.c8o, databaseName, this.fullSyncDatabaseUrlBase, this.localSuffix, prefix);
@@ -455,7 +455,8 @@ export class C8oFullSyncCbl extends C8oFullSync {
         const fullSyncDatabase: C8oFullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
         let resp = this.c8o.database.registerRequest(c8oResponseListener, parameters, "sync", fullSyncDatabase);
         if (!resp[0]) {
-            return fullSyncDatabase.startAllReplications(parameters, c8oResponseListener, resp[1]);
+            this.c8o.session.mutexCheckSession.acquire();
+            return fullSyncDatabase.startAllReplications(parameters, c8oResponseListener, resp[1], resp[2], this.c8o.session.mutexCheckSession);
         }
         else {
             this.c8o.log._trace("[c8ofullsync] waiting for network to start replication");
@@ -467,7 +468,8 @@ export class C8oFullSyncCbl extends C8oFullSync {
         const fullSyncDatabase: C8oFullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
         let resp = this.c8o.database.registerRequest(c8oResponseListener, parameters, "pull", fullSyncDatabase);
         if (!resp[0]) {
-            return fullSyncDatabase.startPullReplication(parameters, c8oResponseListener, resp[1]);
+            this.c8o.session.mutexCheckSession.acquire();
+            return fullSyncDatabase.startPullReplication(parameters, c8oResponseListener, resp[1], resp[2], this.c8o.session.mutexCheckSession);
         }
         else {
             this.c8o.log._trace("[c8ofullsync] waiting for network to start replication");
@@ -479,7 +481,8 @@ export class C8oFullSyncCbl extends C8oFullSync {
         const fullSyncDatabase: C8oFullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
         let resp = this.c8o.database.registerRequest(c8oResponseListener, parameters, "push", fullSyncDatabase);
         if (!resp[0]) {
-            return fullSyncDatabase.startPushReplication(parameters, c8oResponseListener, resp[1]);
+            this.c8o.session.mutexCheckSession.acquire();
+            return fullSyncDatabase.startPushReplication(parameters, c8oResponseListener, resp[1], resp[2], this.c8o.session.mutexCheckSession);
         }
         else {
             this.c8o.log._trace("[c8ofullsync] waiting for network to start replication");
@@ -747,7 +750,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
     }
 
     public async getResponseFromLocalCache(c8oCallRequestIdentifier: string): Promise<any> {
-        const fullSyncDatabase = await this.getOrCreateFullSyncDatabase(C8oCore.LOCAL_CACHE_DATABASE_NAME);
+        const fullSyncDatabase = await this.getOrCreateFullSyncDatabase(C8oCore.LOCAL_CACHE_DATABASE_NAME, true);
         let localCacheDocument = null;
         return new Promise((resolve, reject) => {
             fullSyncDatabase.getdatabase.get(c8oCallRequestIdentifier).then((result) => {
@@ -799,7 +802,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
     }
 
     public async saveResponseToLocalCache(c8oCallRequestIdentifier: string, localCacheResponse: C8oLocalCacheResponse): Promise<any> {
-        const fullSyncDatabase: C8oFullSyncDatabase = await this.getOrCreateFullSyncDatabase(C8oCore.LOCAL_CACHE_DATABASE_NAME);
+        const fullSyncDatabase: C8oFullSyncDatabase = await this.getOrCreateFullSyncDatabase(C8oCore.LOCAL_CACHE_DATABASE_NAME,true);
         return new Promise((resolve) => {
             fullSyncDatabase.getdatabase.get(c8oCallRequestIdentifier).then((localCacheDocument) => {
                 const properties = {};
@@ -835,7 +838,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
         });
     }
 
-    public async addFullSyncChangeListener(db: string, listener: C8oFullSyncChangeListener) {
+    public async addFullSyncChangeListener(db: string, listener: C8oFullSyncChangeListener, parameters: Object = {}) {
         if (db === null || db === "") {
             db = this.c8o.defaultDatabaseName;
         }
@@ -846,13 +849,18 @@ export class C8oFullSyncCbl extends C8oFullSync {
         } else {
             listeners[0] = [];
             this.fullSyncChangeListeners[db] = listeners[0];
+            if(parameters["since"] == undefined){
+                parameters["since"] =  "now";
+            }
+            if(parameters["live"] == undefined){
+                parameters["live"] =  true;
+            }
+            if(parameters["include_docs"] == undefined){
+                parameters["include_docs"] =  true;
+            }
             //noinspection UnnecessaryLocalVariableJS
             const evtHandler = (await this.getOrCreateFullSyncDatabase(db)).getdatabase
-                .changes({
-                    since: "now",
-                    live: true,
-                    include_docs: true,
-                }).on("change", function (change) {
+                .changes(parameters).on("change", function (change) {
                     const changes: Object = {};
                     const docs: Object[] = [];
                     // docs["isExternal"] = false;
