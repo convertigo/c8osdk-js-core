@@ -20,8 +20,6 @@ export * from "./c8o/fullSyncDatabase";
 export * from "./c8o/fullSyncDeleteDocumentParameter";
 export * from "./c8o/fullSyncGetDocumentParameter";
 export * from "./c8o/fullSyncGetViewParameter";
-export * from "./c8o/fullSyncGetIndexParameter";
-export * from "./c8o/fullSyncGetFindParameter";
 export * from "./c8o/fullSyncReplication";
 export * from "./c8o/fullSyncRequestable";
 export * from "./c8o/fullSyncResponse";

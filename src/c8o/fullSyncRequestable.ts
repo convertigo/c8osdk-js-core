@@ -9,8 +9,6 @@ import {C8oUtilsCore} from "./c8oUtilsCore";
 import {FullSyncAttachmentParameter} from "./fullSyncAttachmentParameter";
 import {FullSyncGetDocumentParameter} from "./fullSyncGetDocumentParameter";
 import {FullSyncGetViewParameter} from "./fullSyncGetViewParameter";
-import {FullSyncGetIndexParameter} from "./fullSyncGetIndexParameter";
-import {FullSyncGetFindParameter} from "./fullSyncGetFindParameter";
 /**
  * Created by charlesg on 10/01/2017.
  */
@@ -144,7 +142,7 @@ export class FullSyncRequestable {
     //noinspection JSUnusedLocalSymbols
     public static CREATEINDEX: FullSyncRequestable = new FullSyncRequestable("createIndex", async (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
             try{
-                const fields: string = C8oUtilsCore.peekParameterObjectValue(parameters, FullSyncGetIndexParameter.FIELDS.name, false);
+                const fields: string = C8oUtilsCore.peekParameterObjectValue(parameters, "fields", false);
                 let result = await c8oFullSync.handleCreateIndexRequest(databaseName, fields, parameters);
                 return result;
             }
@@ -156,7 +154,7 @@ export class FullSyncRequestable {
     //noinspection JSUnusedLocalSymbols
     public static FIND: FullSyncRequestable = new FullSyncRequestable("find", async (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
         try{
-            const selector: string = C8oUtilsCore.peekParameterObjectValue(parameters, FullSyncGetFindParameter.SELECTOR.name, false);
+            const selector: string = C8oUtilsCore.peekParameterObjectValue(parameters, "selector", false);
             let result = await c8oFullSync.handleGetFindRequest(databaseName, selector, parameters);
             return result;
         }
@@ -168,7 +166,7 @@ export class FullSyncRequestable {
     //noinspection JSUnusedLocalSymbols
     public static EXPLAIN: FullSyncRequestable = new FullSyncRequestable("explain", async (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
         try{
-            const selector: string = C8oUtilsCore.peekParameterObjectValue(parameters, FullSyncGetFindParameter.SELECTOR.name, false);
+            const selector: string = C8oUtilsCore.peekParameterObjectValue(parameters, "selector", false);
             let result = await c8oFullSync.handleExplainRequest(databaseName, selector, parameters);
             return result;
         }
