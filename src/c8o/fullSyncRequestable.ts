@@ -10,7 +10,7 @@ import {FullSyncAttachmentParameter} from "./fullSyncAttachmentParameter";
 import {FullSyncGetDocumentParameter} from "./fullSyncGetDocumentParameter";
 import {FullSyncGetViewParameter} from "./fullSyncGetViewParameter";
 import {FullSyncGetIndexParameter} from "./fullSyncGetIndexParameter";
-import {FullSyncGetFindParameter} from "./FullSyncGetFindParameter";
+import {FullSyncGetFindParameter} from "./fullSyncGetFindParameter";
 /**
  * Created by charlesg on 10/01/2017.
  */
