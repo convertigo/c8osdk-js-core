@@ -4,6 +4,7 @@ import { C8oResponseListener, C8oResponseProgressListener } from "./c8oResponse"
 import { FullSyncReplication } from "./fullSyncReplication";
 
 import PouchDB from "pouchdb-browser";
+import PouchDBFind from "pouchdb-find";
 
 import {C8oLoad} from "./c8oload";
 
@@ -56,6 +57,7 @@ export class C8oFullSyncDatabase {
      * @throws C8oException Failed to get the fullSync database.
      */
     constructor(c8o: C8oCore, databaseName: string, fullSyncDatabases: string, localSuffix: string, localPrefix: string) {
+        PouchDB.plugin(PouchDBFind);
         let c8oload: C8oLoad = new C8oLoad(c8o);
         window["PouchDB"] =PouchDB;
         this.c8o = c8o;

@@ -191,6 +191,25 @@ export class C8oExceptionMessage {
         return "Unable to run the view query";
     }
 
+    static couchRequestCreateIndex(): string {
+        return "Unable to create the index";
+    }
+    static couchRequestFind(): string {
+        return "Unable to run the query find";
+    }
+
+    static couchRequestExplain(): string {
+        return "Unable to run the query explain";
+    }
+
+    static couchRequestGetIndexes(): string {
+        return "Unable to run the query getIndexes";
+    }
+
+    static couchRequestDeleteIndex(): string {
+        return "Unable to run the query deleteIndex";
+    }
+
     static  couchRequestAllDocuments(): string {
         return "Unable to run the all query";
     }

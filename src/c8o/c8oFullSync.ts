@@ -444,6 +444,59 @@ export class C8oFullSyncCbl extends C8oFullSync {
 
     }
 
+    public async handleCreateIndexRequest(databaseName: string, fields: any, parameters: Object): Promise<any> {
+        let fullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
+        try {
+            parameters["fields"] = fields;
+            var result = await fullSyncDatabase.getdatabase.createIndex({index: parameters});
+            return result;
+        } catch (err) {
+            throw new C8oException(C8oExceptionMessage.couchRequestCreateIndex(), err)
+        }
+    }
+
+    public async handleGetFindRequest(databaseName: string,selector:any, parameters: Object): Promise<any> {
+        let fullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
+        try {
+            parameters["selector"] = selector;
+            var result = await fullSyncDatabase.getdatabase.find(parameters);
+            return result;
+        } catch (err) {
+            throw new C8oException(C8oExceptionMessage.couchRequestFind(), err)
+        }
+    }
+
+    public async handleExplainRequest(databaseName: string,selector:any, parameters: Object): Promise<any> {
+        let fullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
+        try {
+            parameters["selector"] = selector;
+            var result = await fullSyncDatabase.getdatabase.explain(parameters);
+            return result;
+        } catch (err) {
+            throw new C8oException(C8oExceptionMessage.couchRequestExplain(), err)
+        }
+    }
+
+    public async handleGetIndexesRequest(databaseName: string, parameters: Object): Promise<any> {
+        let fullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
+        try {
+            var result = await fullSyncDatabase.getdatabase.getIndexes();
+            return result;
+        } catch (err) {
+            throw new C8oException(C8oExceptionMessage.couchRequestGetIndexes(), err)
+        }
+    }
+
+    public async handleDeleteIndexRequest(databaseName: string, parameters: Object): Promise<any> {
+        let fullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
+        try {
+            var result = await fullSyncDatabase.getdatabase.deleteIndex(parameters);
+            return result;
+        } catch (err) {
+            throw new C8oException(C8oExceptionMessage.couchRequestDeleteIndex(), err)
+        }
+    }
+
     /**
      * Check network status before starting a replication
      */

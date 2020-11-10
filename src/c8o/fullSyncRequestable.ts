@@ -9,6 +9,8 @@ import {C8oUtilsCore} from "./c8oUtilsCore";
 import {FullSyncAttachmentParameter} from "./fullSyncAttachmentParameter";
 import {FullSyncGetDocumentParameter} from "./fullSyncGetDocumentParameter";
 import {FullSyncGetViewParameter} from "./fullSyncGetViewParameter";
+import {FullSyncGetIndexParameter} from "./fullSyncGetIndexParameter";
+import {FullSyncGetFindParameter} from "./FullSyncGetFindParameter";
 /**
  * Created by charlesg on 10/01/2017.
  */
@@ -139,6 +141,65 @@ export class FullSyncRequestable {
         });
     });
 
+    //noinspection JSUnusedLocalSymbols
+    public static CREATEINDEX: FullSyncRequestable = new FullSyncRequestable("createIndex", async (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
+            try{
+                const fields: string = C8oUtilsCore.peekParameterObjectValue(parameters, FullSyncGetIndexParameter.FIELDS.name, false);
+                let result = await c8oFullSync.handleCreateIndexRequest(databaseName, fields, parameters);
+                return result;
+            }
+            catch(e){
+                return e;
+            }
+    });
+
+    //noinspection JSUnusedLocalSymbols
+    public static FIND: FullSyncRequestable = new FullSyncRequestable("find", async (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
+        try{
+            const selector: string = C8oUtilsCore.peekParameterObjectValue(parameters, FullSyncGetFindParameter.SELECTOR.name, false);
+            let result = await c8oFullSync.handleGetFindRequest(databaseName, selector, parameters);
+            return result;
+        }
+        catch(e){
+            return e;
+        }
+    });
+
+    //noinspection JSUnusedLocalSymbols
+    public static EXPLAIN: FullSyncRequestable = new FullSyncRequestable("explain", async (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
+        try{
+            const selector: string = C8oUtilsCore.peekParameterObjectValue(parameters, FullSyncGetFindParameter.SELECTOR.name, false);
+            let result = await c8oFullSync.handleExplainRequest(databaseName, selector, parameters);
+            return result;
+        }
+        catch(e){
+            return e;
+        }
+    });
+
+    //noinspection JSUnusedLocalSymbols
+    public static GETINDEXES: FullSyncRequestable = new FullSyncRequestable("getIndexes", async (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
+        try{
+            let result = await c8oFullSync.handleGetIndexesRequest(databaseName, parameters);
+            return result;
+        }
+        catch(e){
+            return e;
+        }
+    });
+
+    //noinspection JSUnusedLocalSymbols
+    public static DELETEINDEX: FullSyncRequestable = new FullSyncRequestable("deleteIndex", async (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
+        try{
+            let result = await c8oFullSync.handleDeleteIndexRequest(databaseName, parameters);
+            return result;
+        }
+        catch(e){
+            return e;
+        }
+    });
+
+    
     public static SYNC: FullSyncRequestable = new FullSyncRequestable("sync", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
         let pullFinish: boolean = false;
         let pushFinish: boolean = false;
@@ -303,7 +364,7 @@ export class FullSyncRequestable {
     }
 
     public static values(): FullSyncRequestable[] {
-        return [this.GET, this.DELETE, this.POST, this.ALL, this.ALL_LOCAL, this.VIEW, this.SYNC, this.REPLICATE_PULL, this.REPLICATE_PUSH, this.RESET, this.CREATE, this.DESTROY, this.PUT_ATTACHMENT, this.GET_ATTACHMENT,this.DELETE_ATTACHMENT, this.BULK, this.INFO];
+        return [this.GET, this.DELETE, this.POST, this.ALL, this.ALL_LOCAL, this.VIEW, this.SYNC, this.REPLICATE_PULL, this.REPLICATE_PUSH, this.RESET, this.CREATE, this.DESTROY, this.PUT_ATTACHMENT, this.GET_ATTACHMENT,this.DELETE_ATTACHMENT, this.BULK, this.INFO, this.CREATEINDEX, this.FIND, this.DELETEINDEX, this.GETINDEXES, this.EXPLAIN];
 
     }
 }
