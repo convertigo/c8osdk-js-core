@@ -1,5 +1,4 @@
 import { C8oCore } from "./c8oCore";
-import { TouchSequence } from "selenium-webdriver";
 
 export class C8oAlldocsLocal {
 
