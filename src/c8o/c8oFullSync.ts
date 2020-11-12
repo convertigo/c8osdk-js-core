@@ -497,6 +497,20 @@ export class C8oFullSyncCbl extends C8oFullSync {
         }
     }
 
+    public async handleSearchRequest(databaseName: string, query, fields, parameters: Object): Promise<any> {
+        let fullSyncDatabase = await this.getOrCreateFullSyncDatabase(databaseName);
+        parameters["query"] = query;
+        parameters["fields"] = fields;
+        try {
+            var result = await fullSyncDatabase.getdatabase.search(parameters);
+            return result;
+        } catch (err) {
+            throw new C8oException(C8oExceptionMessage.couchRequestSearch(), err)
+        }
+    }
+
+    
+
     /**
      * Check network status before starting a replication
      */

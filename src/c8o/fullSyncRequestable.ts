@@ -197,6 +197,19 @@ export class FullSyncRequestable {
         }
     });
 
+    //noinspection JSUnusedLocalSymbols
+    public static SEARCH: FullSyncRequestable = new FullSyncRequestable("search", async (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
+        try{
+            const query: string = C8oUtilsCore.peekParameterObjectValue(parameters, "query", false);
+            const fields: string = C8oUtilsCore.peekParameterObjectValue(parameters, "fields", false);
+            let result = await c8oFullSync.handleSearchRequest(databaseName, query, fields, parameters);
+            return result;
+        }
+        catch(e){
+            return e;
+        }
+    });
+
     
     public static SYNC: FullSyncRequestable = new FullSyncRequestable("sync", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
         let pullFinish: boolean = false;
@@ -362,7 +375,7 @@ export class FullSyncRequestable {
     }
 
     public static values(): FullSyncRequestable[] {
-        return [this.GET, this.DELETE, this.POST, this.ALL, this.ALL_LOCAL, this.VIEW, this.SYNC, this.REPLICATE_PULL, this.REPLICATE_PUSH, this.RESET, this.CREATE, this.DESTROY, this.PUT_ATTACHMENT, this.GET_ATTACHMENT,this.DELETE_ATTACHMENT, this.BULK, this.INFO, this.CREATEINDEX, this.FIND, this.DELETEINDEX, this.GETINDEXES, this.EXPLAIN];
+        return [this.GET, this.DELETE, this.POST, this.ALL, this.ALL_LOCAL, this.VIEW, this.SYNC, this.REPLICATE_PULL, this.REPLICATE_PUSH, this.RESET, this.CREATE, this.DESTROY, this.PUT_ATTACHMENT, this.GET_ATTACHMENT,this.DELETE_ATTACHMENT, this.BULK, this.INFO, this.CREATEINDEX, this.FIND, this.DELETEINDEX, this.GETINDEXES, this.EXPLAIN, this.SEARCH];
 
     }
 }

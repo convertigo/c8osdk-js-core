@@ -210,6 +210,11 @@ export class C8oExceptionMessage {
         return "Unable to run the query deleteIndex";
     }
 
+    static couchRequestSearch(): string {
+        return "Unable to run the query search";
+    }
+    
+
     static  couchRequestAllDocuments(): string {
         return "Unable to run the all query";
     }

@@ -5,6 +5,7 @@ import { FullSyncReplication } from "./fullSyncReplication";
 
 import PouchDB from "pouchdb-browser";
 import PouchDBFind from "pouchdb-find";
+import PouchDBQuickSearch from "pouchdb-quick-search";
 
 import {C8oLoad} from "./c8oload";
 
@@ -58,6 +59,7 @@ export class C8oFullSyncDatabase {
      */
     constructor(c8o: C8oCore, databaseName: string, fullSyncDatabases: string, localSuffix: string, localPrefix: string) {
         PouchDB.plugin(PouchDBFind);
+        PouchDB.plugin(PouchDBQuickSearch);
         let c8oload: C8oLoad = new C8oLoad(c8o);
         window["PouchDB"] =PouchDB;
         this.c8o = c8o;
