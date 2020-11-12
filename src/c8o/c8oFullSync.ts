@@ -49,7 +49,7 @@ export class C8oFullSync {
 
             const parameters = {};
             for (const val in _parameters) {
-                if (_parameters[val] instanceof Blob != true) {
+                if (_parameters[val] instanceof Blob != true && typeof _parameters[val] !== "function") {
                     //if it's not a blob then stringify and parse the value to make some values like true case insensitive ( from string to boolean)
                     parameters[val] = JSON.parse(JSON.stringify(_parameters[val]));
                 } else {
