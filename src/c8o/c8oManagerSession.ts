@@ -149,13 +149,18 @@ export class C8oManagerSession {
                         }
                         else{
                             if(this.c8o.keepSessionAlive){
-                                let objParams  = parametersReq.split('&')
-                                                .reduce((a, c) => {
-                                                    let [key, value] = c.split('=');
-                                                    a[key] = value;
-                                                    return a;
-                                                }, {});
-    
+                                let objParams;
+                                try{
+                                    objParams = parametersReq.split('&')
+                                    .reduce((a, c) => {
+                                        let [key, value] = c.split('=');
+                                        a[key] = value;
+                                        return a;
+                                    }, {});
+                                }
+                                catch(e){
+                                    objParams = {};
+                                }
                                 if(!(objParams[C8oCore.SEQ_AUTO_LOGIN_OFF] === "true")){
                                     this.loginManager.doLogin()
                                     .then((res)=>{

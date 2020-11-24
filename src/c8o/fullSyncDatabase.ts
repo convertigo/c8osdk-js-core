@@ -8,6 +8,7 @@ import PouchDBFind from "pouchdb-find";
 import PouchDBQuickSearch from "pouchdb-quick-search";
 
 import {C8oLoad} from "./c8oload";
+import { C8oUtilsCore } from "./c8oUtilsCore";
 
 /**
  * Created by charlesg on 10/01/2017.
@@ -78,7 +79,14 @@ export class C8oFullSyncDatabase {
                 for (let key in header) {
                     opts.headers.set(key, header[key]);
                 }
-                return PouchDB.fetch(url, opts);
+                var fecthPouch: Promise<Response> = PouchDB.fetch(url, opts);
+                fecthPouch.then((response)=>{
+                    this.c8o.session.sort(response,header, null, null, null) 
+                })
+                .catch((e)=>{
+                    
+                });
+                return fecthPouch;
             }
         };
         this.c8oFullSyncDatabaseUrl = fullSyncDatabases + databaseName;
