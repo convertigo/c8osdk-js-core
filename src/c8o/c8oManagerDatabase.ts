@@ -71,6 +71,15 @@ export class C8oManagerDatabase {
         this.c8o.log._debug("[c8oManagerDatabase] cancelAndPopRequest => done, replication still actives: " +JSON.stringify(this.replications[user.name].map(x=> x.database.getdatabase.name)));
     }
 
+    public cancelAllForbase(baseName){
+        var user = this.c8o.session.user;
+        for (var i in this.replications[user.name]) {
+            if(this.replications[user.name][i].databaseName == baseName){
+                this.replications[user.name].splice(i, 1);
+            }
+        }
+    }
+
     /**
      * Restart all replications for a given user
      * @param user The name of the user

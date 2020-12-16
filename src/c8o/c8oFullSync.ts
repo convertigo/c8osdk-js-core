@@ -559,7 +559,8 @@ export class C8oFullSyncCbl extends C8oFullSync {
 
     public handleResetDatabaseRequest(databaseName: string): Promise<FullSyncDefaultResponse> {
         return new Promise((resolve, reject) => {
-            this.handleDestroyDatabaseRequest(databaseName).then(() => {
+            this.handleDestroyDatabaseRequest(databaseName)
+            .then(() => {
                 this.handleCreateDatabaseRequest(databaseName).
                     then((res) => {
                         resolve(res);
@@ -569,9 +570,9 @@ export class C8oFullSyncCbl extends C8oFullSync {
                     })
 
             })
-                .catch((err) => {
-                    reject(err);
-                })
+            .catch((err) => {
+                reject(err);
+            })
         });
 
     }
@@ -633,8 +634,9 @@ export class C8oFullSyncCbl extends C8oFullSync {
         return new Promise(async (resolve, reject) => {
             const localDatabaseName = databaseName + this.localSuffix;
             (await this.getOrCreateFullSyncDatabase(databaseName)).deleteDB().then((response) => {
-                if (this.fullSyncDatabases[this.c8o.database.localName(localDatabaseName)] !== null) {
+                if (this.fullSyncDatabases[this.c8o.database.localName(localDatabaseName)] != null) {
                     delete this.fullSyncDatabases[this.c8o.database.localName(localDatabaseName)];
+                    this.c8o.database.cancelAllForbase(this.fullSyncDatabases["databaseName"]);
                 }
                 resolve(new FullSyncDefaultResponse(response.ok));
             }).catch((err) => {
