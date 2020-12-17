@@ -1,4 +1,3 @@
-import "rxjs/add/operator/retry";
 import { C8oCore } from "./c8oCore";
 export class C8oLoad {
 

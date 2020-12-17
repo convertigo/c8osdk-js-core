@@ -1,4 +1,3 @@
-import "rxjs/add/operator/retry";
 import { C8oCore } from "./c8oCore";
 import { C8oSessionStatus } from './c8oSessionStatus';
 import { C8oUtilsCore, Semaphore } from './c8oUtilsCore';
@@ -119,7 +118,7 @@ export class C8oManagerSession {
 
     public async sort(response: any, headers: any, urlReq, parametersReq, headersReq, resolve?, status?) {
         // update _status if this is a sequence
-        return new Promise(async (resolve, reject)=>{
+        return new Promise<boolean>(async (resolve, reject)=>{
             let _status: C8oSessionStatus;
                 if(!status){
                     _status = await this.defineSessionStatus(response, headers, urlReq, parametersReq, headersReq);
@@ -130,7 +129,7 @@ export class C8oManagerSession {
                 switch (_status) {
                     case C8oSessionStatus.Connected:
                         this.ignored = 0;
-                        resolve();
+                        resolve(false);
                         break;
                     case C8oSessionStatus.HasBeenConnected:
                         // if we called this function from setInitalState
@@ -145,7 +144,7 @@ export class C8oManagerSession {
                         // if we called this function from setInitalState
                         if(response == null && headers == null){
                             // do nothing
-                            resolve();
+                            resolve(false);
                         }
                         else{
                             if(this.c8o.keepSessionAlive){
@@ -171,19 +170,19 @@ export class C8oManagerSession {
                                     this.c8o.database.stopReplications(this.user.name);
                                     this._user = new C8oSessionUser();
                                     this.c8o.subscriber_session.next();
-                                    resolve();
+                                    resolve(false);
                                 }
                             }
                             else{
                                 this.c8o.database.stopReplications(this.user.name);
                                 this._user = new C8oSessionUser();
                                 this.c8o.subscriber_session.next();
-                                resolve();
+                                resolve(false);
                             }
                         }
                         break;
                     case C8oSessionStatus.Disconnected:
-                        resolve();
+                        resolve(false);
                         break;
                     case C8oSessionStatus.Ignore:
                         this.ignored = this.ignored + 1;
@@ -194,7 +193,7 @@ export class C8oManagerSession {
                         else {
                             this.c8o.log._trace("[C8oManagerSession] Ignore this request to analyze loss of session, we ignored " + this.ignored + " at total");
                         }
-                        resolve();
+                        resolve(false);
                         break;
                 }
             

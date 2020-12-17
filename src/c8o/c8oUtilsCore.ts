@@ -1,4 +1,5 @@
 // @dynamic
+
 export class C8oUtilsCore {
 
     /** FullSync parameters prefix. **/
@@ -35,7 +36,7 @@ export class C8oUtilsCore {
      * 
      * @param str any string
      */
-    public static MD5ArrayBuffer(str){
+    public static MD5ArrayBuffer(str): any{
         const MD5str = C8oUtilsCore.MD5(str);
         return Buffer.from(MD5str, 'utf-8').slice(0,16);
     }
@@ -194,7 +195,7 @@ export class Semaphore {
     public acquire () {
       if(this.counter < this.max) {
         this.counter++
-        return new Promise(resolve => {
+        return new Promise<void>(resolve => {
         resolve();
       });
       } else {

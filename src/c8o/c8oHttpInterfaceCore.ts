@@ -1,8 +1,7 @@
-import "rxjs/add/operator/retry";
 import { C8oCore } from "./c8oCore";
 import { C8oProgress } from "./c8oProgress";
 import { C8oResponseListener, C8oResponseJsonListener } from "./c8oResponse";
-import { C8oFullSyncCbl } from "./c8oFullSync";
+import { retry } from 'rxjs/operators';
 import { C8oHttpRequestException } from "./Exception/c8oHttpRequestException";
 
 import { C8oExceptionMessage } from "./Exception/c8oExceptionMessage";
@@ -70,27 +69,27 @@ export abstract class C8oHttpInterfaceCore {
      */
     public httpGetObservable(uri, param1 = null, param2 = null) {
         if (this.js) {
-            if(param1 == null){
+            if (param1 == null) {
                 return this.from(this.c8o.httpPublic.get(uri));
             }
-            else if(param2 == null){
+            else if (param2 == null) {
                 return this.from(this.c8o.httpPublic.get(uri, param1));
             }
-            else{
+            else {
                 return this.from(this.c8o.httpPublic.get(uri, param1, param2));
             }
         }
         else {
-            if(param1 == null){
+            if (param1 == null) {
                 return this.c8o.httpPublic.get(uri);
             }
-            else if(param2 == null){
+            else if (param2 == null) {
                 return this.c8o.httpPublic.get(uri, param1);
             }
-            else{
+            else {
                 return this.c8o.httpPublic.get(uri, param1, param2);
             }
-            
+
         }
     }
 
@@ -118,25 +117,27 @@ export abstract class C8oHttpInterfaceCore {
                 headers: this.getHeaders(headersObject),
                 withCredentials: true,
             }
-            if(observe){
+            if (observe) {
                 params["observe"] = "response";
             }
             this.httpPostObservable(this.c8o.endpointConvertigo + "/services/user.Get", {}, params)
-                .retry(1)
+                .pipe(
+                    retry(1)
+                )
                 .subscribe(
                     response => {
                         resolve(response);
                     },
-                    error =>{
+                    error => {
                         reject(error);
                     })
         })
 
     }
 
-    
 
-    
+
+
 
     /**
     * Make an http post
@@ -146,7 +147,7 @@ export abstract class C8oHttpInterfaceCore {
     */
     public httpPost(url: string, parameters: Object): Promise<any> {
         parameters = this.transformRequest(parameters);
-        let headersObject = { "Content-Type": "application/x-www-form-urlencoded", "x-convertigo-sdk": this.c8o.sdkVersion, headers: { 'Accept-Encoding': 'gzip' }  };
+        let headersObject = { "Content-Type": "application/x-www-form-urlencoded", "x-convertigo-sdk": this.c8o.sdkVersion, headers: { 'Accept-Encoding': 'gzip' } };
         Object.assign(headersObject, this.c8o.headers);
         let headers = this.getHeaders(headersObject);
         if (this.firstCall) {
@@ -175,13 +176,15 @@ export abstract class C8oHttpInterfaceCore {
      * @param resolve 
      * @param reject 
      */
-    public execHttpPosts(url: string, parameters: any, headers: any, resolve, reject, headers_return= false, doLogin = false) {
+    public execHttpPosts(url: string, parameters: any, headers: any, resolve, reject, headers_return = false, doLogin = false) {
         this.httpPostObservable(url, parameters, {
             headers: headers,
             withCredentials: true,
             observe: 'response'
         })
-            .retry(1)
+            .pipe(
+                retry(1)
+            )
             .subscribe(
                 response => {
                     this.handleResponseHttpPost(response, headers, resolve, url, parameters, headers, headers_return, reject, doLogin);
@@ -201,33 +204,33 @@ export abstract class C8oHttpInterfaceCore {
     private handleResponseHttpPost(response: any, headers: any, resolve: any, urlReq: string, parametersReq: any, headersReq: any, returns_header = false, reject = null, doLogin = false) {
         //this.checkReachable();
         //this.triggerSessionCheck(response, headers, urlReq, parametersReq, headersReq);
-        if(urlReq.indexOf(".json") != -1){
-            if(doLogin == true){
-                resolve({body: response["body"], headers: response["headers"]});
+        if (urlReq.indexOf(".json") != -1) {
+            if (doLogin == true) {
+                resolve({ body: response["body"], headers: response["headers"] });
             }
-            else{
+            else {
                 this.c8o.session.sort(response, headers, urlReq, parametersReq, headersReq)
-                .then((res)=>{
-                    if(res != true || parametersReq[C8oCore.SEQ_AUTO_LOGIN_OFF] === true){
-                        if(returns_header){
-                            resolve({body: response["body"], headers: response["headers"]});
+                    .then((res) => {
+                        if (res != true || parametersReq[C8oCore.SEQ_AUTO_LOGIN_OFF] === true) {
+                            if (returns_header) {
+                                resolve({ body: response["body"], headers: response["headers"] });
+                            }
+                            else {
+                                resolve(response.body);
+                            }
                         }
-                        else{
-                            resolve(response.body);
+                        else {
+                            this.execHttpPosts(urlReq, parametersReq, headersReq, resolve, reject, returns_header)
                         }
-                    }
-                    else{
-                        this.execHttpPosts(urlReq, parametersReq, headersReq, resolve, reject, returns_header)
-                    }
-                })
+                    })
             }
-            
+
         }
-        else{
+        else {
             resolve(response.body);
         }
-        
-        
+
+
     }
 
     /**
@@ -236,8 +239,8 @@ export abstract class C8oHttpInterfaceCore {
      * @param reject 
      */
     private handleErrorHttpPost(error: any, reject: any, url = undefined) {
-        if(url != undefined){
-            if(url.indexOf(".Add") == -1){
+        if (url != undefined) {
+            if (url.indexOf(".Add") == -1) {
                 this.c8o.network.init();
             }
         }
@@ -460,19 +463,19 @@ export abstract class C8oHttpInterfaceCore {
                     reject(err);
                 }), options);
             })
-            .catch(()=>{
-                var ft = new window["FileTransfer"]();
-                ft.onprogress = (progressEvent) => {
-                    if (progressEvent.lengthComputable) {
-                        this.handleProgress(progressEvent, progress, parameters, c8oResponseListener, varNull);
-                    }
-                };
-                ft.upload(files[0][1], encodeURI(url), ((resp => {
-                    resolve(resp);
-                })), ((err) => {
-                    reject(err);
-                }), options);
-            })
+                .catch(() => {
+                    var ft = new window["FileTransfer"]();
+                    ft.onprogress = (progressEvent) => {
+                        if (progressEvent.lengthComputable) {
+                            this.handleProgress(progressEvent, progress, parameters, c8oResponseListener, varNull);
+                        }
+                    };
+                    ft.upload(files[0][1], encodeURI(url), ((resp => {
+                        resolve(resp);
+                    })), ((err) => {
+                        reject(err);
+                    }), options);
+                })
         });
     }
 
@@ -517,16 +520,16 @@ export abstract class C8oHttpInterfaceCore {
                                 this.handleErrorFileUpload(error, resolve);
                             });
                 })
-                .catch(()=>{
-                    this.getuploadRequester(url, form, headersObject)
-                    .subscribe(
-                        event => {
-                            this.handleResponseFileUpload(event, progress, parameters, c8oResponseListener, varNull, resolve);
-                        },
-                        error => {
-                            this.handleErrorFileUpload(error, resolve);
-                        });
-                });
+                    .catch(() => {
+                        this.getuploadRequester(url, form, headersObject)
+                            .subscribe(
+                                event => {
+                                    this.handleResponseFileUpload(event, progress, parameters, c8oResponseListener, varNull, resolve);
+                                },
+                                error => {
+                                    this.handleErrorFileUpload(error, resolve);
+                                });
+                    });
             });
         }
     }
@@ -549,10 +552,10 @@ export abstract class C8oHttpInterfaceCore {
             }
         }
         else {
-            if(event.type == "progress"){
+            if (event.type == "progress") {
                 this.handleProgress(event.response, progress, parameters, c8oResponseListener, varNull);
             }
-            else{
+            else {
                 resolve(event.response);
             }
         }

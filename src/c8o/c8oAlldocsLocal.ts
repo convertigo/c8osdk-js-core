@@ -95,7 +95,7 @@ export class C8oAlldocsLocal {
     }
 
     private restaureDb(DB_NAME){
-        return new Promise((resolve, reject)=>{
+        return new Promise<void>((resolve, reject)=>{
             var dbDeleteRequest = window.indexedDB.deleteDatabase(DB_NAME);
             dbDeleteRequest.onerror = (event)=> {
                 this.c8o.log._error("[alldocs] database is corrupted, failed to re-initialized database");

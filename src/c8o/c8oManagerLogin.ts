@@ -1,9 +1,8 @@
-import "rxjs/add/operator/retry";
 import {C8oCore} from "./c8oCore";
 import { C8oSessionStatus } from "./c8oSessionStatus";
 import { Semaphore, C8oUtilsCore } from './c8oUtilsCore';
-
 declare const require: any;
+declare const Buffer;
 export class C8oManagerLogin {
     public c8o: C8oCore;
     private requestLogin;

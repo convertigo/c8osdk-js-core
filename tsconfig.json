@@ -1,5 +1,14 @@
 {
   "compilerOptions": {
+    "types": [
+      "node",
+      "pouchdb"
+    ],
+    "paths": {
+      "crypto": ["node_modules/crypto-browserify"],
+      "stream": ["node_modules/stream-browserify"]
+    },
+    "baseUrl": "../",
     "skipLibCheck": true,
     "emitDecoratorMetadata": true,
     "declaration": true,

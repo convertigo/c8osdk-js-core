@@ -118,7 +118,7 @@ export class C8oFullSyncDatabase {
             }, {})
             .subscribe(
                 response => {
-                    if (response["~c8oDbVersion"] != null) {
+                    if (response != undefined && response["~c8oDbVersion"] != null) {
                         this.c8o.log._trace("Server support reset database, remote version for " + this.remotedatabaseName + " is " + response["~c8oDbVersion"]);
                         resolve(response["~c8oDbVersion"])
                     }
@@ -246,7 +246,6 @@ export class C8oFullSyncDatabase {
         const parametersObj: Object = {};
         //stop replication if exists
         if (fullSyncReplication.replication != null) {
-            this.c8o.database.cancelAndPopRequest(this._id);
             fullSyncReplication.replication.cancel();
         }
         this._id = id;
@@ -496,7 +495,6 @@ export class C8oFullSyncDatabase {
         const parametersObj: Object = {};
         //stop replication if exists
         if (fullSyncReplication.replication != null) {
-            this.c8o.database.cancelAndPopRequest(this._id);
             fullSyncReplication.replication.cancel();
         }
         this._id = id;

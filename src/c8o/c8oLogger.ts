@@ -41,7 +41,7 @@ export class C8oLogger {
         this.pInit = this.affect_val(c8o, first);
     }
     public affect_val(c8o: C8oCore, first: boolean) {
-        return new Promise(async (resolve)=>{
+        return new Promise<void>(async (resolve)=>{
 
             if (first) {
                 this.c8o = c8o;
@@ -304,7 +304,7 @@ export class C8oLogger {
 
     checkInitDone(resolve = null):Promise<any>{
         if(resolve == null){
-            return new Promise((resolve)=>{
+            return new Promise<void>((resolve)=>{
                 if(!this.initDone){
                     setTimeout(()=>{
                         this.checkInitDone(resolve)

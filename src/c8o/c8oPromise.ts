@@ -1,5 +1,3 @@
-import "rxjs/add/observable/fromPromise";
-import { fromPromise } from 'rxjs/observable/fromPromise';
 import { Observable } from "rxjs";
 import {C8oCore} from "./c8oCore";
 import {C8oProgress} from "./c8oProgress";

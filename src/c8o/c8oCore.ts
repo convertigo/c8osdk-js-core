@@ -685,7 +685,7 @@ export abstract class C8oCore extends C8oBase {
             }
         }
         if (nullableEndpoint) {
-            this.promiseConstructor = new Promise((resolve) => {
+            this.promiseConstructor = new Promise<void>((resolve) => {
                 // if project is running into web browser served by convertigo
                 // get the url from window.location
                 if (window.location.href.startsWith("http") && window.location.href.indexOf("/DisplayObjects") != -1) {
@@ -731,7 +731,7 @@ export abstract class C8oCore extends C8oBase {
             });
         }
         else {
-            this.promiseConstructor = new Promise((resolve) => {
+            this.promiseConstructor = new Promise<void>((resolve) => {
                 this.endpoint = c8oSettings.endpoint;
                 this.extractendpoint();
                 resolve();
@@ -739,7 +739,7 @@ export abstract class C8oCore extends C8oBase {
         }
 
         this.promiseInit = Promise.all([this.promiseConstructor]).then(() => {
-            return new Promise(async (resolve) => {
+            return new Promise<void>(async (resolve) => {
                 this.copy(c8oSettings);
                 this.initC8oHttInterface();
                 try{
@@ -773,7 +773,7 @@ export abstract class C8oCore extends C8oBase {
             return this.promiseFinInit;
         }
         else{
-            this.promiseFinInit = new Promise((resolve)=>{
+            this.promiseFinInit = new Promise<void>((resolve)=>{
                 Promise.all([this.promiseInit]).then(() => {
                     /**
                      * Looking for splashScreen timeOut
