@@ -103,6 +103,7 @@ export class C8oManagerDatabase {
                                     }
                                     rep.finished = false;
                                     rep.canceled = false;
+                                    rep.manual_canceled = false;
                                     rep.database.startAllReplications(rep.parameters, rep.listener, handler1, rep.id, this.mutexCreateReplication);
                                     break;
                                 case "push":
@@ -113,6 +114,7 @@ export class C8oManagerDatabase {
                                     }
                                     rep.finished = false;
                                     rep.canceled = false;
+                                    rep.manual_canceled = false;
                                     rep.database.startPushReplication(rep.parameters, rep.listener, handler2, rep.id, this.mutexCreateReplication);
 
                                     break;
@@ -124,6 +126,7 @@ export class C8oManagerDatabase {
                                     }
                                     rep.canceled = false;
                                     rep.finished = false;
+                                    rep.manual_canceled = false;
                                     rep.database.startPullReplication(rep.parameters, rep.listener, handler3, rep.id, this.mutexCreateReplication);
                                     break;
                             }

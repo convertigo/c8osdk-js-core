@@ -45,6 +45,7 @@ export class C8oFullSyncDatabase {
      */
     private syncFullSyncReplication: FullSyncReplication = new FullSyncReplication();
 
+    private manual_canceled = false;
     private remotePouchHeader;
     private _id;
     private to_cancel = [];
@@ -353,7 +354,10 @@ export class C8oFullSyncDatabase {
                     if(mutex != undefined){
                         mutex.release();
                     }
-                    handler();
+                    if(!this.manual_canceled){
+                        handler();
+                    }
+                   
                 }
                 else if (continuous) {
                     rep.cancel();
@@ -435,7 +439,9 @@ export class C8oFullSyncDatabase {
                         mutex.release();
                     }
                     this.c8o.log._trace("Replication is finished, modifying its state");
-                    handler();
+                    if(!this.manual_canceled){
+                        handler();
+                    }
                 }
             }).on("error", (err) => {
                 rep.cancel();
@@ -586,7 +592,9 @@ export class C8oFullSyncDatabase {
                     if(mutex != undefined){
                         mutex.release();
                     }
-                    handler();
+                    if(!this.manual_canceled){
+                        handler();
+                    }
                 }
                 if (continuous) {
                     rep.cancel();
@@ -640,7 +648,9 @@ export class C8oFullSyncDatabase {
                         mutex.release();
                     }
                     this.c8o.log._trace("Replication is finished, modifying its state");
-                    handler();
+                    if(!this.manual_canceled){
+                        handler();
+                    }
                 }
             }).on("error", (err) => {
                 rep.cancel();
@@ -717,6 +727,7 @@ export class C8oFullSyncDatabase {
      */
     public cancelPullReplication(): void {
         if (this.pullFullSyncReplication.replication != undefined) {
+            this.manual_canceled = true;
             this.pullFullSyncReplication.replication.cancel();
         }
     }
@@ -726,6 +737,7 @@ export class C8oFullSyncDatabase {
      */
     public cancelPushReplication(): void {
         if (this.pushFullSyncReplication.replication != undefined) {
+            this.manual_canceled = true;
             this.pushFullSyncReplication.replication.cancel();
         }
     }
@@ -735,6 +747,7 @@ export class C8oFullSyncDatabase {
      */
     public cancelSyncReplication(): void {
         if (this.syncFullSyncReplication.replication != undefined) {
+            this.manual_canceled = true;
             this.syncFullSyncReplication.replication.cancel();
         }
     }
