@@ -548,7 +548,7 @@ export abstract class C8oHttpInterfaceCore {
             if (event.type === 1) {
                 this.handleProgress(event, progress, parameters, c8oResponseListener, varNull);
             } else if (this.isHttpResponse(event)) {
-                resolve(event);
+                resolve(event.body);
             }
         }
         else {
