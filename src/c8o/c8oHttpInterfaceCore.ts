@@ -15,7 +15,7 @@ export abstract class C8oHttpInterfaceCore {
     public p1: Promise<Object>;
     protected _isCordova = null;
     public firstcheckSessionR: boolean;
-    private js = false;
+    private js = true;
     private session = "";
     private _timeout: any;
     private from: any;
@@ -23,7 +23,7 @@ export abstract class C8oHttpInterfaceCore {
     private _loggedinSession: boolean;
     private _notifySessionLost: boolean;
 
-    constructor(c8o: C8oCore, js: boolean = false) {
+    constructor(c8o: C8oCore, js: boolean = true) {
         /**
          * As we must support Angular 5.x, 6.x and 7.x, they need as peerDependencies diffrent versions of Rxjs.
          * We alson need rxjs, but switch version of rxjs methods and paths to import are diffrents.
