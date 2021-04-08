@@ -23,7 +23,7 @@ export abstract class C8oHttpInterfaceCore {
     private _loggedinSession: boolean;
     private _notifySessionLost: boolean;
 
-    constructor(c8o: C8oCore) {
+    constructor(c8o: C8oCore, js: boolean = false) {
         /**
          * As we must support Angular 5.x, 6.x and 7.x, they need as peerDependencies diffrent versions of Rxjs.
          * We alson need rxjs, but switch version of rxjs methods and paths to import are diffrents.
@@ -53,9 +53,7 @@ export abstract class C8oHttpInterfaceCore {
          *  As this package will be used in two diffrent library, wee need to test in which platform we are,
          *  to perform diffrent platform specific actions.
          */
-        if (this.c8o.httpPublic.constructor.name !== "HttpClient") {
-            this.js = true;
-        }
+        this.js = js;
     }
 
     public forceInit() {
