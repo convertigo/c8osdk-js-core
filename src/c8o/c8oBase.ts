@@ -35,6 +35,9 @@ export class C8oBase {
     //Dates
     protected _normalizeParameters: boolean;
 
+    //Dates
+    protected _useworker: boolean = false;
+
     protected _keepSessionAlive: boolean = true;
 
     protected _errorConvertigoIntoFail: boolean = false;
@@ -47,6 +50,15 @@ export class C8oBase {
     
     protected _initalLogLevel: Boolean;
     /** Getters **/
+
+    /**
+     * Gets if normalize parameters.<br/>
+     * Default is <b>false</b>.
+     * @returns The timeout.
+     */
+     public get usewroker(): boolean {
+        return this._useworker;
+    }
 
     /**
      * Gets if normalize parameters.<br/>
@@ -225,6 +237,7 @@ export class C8oBase {
             /** Reset base */
             this._prefixBase = c8oBase._prefixBase;
             this._errorConvertigoIntoFail = c8oBase._errorConvertigoIntoFail;
+            this._useworker = c8oBase.usewroker;
             
         }
     }

@@ -32,6 +32,16 @@ export class C8oSettings extends C8oBase {
      * @param normalize boolean.
      * @returns The current <b>C8oSettings</b>, for chaining.
      */
+     public setUseWorker(worker: boolean): C8oSettings {
+        this._useworker = worker;
+        return this;
+    }
+
+    /**
+     * Sets the normalizeParameters. define if we normalize parameters of every calls using JSON.parse(JSON.stringify(parameters))<br/>
+     * @param normalize boolean.
+     * @returns The current <b>C8oSettings</b>, for chaining.
+     */
     public setNormalizeParameters(normalize: boolean): C8oSettings {
         this._normalizeParameters = normalize;
         return this;

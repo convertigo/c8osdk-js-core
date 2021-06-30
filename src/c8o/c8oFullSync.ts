@@ -15,8 +15,6 @@ import { FullSyncDeleteDocumentParameter } from "./fullSyncDeleteDocumentParamet
 import { FullSyncRequestable } from "./fullSyncRequestable";
 import { FullSyncDefaultResponse, FullSyncDocumentOperationResponse } from "./fullSyncResponse";
 
-import * as Worker from "./worker.worker.js";
-
 export class C8oFullSync {
     private static FULL_SYNC_URL_PATH: string = "/fullsync/";
     /**
@@ -125,7 +123,6 @@ export class C8oFullSync {
 }
 import { ReplicationState } from "./fullSyncDatabase"
 import { C8oAlldocsLocal } from './c8oAlldocsLocal';
-import { worker } from "cluster";
 export class C8oFullSyncCbl extends C8oFullSync {
     private static ATTACHMENT_PROPERTY_KEY_CONTENT_URL: string = "content_url";
     private fullSyncDatabases: Object;
@@ -415,69 +412,8 @@ export class C8oFullSyncCbl extends C8oFullSync {
             binary = C8oUtilsCore.getParameterStringValue(parameters, "binary", false);
             include_docs = C8oUtilsCore.getParameterStringValue(parameters, "include_docs", false);
         }
-        debugger;
-        //ts-ignore
-        var worker = new Worker(new URL('./worker.js', import.meta.url),{ type: "module" });
-        worker.onmessage = function(e) {
-            console.error("THERE", e.data)
-        };
-        try {
-            worker.postMessage({"verb": "view"});
-        } 
-        catch(e){
-            console.error(e)
-        }  
-        // test
-        /*
-        // URL.createObjectURL
-        debugger;
-        window.URL = window.URL || window.webkitURL;
-        // "Server response", used in all examples
-        var response = `var ctx = self;
-        var FullsyncWoker = (function () {
-            function FullsyncWoker() {
-            }
-            FullsyncWoker.prototype.view = function () {
-                ctx.postMessage({ resp: "myresp", error: "myerr" });
-            };
-            return FullsyncWoker;
-        }());
-        var fsWorker = new FullsyncWoker();
-        ctx.addEventListener("message", function (event) {
-            switch (event.data.verb) {
-                case "view": {
-                    fsWorker.view();
-                }
-            }
-        });` 
-        
-        
-        //"self.onmessage=function(e){debugger;console.log('THERE', e);postMessage('Worker: '+e[0].data);}";
 
-        var blob;
-        try {
-            blob = new Blob([response], {type: 'application/javascript'});
-        } catch (e) { // Backwards-compatibility
-            window["BlobBuilder"] = window["BlobBuilder"] || window["WebKitBlobBuilder"] || window["MozBlobBuilder"];
-            //ts-ignore
-            blob = new BlobBuilder();
-            blob.append(response);
-            blob = blob.getBlob();
-        }
-        var worker = new Worker(URL.createObjectURL(blob));
-
-        // Test, used in all examples:
-        worker.onmessage = function(e) {
-            console.error("THERE", e.data)
-        };
-        try {
-            worker.postMessage({"verb": "view"});
-        } 
-        catch(e){
-            console.error(e)
-        }       
-        // end test
-        /*return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             fullSyncDatabase.getdatabase.query(ddocName + "/" + viewName, parameters)
                 .then((result) => {
                     if (attachments) {
@@ -504,7 +440,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
                 }).catch((error) => {
                     reject(new C8oException(C8oExceptionMessage.couchRequestGetView(), error));
                 });
-        });*/
+        });
 
     }
 

@@ -43,7 +43,5 @@ export * from "./c8o/Exception/c8oHttpRequestException";
 export * from "./c8o/Exception/c8oRessourceNotFoundException";
 export * from "./c8o/Exception/c8oUnavailableLocalCacheException";
 
-export * from "./c8o/worker"
-
 
 

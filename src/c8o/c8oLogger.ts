@@ -179,8 +179,11 @@ export class C8oLogger {
                 }
                 if (isLogConsole) {
                     let verb = logLevel.name.toLowerCase();
-                    if(logLevel.name == "FATAL"){
+                    if(logLevel.name == "FATAL" || logLevel.name == "fatal"){
                         verb = "error";
+                    }
+                    else if(logLevel.name == "TRACE" || logLevel.name == "trace"){
+                        verb = "debug";
                     }
                     try{
                         if(exception != undefined){

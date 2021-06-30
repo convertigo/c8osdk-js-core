@@ -64,9 +64,15 @@ export class C8oFullSyncDatabase {
     constructor(c8o: C8oCore, databaseName: string, fullSyncDatabases: string, localSuffix: string, localPrefix: string) {
         PouchDB.plugin(PouchDBFind);
         PouchDB.plugin(PouchDBQuickSearch);
-        //PouchDB.plugin(PouchDBWorker);
-        //@ts-ignore
-        PouchDB.adapter('worker', PouchDBWorker)
+        var opts = {};
+        debugger;
+        if(c8o.usewroker){
+            //@ts-ignore
+            PouchDB.adapter('worker', PouchDBWorker);
+            opts["adapter"] = "worker";
+            c8o.log._debug("We will use experimental PouchDBWorker to speed up your requests. \n fs://.createIndex is not supported")
+        }
+        
         let c8oload: C8oLoad = new C8oLoad(c8o);
         window["PouchDB"] =PouchDB;
         this.c8o = c8o;
@@ -103,9 +109,9 @@ export class C8oFullSyncDatabase {
                 this.database = new PouchDB(c8o.couchUrl + "/" + this.databaseName);
                 this.c8o.log._debug("PouchDb launched on couchbaselite");
             } else {
-                var worker = new Worker('')
                 PouchDB.plugin(c8oload.plugin);
-                this.database = new PouchDB(this.databaseName, {adapter: 'worker'});
+
+                this.database = new PouchDB(this.databaseName, opts);
                 this.c8o.log._debug("PouchDb launched normally");
             }
         } catch (error) {
