@@ -6,9 +6,11 @@ import { FullSyncReplication } from "./fullSyncReplication";
 import PouchDB from "pouchdb-browser";
 import PouchDBFind from "pouchdb-find";
 import PouchDBQuickSearch from "pouchdb-quick-search";
+import PouchDBWorker from "worker-pouch";
 
 import {C8oLoad} from "./c8oload";
 import { C8oUtilsCore } from "./c8oUtilsCore";
+import PouchDb from "pouchdb-core";
 
 /**
  * Created by charlesg on 10/01/2017.
@@ -62,6 +64,9 @@ export class C8oFullSyncDatabase {
     constructor(c8o: C8oCore, databaseName: string, fullSyncDatabases: string, localSuffix: string, localPrefix: string) {
         PouchDB.plugin(PouchDBFind);
         PouchDB.plugin(PouchDBQuickSearch);
+        //PouchDB.plugin(PouchDBWorker);
+        //@ts-ignore
+        PouchDB.adapter('worker', PouchDBWorker)
         let c8oload: C8oLoad = new C8oLoad(c8o);
         window["PouchDB"] =PouchDB;
         this.c8o = c8o;
@@ -98,8 +103,9 @@ export class C8oFullSyncDatabase {
                 this.database = new PouchDB(c8o.couchUrl + "/" + this.databaseName);
                 this.c8o.log._debug("PouchDb launched on couchbaselite");
             } else {
+                var worker = new Worker('')
                 PouchDB.plugin(c8oload.plugin);
-                this.database = new PouchDB(this.databaseName);
+                this.database = new PouchDB(this.databaseName, {adapter: 'worker'});
                 this.c8o.log._debug("PouchDb launched normally");
             }
         } catch (error) {

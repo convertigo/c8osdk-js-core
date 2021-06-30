@@ -125,7 +125,7 @@ export class C8oLogger {
     private log(logLevel: C8oLogLevel, message: string, exception: Error) {
         const isLogConsole: boolean = this.isLoggableConsole(logLevel);
         const isLogRemote: boolean = this.isLoggableRemote(logLevel);
-
+        let copyMsg = "" + message;
         if (isLogConsole || isLogRemote) {
             if (exception != null) {
                 let messageB = false;
@@ -178,7 +178,28 @@ export class C8oLogger {
                     this.logRemote();
                 }
                 if (isLogConsole) {
-                    console.log("(" + time + ") [" + logLevel.name + "] " + message);
+                    let verb = logLevel.name.toLowerCase();
+                    if(logLevel.name == "FATAL"){
+                        verb = "error";
+                    }
+                    try{
+                        if(exception != undefined){
+                            if(exception.message != undefined && exception["cause"] != undefined){
+                                console[verb]("(" + time + ") [" + logLevel.name + "] " + copyMsg, exception.message, exception["cause"]);
+                            }
+                            else{
+                                console[verb]("(" + time + ") [" + logLevel.name + "] " + copyMsg, exception);
+                            }
+                        }
+                        else{
+                            console[verb]("(" + time + ") [" + logLevel.name + "] " + copyMsg);
+                        }
+                        
+                    }
+                    catch(e){
+                        console.log("(" + time + ") [" + logLevel.name + "] " + message);
+                    }
+                    
                 }
             }
 

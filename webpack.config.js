@@ -7,7 +7,7 @@ const helpers = require('./config/helpers'),
 
 module.exports = {
     resolve: {
-        extensions: ['.ts','.tsx', '.js']
+        extensions: ['.ts', '.tsx', '.js']
     },
 
     entry: helpers.root('src/index.ts'),
