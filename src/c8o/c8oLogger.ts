@@ -37,6 +37,7 @@ export class C8oLogger {
 
     private env: string;
     private pInit: Promise<any>;
+    private waitForSending: boolean = false;
     constructor(c8o: C8oCore, first: boolean) {
         this.pInit = this.affect_val(c8o, first);
     }
@@ -392,7 +393,10 @@ export class C8oLogger {
     }
 
     public async logRemote(wait = 5000) {
-
+        // if sending is already processing
+        if(this.waitForSending){
+            return;
+        }
         //noinspection JSUnusedAssignment
         let canLog: boolean = false;
         canLog = this.remoteLogs.count() > 0;
@@ -410,7 +414,9 @@ export class C8oLogger {
             if(wait == null){
                 wait = 0;
             }
+            this.waitForSending = true;
             await this.timeout(wait);
+            this.waitForSending = false;
             let count: number = 0;
             const listSize: number = this.remoteLogs.count() as number;
             const logsArray = [];
