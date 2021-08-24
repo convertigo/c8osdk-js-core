@@ -65,7 +65,6 @@ export class C8oFullSyncDatabase {
         PouchDB.plugin(PouchDBFind);
         PouchDB.plugin(PouchDBQuickSearch);
         var opts = {};
-        debugger;
         if(c8o.usewroker){
             //@ts-ignore
             PouchDB.adapter('worker', PouchDBWorker);

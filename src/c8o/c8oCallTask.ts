@@ -59,7 +59,7 @@ export class C8oCallTask {
             try {
                 const isFullSyncRequest: boolean = C8oFullSync.isFullSyncRequest(this.parameters);
                 if (isFullSyncRequest) {
-                    this.c8o.log._debug("Is FullSync request");
+                    this.c8o.log._trace("Is FullSync request");
 
                     // FS_LIVE
                     const liveid = C8oUtilsCore.getParameterStringValue(this.parameters, C8oCore.FS_LIVE, false);

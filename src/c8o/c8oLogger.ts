@@ -387,7 +387,11 @@ export class C8oLogger {
             });
     }
 
-    public async logRemote() {
+    private timeout(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    public async logRemote(wait = 5000) {
 
         //noinspection JSUnusedAssignment
         let canLog: boolean = false;
@@ -401,6 +405,12 @@ export class C8oLogger {
             // then on the response it'll map the JSON data to a parsed JS object.
             // Next we process the data and resolve the promise with the new data.
             // "/admin/services/logs.Add";
+
+            // wait 5000 ms to group http request with severals logs and reduce http charge
+            if(wait == null){
+                wait = 0;
+            }
+            await this.timeout(wait);
             let count: number = 0;
             const listSize: number = this.remoteLogs.count() as number;
             const logsArray = [];
@@ -408,12 +418,14 @@ export class C8oLogger {
                 logsArray.push(this.remoteLogs.pop());
                 count += 1;
             }
-            const parameters: Object = {};
-            parameters[C8oLogger.JSON_KEY_LOGS.valueOf()] = JSON.stringify(logsArray);
-            parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = await this.c8o.deviceUUID;
-            parameters[C8oLogger.JSON_KEY_ENV] = this.env;
+            // if there are still los to be pushed after timeout the log them
+            if(logsArray.length > 0){
+                const parameters: Object = {};
+                parameters[C8oLogger.JSON_KEY_LOGS.valueOf()] = JSON.stringify(logsArray);
+                parameters[C8oCore.ENGINE_PARAMETER_DEVICE_UUID] = await this.c8o.deviceUUID;
+                parameters[C8oLogger.JSON_KEY_ENV] = this.env;
 
-            this.c8o.httpInterface.handleRequest(this.remoteLogUrl, parameters)
+                this.c8o.httpInterface.handleRequest(this.remoteLogUrl, parameters)
                 .then((response) => {
                     if (response !== undefined) {
                         if (response.error !== undefined) {
@@ -440,6 +452,7 @@ export class C8oLogger {
                         this.c8o.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail(), error), null);
                     }
                 });
+            }
         }
     }
     public logMethodCall(methodName: string, ...parameters: any[]) {
