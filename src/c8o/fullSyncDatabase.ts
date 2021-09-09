@@ -92,7 +92,7 @@ export class C8oFullSyncDatabase {
                 }
                 var fecthPouch: Promise<Response> = PouchDB.fetch(url, opts);
                 fecthPouch.then((response)=>{
-                    this.c8o.session.sort(response,header, null, null, null) 
+                    this.c8o.session.sort(response,header, null, null, null);
                 })
                 .catch((e)=>{
                     

@@ -5,4 +5,5 @@ export class C8oSessionStatus {
     public static HasBeenDisconnected: C8oSessionStatus = 3;
     public static Disconnected: C8oSessionStatus = 4;
     public static Ignore: C8oSessionStatus = 5;
+    public static HasBeenConnectedToAnother: C8oSessionStatus = 5;
 }

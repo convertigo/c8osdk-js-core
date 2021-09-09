@@ -168,6 +168,7 @@ export abstract class C8oCore extends C8oBase {
     public livesDb: string[] = [];
 
     public subscriber_session: Subject<any>;
+    public subscriber_session_changed: Subject<any>;
     public subscriber_network: Subject<any>;
     public subscriber_login: Subject<any>;
 
@@ -350,6 +351,7 @@ export abstract class C8oCore extends C8oBase {
         this.data = null;
         this.c8oLogger = new C8oLogger(this, true);
         this.subscriber_session = new Subject<any>();
+        this.subscriber_session_changed = new Subject<any>();
         this.subscriber_network = new Subject<any>();
         this.subscriber_login = new Subject<any>();
         this.network = new C8oManagerNetwork(this);
@@ -567,6 +569,16 @@ export abstract class C8oCore extends C8oBase {
            
         });
         return this.subscriber_session;
+    }
+
+    /**
+     * Return an subject that call next if session authenticated user change
+     */
+     public handleSessionAuthenticatedUserChanged(): Subject<any> {
+        this.subscriber_session_changed.subscribe((res)=>{
+            this.c8oLogger.debug("[C8o][handleSessionLost] Handle a session change of authenticated user");           
+        });
+        return this.subscriber_session_changed;
     }
 
     /**

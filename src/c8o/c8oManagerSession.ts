@@ -131,6 +131,16 @@ export class C8oManagerSession {
                         this.ignored = 0;
                         resolve(false);
                         break;
+                    case C8oSessionStatus.HasBeenConnectedToAnother:
+                        // if we called this function from setInitalState
+                        if(response == null && headers == null){
+                            this.checkSession(headers, 0, resolve, status);
+                        }
+                        else{
+                            this.checkSession(headers, 0, resolve);
+                        }
+                        this.c8o.subscriber_session_changed.next();
+                        break;
                     case C8oSessionStatus.HasBeenConnected:
                         // if we called this function from setInitalState
                         if(response == null && headers == null){
@@ -257,6 +267,16 @@ export class C8oManagerSession {
         // get session id sent by header
         let headerStatus = C8oUtilsCore.checkHeaderArgument(response, "x-convertigo-authenticated");
         if (headerStatus != null) {
+            if(this.id != null && this.id != "" && this.id != headerStatus){
+                this.c8o.database.stopReplications(this.user.name);
+                this._user = new C8oSessionUser();
+                if(!fromSetInitalState){
+                    this.loginManager.setRequestLogin(urlReq, parametersReq, headersReq, this.sessId);
+                }
+                this._status = C8oSessionStatus.HasBeenConnectedToAnother;
+                this.id = headerStatus;
+                return C8oSessionStatus.HasBeenConnectedToAnother;
+            }
             if (this.id != null || this._status == C8oSessionStatus.HasBeenConnected) {
                 this._status = C8oSessionStatus.Connected;
                 this.id = headerStatus;
