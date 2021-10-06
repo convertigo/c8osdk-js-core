@@ -15,11 +15,13 @@ import { C8oPromise } from "./c8oPromise";
 import { C8oCouchBaseLiteException } from "./Exception/c8oCouchBaseLiteException";
 import { C8oException } from "./Exception/c8oException";
 import { C8oExceptionListener } from "./Exception/c8oExceptionListener";
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, timer } from 'rxjs';
 import {C8oManagerNetwork} from "./c8oManagerNetwork";
 import {C8oManagerDatabase} from "./c8oManagerDatabase";
 import {C8oManagerSession} from "./c8oManagerSession";
 
+import * as _ from "lodash";
+import { debounce } from "rxjs/operators";
 declare var require: any;
 /**
  * Allows to send requests to a Convertigo Server (or Studio), these requests are called c8o calls.<br/>
@@ -60,7 +62,10 @@ export abstract class C8oCore extends C8oBase {
     public static ENGINE_PARAMETER_DEVICE_UUID: string = "__uuid";
     public static ENGINE_PARAMETER_PROGRESS: string = "__progress";
     public static ENGINE_PARAMETER_FROM_LIVE: string = "__fromLive";
-
+    public lastChangeTimeStamp: number = 0; 
+    public lastChangeSetTimeout = null;
+    public threshold = 50;
+    public observanleHandleFullSyncLive : Subject<any> = new Subject();
     /**
      * FULLSYNC parameters
      */
@@ -358,6 +363,12 @@ export abstract class C8oCore extends C8oBase {
         this.database= new C8oManagerDatabase(this);
         this.session = new C8oManagerSession(this);
         this.promiseManagerNetwork = this.network.init();
+        this.observanleHandleFullSyncLive
+        .pipe(debounce(() => timer(100)))
+        .subscribe((val) => {
+            this.executeHandleFullSyncLive();
+        });  
+
     }
 
     public importLoginState(c8o: C8oCore){
@@ -660,12 +671,64 @@ export abstract class C8oCore extends C8oBase {
         delete this.lives[liveid];
     }
 
+    private executeHandleFullSyncLive(){
+        console.log("Executing from handleFullSyncLive into debounce");   
+        for (const task in this.lives) {
+            (this.lives[task] as C8oCallTask).executeFromLive();
+        }
+    }
+
+    private doAlog(){
+        console.log("Executing from handleFullSyncLive into debounce");
+    }
+
+    private debounce(func, timeout = 300){
+        let timer;
+        return (...args) => {
+          clearTimeout(timer);
+          timer = setTimeout(() => { func.apply(this, args); }, timeout);
+       };
+    }
+
+    public truc(){
+        for(var i =0; i< 10; i++){
+            console.log("Executing from handleFullSyncLive before debounce");
+            this.debounce(()=>this.doAlog());
+        }
+    }
+
     //noinspection JSUnusedLocalSymbols
     protected handleFullSyncLive: C8oFullSyncChangeListener = new C8oFullSyncChangeListener(
         (changes: Object) => {
-            for (const task in this.lives) {
-                (this.lives[task] as C8oCallTask).executeFromLive();
-            }
+            console.log("Executing from handleFullSyncLive before debounce");
+            this.observanleHandleFullSyncLive.next(changes);
+            /*console.log("Executing from handleFullSyncLive before debounce");
+            this.debounce(()=>this.executeHandleFullSyncLive());
+            /*console.log("Executing from handleFullSyncLive before debounce");
+            _.debounce(
+                this.executeHandleFullSyncLive,
+                window["threshold"] != undefined ? window["threshold"] : this.threshold,
+                window["options"] != undefined ? window["options"] : {}
+            )();*/
+            /*let localLastChangeTimeStamp = new Date().getTime();
+            if(22)
+            this.lastChangeTimeStamp = localLastChangeTimeStamp;
+            console.log("Executing from handleFullSyncLive. \nthis.lastChangeTimeStamp="+ this.lastChangeTimeStamp)
+            this.lastChangeSetTimeout = setTimeout(()=>{
+                let execution_time = new Date().getTime();
+                let sub = execution_time - this.lastChangeTimeStamp;
+                console.log("Executing from handleFullSyncLive into setTimeout. \nthis.lastChangeTimeStamp="+ this.lastChangeTimeStamp+"\nexecution_time="+execution_time+"\nsub="+sub+"\nthreshold="+this.threshold);
+                if( sub >= this.threshold){
+                    console.log("Executing from handleFullSyncLive into setTimeout reloading lives");
+                    for (const task in this.lives) {
+                        (this.lives[task] as C8oCallTask).executeFromLive();
+                    }
+                }
+                else{
+                    console.log("Executing from handleFullSyncLive into setTimeout donot reloading lives");
+                }
+            }, this.threshold);*/
+            
     });
     
     /**
