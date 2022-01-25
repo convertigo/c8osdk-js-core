@@ -184,13 +184,14 @@ export class C8oFullSyncDatabase {
                 }
             }
             if (reset) {
-                this.c8o.log._trace("Since remote database version is diffrent from local database, we will reset it");
+                this.c8o.log._trace("Since remote database version is different from local database, we will reset it");
                 await this.resetMyBase()
             }
             else {
                 this.c8o.log._trace("Remote database version and local database, had the same version, reset not needed");
             }
         }
+        return reset;
         
     }
 
@@ -206,9 +207,11 @@ export class C8oFullSyncDatabase {
                 this.database = new PouchDB(this.databaseName);
                 this.c8o.log._debug("PouchDb launched normally");
             }
-            this.c8o.log._debug("Database resetted sucessfully");
+            this.c8o.log._debug("Database reset successfully");
+            this.c8o.subscriber_database_reset.next({ databaseName: this.databaseName, success: true, error: false });
         } catch (error) {
-            this.c8o.log._error("error resetting database");
+            this.c8o.subscriber_database_reset.error({ databaseName: this.databaseName, success: false, error: true, nativeError: error });
+            this.c8o.log._error("error while resetting database");
         }
 
     }

@@ -298,8 +298,10 @@ export class FullSyncRequestable {
     public static RESET: FullSyncRequestable = new FullSyncRequestable("reset", (c8oFullSync: C8oFullSyncCbl, databaseName: string, parameters: Object, c8oResponseListener: C8oResponseListener) => {
         return new Promise((resolve, reject) => {
             c8oFullSync.handleResetDatabaseRequest(databaseName).then((response) => {
+                c8oFullSync.c8o.subscriber_database_reset.next({ databaseName: databaseName, success: true, error: false });
                 resolve(response);
             }).catch((error) => {
+                c8oFullSync.c8o.subscriber_database_reset.error({ databaseName: databaseName, success: false, error: true, nativeError: error });
                 reject(error);
             });
         })

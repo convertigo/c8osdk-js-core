@@ -1,7 +1,7 @@
 import { C8oCore } from "./c8oCore";
 import { C8oProgress } from "./c8oProgress";
 import { C8oResponseListener, C8oResponseJsonListener } from "./c8oResponse";
-import { retry } from 'rxjs/operators';
+import { retry, timeout } from 'rxjs/operators';
 import { C8oHttpRequestException } from "./Exception/c8oHttpRequestException";
 
 import { C8oExceptionMessage } from "./Exception/c8oExceptionMessage";
@@ -175,11 +175,16 @@ export abstract class C8oHttpInterfaceCore {
      * @param reject 
      */
     public execHttpPosts(url: string, parameters: any, headers: any, resolve, reject, headers_return = false, doLogin = false) {
+        let _timeout = this.c8o.timeout;
+        if (parameters["_c8oTimeout"] != undefined) {
+            _timeout = +parameters["_c8oTimeout"];
+        }
         this.httpPostObservable(url, parameters, {
             headers: headers,
             withCredentials: true,
             observe: 'response'
         })
+            .pipe(timeout(_timeout))
             .pipe(
                 retry(1)
             )
@@ -258,10 +263,7 @@ export abstract class C8oHttpInterfaceCore {
             if (parameters[p] instanceof Array) {
                 for (let p1 in parameters[p]) {
                     //noinspection JSUnfilteredForInLoop
-                    if (parameters[p][p1] instanceof FileList) {
-                        return 1;
-                    }
-                    else if (parameters[p][p1] instanceof File) {
+                    if (parameters[p][p1] instanceof FileList || parameters[p][p1] instanceof File || parameters[p][p1] instanceof Blob) {
                         return 1;
                     }
                     else if (this.isCordova()) {
@@ -272,10 +274,7 @@ export abstract class C8oHttpInterfaceCore {
                 }
             }
             else {
-                if (parameters[p] instanceof FileList) {
-                    return 1;
-                }
-                if (parameters[p] instanceof File) {
+                if (parameters[p] instanceof FileList || parameters[p] instanceof File || parameters[p] instanceof Blob) {
                     return 1;
                 }
                 else if (this.isCordova()) {
@@ -343,8 +342,8 @@ export abstract class C8oHttpInterfaceCore {
                             formdata.append(p, parameters[p][p1][i], parameters[p][p1][i].name);
                         }
                     }
-                    else if (parameters[p][p1] instanceof FileList) {
-                        formdata.append(p, parameters[p][p1], parameters[p][p1].name)
+                    else if (parameters[p][p1] instanceof File || parameters[p][p1] instanceof Blob) {
+                        formdata.append(p, parameters[p][p1], parameters[p][p1].name);
                     }
                     else {
                         formdata.append(p, parameters[p][p1])
@@ -357,7 +356,7 @@ export abstract class C8oHttpInterfaceCore {
                         formdata.append(p, parameters[p][j], parameters[p][j].name);
                     }
                 }
-                else if (parameters[p] instanceof File) {
+                else if (parameters[p] instanceof File || parameters[p] instanceof Blob) {
                     formdata.append(p, parameters[p], parameters[p].name);
                 }
                 else {

@@ -16,6 +16,7 @@ import { C8oCouchBaseLiteException } from "./Exception/c8oCouchBaseLiteException
 import { C8oException } from "./Exception/c8oException";
 import { C8oExceptionListener } from "./Exception/c8oExceptionListener";
 import { Observable, Subject, timer } from 'rxjs';
+
 import {C8oManagerNetwork} from "./c8oManagerNetwork";
 import {C8oManagerDatabase} from "./c8oManagerDatabase";
 import {C8oManagerSession} from "./c8oManagerSession";
@@ -176,6 +177,7 @@ export abstract class C8oCore extends C8oBase {
     public subscriber_session_changed: Subject<any>;
     public subscriber_network: Subject<any>;
     public subscriber_login: Subject<any>;
+    public subscriber_database_reset: Subject<any>;
 
     private _reply = new Subject<any>();
 
@@ -359,6 +361,7 @@ export abstract class C8oCore extends C8oBase {
         this.subscriber_session_changed = new Subject<any>();
         this.subscriber_network = new Subject<any>();
         this.subscriber_login = new Subject<any>();
+        this.subscriber_database_reset = new Subject<any>();
         this.network = new C8oManagerNetwork(this);
         this.database= new C8oManagerDatabase(this);
         this.session = new C8oManagerSession(this);
@@ -606,6 +609,13 @@ export abstract class C8oCore extends C8oBase {
         return this.subscriber_login;
     }
 
+    /**
+     * Return an subject that call next if database has been reset
+     */
+     public handleResetDatabase(): Subject<any> {
+        return this.subscriber_database_reset;
+    };
+    
     /**
      * get an attachment for a given object
      *
