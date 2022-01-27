@@ -3,7 +3,7 @@ import {C8oLogLevel} from "./c8oLogLevel";
 export class C8oBase {
     /*HTTP*/
     protected _endpointSettings: string;
-    protected _timeout: number = 999999999999;
+    protected _timeout: number = 3600000;
     // protected _trustAllCertificates: boolean = false;
     protected _cookies: Object = {};
     protected _clientCertificateFiles: Object;
