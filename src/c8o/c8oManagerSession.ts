@@ -484,7 +484,7 @@ export class C8oManagerSession {
                 this.c8o.database.restartReplications(this.user.name);
                 let timeR = +user['maxInactive'] * 0.95 * 1000;
                 if (this.c8o.keepSessionAlive) {
-                    this.c8o.log._debug("[C8oSessionManager] Poling for session, next check will be in " + timeR + "ms");
+                    this.c8o.log._debug("[C8oSessionManager] Pooling for session, next check will be in " + timeR + "ms");
                     this.checkSession(headers, timeR);
                     resolve();
                 }
