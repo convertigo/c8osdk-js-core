@@ -53,7 +53,7 @@ export class FullSyncDocumentOperationResponse extends FullSyncAbstractResponse 
         this.documentRevision = documentRevision;
     }
 
-    public override getProperties(): Object {
+    public getProperties(): Object {
         const properties: Object = super.getProperties();
         properties[FullSyncResponse.RESPONSE_KEY_DOCUMENT_ID] = this.documentId;
         properties[FullSyncResponse.RESPONSE_KEY_DOCUMENT_REVISION] = this.documentRevision;

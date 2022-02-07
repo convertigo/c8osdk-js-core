@@ -23,7 +23,7 @@
     "moduleResolution": "node",
     "removeComments": true,
     "sourceMap": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
   },
   "compileOnSave": false,
   "atom": {

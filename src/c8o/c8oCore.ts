@@ -207,28 +207,28 @@ export abstract class C8oCore extends C8oBase {
         this._couchUrl = value;
     }
 
-    public override get logC8o(): boolean {
+    public get logC8o(): boolean {
         return this._logC8o;
     }
 
-    public override set logC8o(value: boolean) {
+    public set logC8o(value: boolean) {
         this._logC8o = value;
     }
 
-    public override get logRemote(): boolean {
+    public get logRemote(): boolean {
         return this._logRemote;
     }
 
-    public override set logRemote(value: boolean) {
+    public set logRemote(value: boolean) {
         this._initalLogLevel = value;
         this._logRemote = value;
     }
 
-    public override get logLevelLocal(): C8oLogLevel {
+    public get logLevelLocal(): C8oLogLevel {
         return this._logLevelLocal;
     }
 
-    public override set logLevelLocal(value: C8oLogLevel) {
+    public set logLevelLocal(value: C8oLogLevel) {
         this._logLevelLocal = value;
     }
 
@@ -236,15 +236,15 @@ export abstract class C8oCore extends C8oBase {
         return this.c8oLogger;
     }
 
-    public override toString(): string {
+    public toString(): string {
         return "C8o[" + this._endpoint + "]";
     }
 
-    public override get endpoint(): string {
+    public get endpoint(): string {
         return this._endpoint;
     }
 
-    public override set endpoint(value: string) {
+    public set endpoint(value: string) {
         this._endpoint = value;
     }
 
@@ -320,19 +320,19 @@ export abstract class C8oCore extends C8oBase {
         return this._http;
     }
 
-    public override get resetBase(): boolean {
+    public get resetBase(): boolean {
         return this._resetBase;
     }
 
-    public override set resetBase(resetBase: boolean) {
+    public set resetBase(resetBase: boolean) {
         this._resetBase = resetBase;
     }
 
-    public override get prefixBase(): boolean {
+    public get prefixBase(): boolean {
         return this._prefixBase;
     }
 
-    public override set prefixBase(resetBase: boolean) {
+    public set prefixBase(resetBase: boolean) {
         this._prefixBase = resetBase;
     }
 

@@ -162,7 +162,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
         return this.fullSyncDatabases[localDatabaseName];
     }
 
-    public override handleFullSyncResponse(response: any, listener: C8oResponseListener): any {
+    public handleFullSyncResponse(response: any, listener: C8oResponseListener): any {
         response = super.handleFullSyncResponse(response, listener);
         if (listener instanceof C8oResponseJsonListener) {
             if (response instanceof FullSyncDocumentOperationResponse) {

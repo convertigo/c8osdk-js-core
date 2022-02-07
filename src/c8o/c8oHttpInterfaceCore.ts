@@ -41,6 +41,7 @@ export abstract class C8oHttpInterfaceCore {
                 c8o.log._trace("[C8oHttpInterfaceCore] Detect rxjs 6.x")
             }
             else {
+                //@ts-ignore
                 rxjs = rxjs1;//require('rxjs/observable/fromPromise');
                 c8o.log._trace("[C8oHttpInterfaceCore] Detect rxjs 5.x")
                 if (rxjs != undefined) {
