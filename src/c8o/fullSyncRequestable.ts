@@ -374,6 +374,7 @@ export class FullSyncRequestable {
                 return fullSyncRequestableValues[i];
             }
         }
+        return null;
     }
 
     public static values(): FullSyncRequestable[] {

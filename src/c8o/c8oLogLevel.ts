@@ -26,5 +26,6 @@ export class C8oLogLevel {
                 return C8oLogLevel.C8O_LOG_LEVELS[i];
             }
         }
+        return null;
     }
 }

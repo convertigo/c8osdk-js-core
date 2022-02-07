@@ -349,6 +349,7 @@ export class C8oLogger {
                 resolve();
             }   
         }
+        return null;
         
     }
     public async logTest(): Promise<any>{

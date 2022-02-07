@@ -92,7 +92,7 @@ export class C8oManagerLogin {
                         this.c8o.log._debug("[C8oManagerLogin] Auto Logins failed");
                         res({status:false});
                         this.c8o.subscriber_login.next({status:false, response: null, error: err})
-                        this.c8o.subscriber_session.next();
+                        this.c8o.subscriber_session.next(null);
                         this.mutexL.release();
                     }
                     this.c8o.httpInterface.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject, true);

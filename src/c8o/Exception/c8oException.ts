@@ -3,7 +3,7 @@
  */
 export class C8oException extends Error {
 
-    public message: string;
+    public override message: string;
     protected _cause: Error;
 
     constructor(message: string);
@@ -37,7 +37,7 @@ export class C8oException extends Error {
         return alt;
     }
     
-    public toString(){
+    public override toString(){
         var alt = {};
         Object.getOwnPropertyNames(this).forEach(function (key) {
             alt[key] = this[key];

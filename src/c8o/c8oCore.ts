@@ -23,6 +23,8 @@ import {C8oManagerSession} from "./c8oManagerSession";
 
 import * as _ from "lodash";
 import { debounce } from "rxjs/operators";
+//@ts-ignore
+import { throwError } from 'rxjs';
 declare var require: any;
 /**
  * Allows to send requests to a Convertigo Server (or Studio), these requests are called c8o calls.<br/>
@@ -205,28 +207,28 @@ export abstract class C8oCore extends C8oBase {
         this._couchUrl = value;
     }
 
-    public get logC8o(): boolean {
+    public override get logC8o(): boolean {
         return this._logC8o;
     }
 
-    public set logC8o(value: boolean) {
+    public override set logC8o(value: boolean) {
         this._logC8o = value;
     }
 
-    public get logRemote(): boolean {
+    public override get logRemote(): boolean {
         return this._logRemote;
     }
 
-    public set logRemote(value: boolean) {
+    public override set logRemote(value: boolean) {
         this._initalLogLevel = value;
         this._logRemote = value;
     }
 
-    public get logLevelLocal(): C8oLogLevel {
+    public override get logLevelLocal(): C8oLogLevel {
         return this._logLevelLocal;
     }
 
-    public set logLevelLocal(value: C8oLogLevel) {
+    public override set logLevelLocal(value: C8oLogLevel) {
         this._logLevelLocal = value;
     }
 
@@ -234,15 +236,15 @@ export abstract class C8oCore extends C8oBase {
         return this.c8oLogger;
     }
 
-    public toString(): string {
+    public override toString(): string {
         return "C8o[" + this._endpoint + "]";
     }
 
-    public get endpoint(): string {
+    public override get endpoint(): string {
         return this._endpoint;
     }
 
-    public set endpoint(value: string) {
+    public override set endpoint(value: string) {
         this._endpoint = value;
     }
 
@@ -318,19 +320,19 @@ export abstract class C8oCore extends C8oBase {
         return this._http;
     }
 
-    public get resetBase(): boolean {
+    public override get resetBase(): boolean {
         return this._resetBase;
     }
 
-    public set resetBase(resetBase: boolean) {
+    public override set resetBase(resetBase: boolean) {
         this._resetBase = resetBase;
     }
 
-    public get prefixBase(): boolean {
+    public override get prefixBase(): boolean {
         return this._prefixBase;
     }
 
-    public set prefixBase(resetBase: boolean) {
+    public override set prefixBase(resetBase: boolean) {
         this._prefixBase = resetBase;
     }
 
@@ -807,7 +809,16 @@ export abstract class C8oCore extends C8oBase {
                                 } else {
                                     errMsg = `${error.status} - ${error.statusText || ""} ${error}`;
                                 }
-                                return Observable.throw(errMsg);
+                                //@ts-ignore
+                                if(throwError != undefined){
+                                    //@ts-ignore
+                                    return throwError(errMsg);
+                                }
+                                else{
+                                    //@ts-ignore
+                                    return Observable.throw(errMsg);
+                                }
+                                
                             }
                         );
                 }

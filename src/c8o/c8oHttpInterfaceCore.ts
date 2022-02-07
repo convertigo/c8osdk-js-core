@@ -7,6 +7,11 @@ import { C8oHttpRequestException } from "./Exception/c8oHttpRequestException";
 import { C8oExceptionMessage } from "./Exception/c8oExceptionMessage";
 import { Observable } from "rxjs";
 
+// @ts-ignore
+import * as rxjs0 from "rxjs";
+// @ts-ignore
+import * as rxjs1 from "rxjs/observable/fromPromise";
+
 declare const require: any;
 export abstract class C8oHttpInterfaceCore {
     public c8o: C8oCore;
@@ -29,16 +34,17 @@ export abstract class C8oHttpInterfaceCore {
          * We alson need rxjs, but switch version of rxjs methods and paths to import are diffrents.
          * So we test presence or not of module in some paths into rxjs to define in which version we are and execute the good import.
         */
-        let rxjs = require('rxjs');
+         let rxjs = rxjs0;//require('rxjs');
         if (rxjs != undefined) {
             if (rxjs.from != undefined) {
                 this.from = rxjs.from;
                 c8o.log._trace("[C8oHttpInterfaceCore] Detect rxjs 6.x")
             }
             else {
-                rxjs = require('rxjs/observable/fromPromise');
+                rxjs = rxjs1;//require('rxjs/observable/fromPromise');
                 c8o.log._trace("[C8oHttpInterfaceCore] Detect rxjs 5.x")
                 if (rxjs != undefined) {
+                    // @ts-ignore
                     this.from = rxjs.fromPromise;
                 }
             }

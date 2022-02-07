@@ -139,7 +139,7 @@ export class C8oManagerSession {
                         else{
                             this.checkSession(headers, 0, resolve);
                         }
-                        this.c8o.subscriber_session_changed.next();
+                        this.c8o.subscriber_session_changed.next(null);
                         break;
                     case C8oSessionStatus.HasBeenConnected:
                         // if we called this function from setInitalState
@@ -179,14 +179,14 @@ export class C8oManagerSession {
                                 else{
                                     this.c8o.database.stopReplications(this.user.name);
                                     this._user = new C8oSessionUser();
-                                    this.c8o.subscriber_session.next();
+                                    this.c8o.subscriber_session.next(null);
                                     resolve(false);
                                 }
                             }
                             else{
                                 this.c8o.database.stopReplications(this.user.name);
                                 this._user = new C8oSessionUser();
-                                this.c8o.subscriber_session.next();
+                                this.c8o.subscriber_session.next(null);
                                 resolve(false);
                             }
                         }
@@ -223,7 +223,7 @@ export class C8oManagerSession {
                         if (success.status == false) {
                             
                             this._status = C8oSessionStatus.HasBeenDisconnected;
-                            this.c8o.subscriber_session.next();
+                            this.c8o.subscriber_session.next(null);
                             this.mutex.release();
                         }
                         else {
@@ -234,7 +234,7 @@ export class C8oManagerSession {
                     }
                     else{
                         this.sessId = user.session;
-                        this.c8o.subscriber_session.next();
+                        this.c8o.subscriber_session.next(null);
                         this.mutex.release();
                     }
                 }
@@ -382,7 +382,7 @@ export class C8oManagerSession {
                             this.c8o.database.stopReplications(this.user.name);
                             this._user = new C8oSessionUser();
                             this._status = C8oSessionStatus.HasBeenDisconnected;
-                            this.c8o.subscriber_session.next();
+                            this.c8o.subscriber_session.next(null);
                             resolve();
                         }
                         else {
@@ -401,7 +401,7 @@ export class C8oManagerSession {
                     }
                     else{
                         this._status = C8oSessionStatus.HasBeenDisconnected;
-                        this.c8o.subscriber_session.next();
+                        this.c8o.subscriber_session.next(null);
                     }
                     resolve();
                 }
@@ -439,7 +439,7 @@ export class C8oManagerSession {
                                     this.c8o.database.stopReplications(this.user.name);
                                     this._user = new C8oSessionUser();
                                     this._status = C8oSessionStatus.HasBeenDisconnected;
-                                    this.c8o.subscriber_session.next();
+                                    this.c8o.subscriber_session.next(null);
                                     this.mutex.release();
                                     this.c8o.httpInterface.p1 = Promise.resolve(true);
                                     resolve();
@@ -456,7 +456,7 @@ export class C8oManagerSession {
                                 this.c8o.database.stopReplications(this.user.name);
                                 this._user = new C8oSessionUser();
                                 this._status = C8oSessionStatus.HasBeenDisconnected;
-                                this.c8o.subscriber_session.next();
+                                this.c8o.subscriber_session.next(null);
                                 this.mutex.release();
                                 resolve();
                             }
@@ -501,7 +501,7 @@ export class C8oManagerSession {
                         setTimeout(async () => {
                             this.c8o.database.stopReplications(this.user.name);
                             this._status = C8oSessionStatus.Disconnected;
-                            this.c8o.subscriber_session.next();
+                            this.c8o.subscriber_session.next(null);
                         }, timeR)
                         resolve();
                 }
