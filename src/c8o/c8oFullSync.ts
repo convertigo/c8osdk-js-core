@@ -1,4 +1,3 @@
-import { C8oBase } from "./c8oBase";
 import { C8oCore, FullSyncPolicy } from "./c8oCore";
 import { C8oFullSyncChangeListener } from "./c8oFullSyncChangeListener";
 import { C8oFullSyncTranslator } from "./c8oFullSyncTranslator";
