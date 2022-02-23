@@ -216,7 +216,10 @@ export class C8oCallTask {
                                             Promise.all([p1])
                                                 .then(() => {
                                                     resolve(response);
-                                                });
+                                                })
+                                                .catch((e)=>{
+                                                    console.log("an error occured", e);
+                                                })
                                             
                                         } catch (error) {
                                             reject(new C8oException(C8oExceptionMessage.saveResponseToLocalCache()));

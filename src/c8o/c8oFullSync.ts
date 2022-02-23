@@ -312,7 +312,11 @@ export class C8oFullSyncCbl extends C8oFullSync {
                     reject(new C8oRessourceNotFoundException("Cannot find document"));
                 }
 
-            });
+            })
+            .catch((e)=>{
+                reject(new C8oRessourceNotFoundException("TODO: Cannot find document"));
+                console.error("SDK TOTO into catch error", e);
+            })
         });
 
     }
@@ -797,7 +801,11 @@ export class C8oFullSyncCbl extends C8oFullSync {
             }
             c8oFullSyncDatabase.getdatabase().get(documentId).then((result) => {
                 resolve(result);
-            });
+            })
+            .catch((e)=>{
+                reject(new C8oException(C8oExceptionMessage.fullSyncGetOrCreateDatabase(databaseName), e));
+                console.error("SDK TOTO into catch error", e);
+            })
         });
     }
 
@@ -872,23 +880,8 @@ export class C8oFullSyncCbl extends C8oFullSync {
     public async saveResponseToLocalCache(c8oCallRequestIdentifier: string, localCacheResponse: C8oLocalCacheResponse): Promise<any> {
         const fullSyncDatabase: C8oFullSyncDatabase = await this.getOrCreateFullSyncDatabase(C8oCore.LOCAL_CACHE_DATABASE_NAME,true);
         return new Promise((resolve) => {
-            fullSyncDatabase.getdatabase.get(c8oCallRequestIdentifier).then((localCacheDocument) => {
-                const properties = {};
-                properties[C8oFullSync.FULL_SYNC__ID] = c8oCallRequestIdentifier;
-                properties[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE] = localCacheResponse.getResponse();
-                properties[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE_TYPE] = localCacheResponse.getResponseType();
-                if (localCacheResponse.getExpirationDate() > 0) {
-                    properties[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_EXPIRATION_DATE] = localCacheResponse.getExpirationDate();
-                }
-                const currentRevision = localCacheDocument._rev;
-                if (currentRevision !== null) {
-                    properties[C8oFullSyncCbl.FULL_SYNC__REV] = currentRevision;
-                }
-                fullSyncDatabase.getdatabase.put(properties).then((result) => {
-                    resolve(result);
-                });
-            }).catch((error) => {
-                if (error.status === 404) {
+            try{
+                fullSyncDatabase.getdatabase.get(c8oCallRequestIdentifier).then((localCacheDocument) => {
                     const properties = {};
                     properties[C8oFullSync.FULL_SYNC__ID] = c8oCallRequestIdentifier;
                     properties[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE] = localCacheResponse.getResponse();
@@ -896,13 +889,35 @@ export class C8oFullSyncCbl extends C8oFullSync {
                     if (localCacheResponse.getExpirationDate() > 0) {
                         properties[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_EXPIRATION_DATE] = localCacheResponse.getExpirationDate();
                     }
+                    const currentRevision = localCacheDocument._rev;
+                    if (currentRevision !== null) {
+                        properties[C8oFullSyncCbl.FULL_SYNC__REV] = currentRevision;
+                    }
                     fullSyncDatabase.getdatabase.put(properties).then((result) => {
                         resolve(result);
                     });
-                } else {
-                    resolve(error);
-                }
-            });
+                }).catch((error) => {
+                    console.log("then2");
+                    if (error.status === 404) {
+                        const properties = {};
+                        properties[C8oFullSync.FULL_SYNC__ID] = c8oCallRequestIdentifier;
+                        properties[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE] = localCacheResponse.getResponse();
+                        properties[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_RESPONSE_TYPE] = localCacheResponse.getResponseType();
+                        if (localCacheResponse.getExpirationDate() > 0) {
+                            properties[C8oCore.LOCAL_CACHE_DOCUMENT_KEY_EXPIRATION_DATE] = localCacheResponse.getExpirationDate();
+                        }
+                        fullSyncDatabase.getdatabase.put(properties).then((result) => {
+                            resolve(result);
+                        });
+                    } else {
+                        resolve(error);
+                    }
+                });
+            }
+            catch(e){
+                console.log("an error occured", e);
+            }
+            
         });
     }
 
