@@ -7,10 +7,11 @@ import PouchDB from "pouchdb-browser";
 import PouchDBFind from "pouchdb-find";
 import PouchDBQuickSearch from "pouchdb-quick-search";
 import PouchDBWorker from "worker-pouch";
+import PouchDBDebug from "pouchdb-debug";
 
 import {C8oLoad} from "./c8oload";
 import { C8oUtilsCore } from "./c8oUtilsCore";
-import PouchDb from "pouchdb-core";
+
 
 /**
  * Created by charlesg on 10/01/2017.
@@ -73,7 +74,9 @@ export class C8oFullSyncDatabase {
         }
         
         let c8oload: C8oLoad = new C8oLoad(c8o);
+        PouchDB.plugin(PouchDBDebug);
         window["PouchDB"] =PouchDB;
+        PouchDB.debug.enable('*');
         this.c8o = c8o;
         const header = {
             "x-convertigo-sdk": this.c8o.sdkVersion,

@@ -212,14 +212,20 @@ export class C8oCallTask {
                                                 expirationDate = localCache.ttl + (new Date).getTime();
                                             }
                                             const localCacheResponse: C8oLocalCacheResponse = new C8oLocalCacheResponse(responseString, responseType, expirationDate);
-                                            const p1 = await (this.c8o.c8oFullSync as C8oFullSyncCbl).saveResponseToLocalCache(c8oCallRequestIdentifier, localCacheResponse);
-                                            Promise.all([p1])
+                                            try{
+                                                /*const p1 = await */(this.c8o.c8oFullSync as C8oFullSyncCbl).saveResponseToLocalCache(c8oCallRequestIdentifier, localCacheResponse);
+                                            }
+                                            catch(e){
+                                                console.log("an error occured while saving response to local cache");
+                                            }
+                                            
+                                            /*Promise.all([p1])
                                                 .then(() => {
                                                     resolve(response);
                                                 })
                                                 .catch((e)=>{
                                                     console.log("an error occured", e);
-                                                })
+                                                })*/
                                             
                                         } catch (error) {
                                             reject(new C8oException(C8oExceptionMessage.saveResponseToLocalCache()));
