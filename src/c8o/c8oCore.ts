@@ -215,6 +215,14 @@ export abstract class C8oCore extends C8oBase {
         this._logC8o = value;
     }
 
+    public get logPouchDB(): boolean {
+        return this._logPouchDB;
+    }
+    
+    public set logPouchDB(value:boolean) {
+        this._logRemote = value;
+    }
+
     public get logRemote(): boolean {
         return this._logRemote;
     }

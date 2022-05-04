@@ -13,6 +13,7 @@ export class C8oBase {
     protected _logRemote: boolean = true;
     protected _initialLogRemote: boolean = true;
     protected _logLevelLocal: C8oLogLevel = C8oLogLevel.NONE;
+    protected _logPouchDB: boolean = false;
     protected _logC8o: boolean = false;
     protected _logOnFail: (exception: Error, parameters: Object) => void;
 
@@ -142,6 +143,15 @@ export class C8oBase {
     }
 
     /**
+     * Gets a value indicating if pouchDB logs are enabled.<br/>
+     * Default is <b>false</b>.
+     * @returns <b>true</b> if pouchDB logs are enabled; otherwise, <b>false</b>.
+     */
+    public get logPouchDB(): boolean {
+        return this._logPouchDB;
+    }
+
+    /**
      * Gets a value indicating logs level local
      *
      * @returns C8oLogLevel object
@@ -210,6 +220,7 @@ export class C8oBase {
             }
 
             /** Log **/
+            this._logPouchDB = c8oBase.logPouchDB;
             this._logRemote = c8oBase.logRemote;
             this._initialLogRemote = c8oBase.logRemote;
             this._logLevelLocal = c8oBase.logLevelLocal;

@@ -194,7 +194,7 @@ export class C8oSettings extends C8oBase {
      * Default is <b>0</b>.
      * @returns The current <b>C8oSettings</b>, for chaining.
      */
-    public  setLogLevelLocal(logLevelLocal: C8oLogLevel): C8oSettings {
+    public setLogLevelLocal(logLevelLocal: C8oLogLevel): C8oSettings {
         this._logLevelLocal = logLevelLocal;
         return this;
     }

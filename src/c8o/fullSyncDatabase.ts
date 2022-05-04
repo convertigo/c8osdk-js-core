@@ -76,7 +76,12 @@ export class C8oFullSyncDatabase {
         let c8oload: C8oLoad = new C8oLoad(c8o);
         PouchDB.plugin(PouchDBDebug);
         window["PouchDB"] =PouchDB;
-        PouchDB.debug.enable('*');
+        if(c8o.logPouchDB){
+            PouchDB.debug.enable('*');
+        }
+        else{
+            PouchDB.debug.disable();
+        }
         this.c8o = c8o;
         const header = {
             "x-convertigo-sdk": this.c8o.sdkVersion,
