@@ -10,6 +10,7 @@ import {C8oExceptionListener} from "./Exception/c8oExceptionListener";
 import {C8oExceptionMessage} from "./Exception/c8oExceptionMessage";
 import {C8oHttpRequestException} from "./Exception/c8oHttpRequestException";
 import {C8oUnavailableLocalCacheException} from "./Exception/c8oUnavailableLocalCacheException";
+import {sha256} from "js-sha256";
 
 export class C8oCallTask {
     private c8o: C8oCore;
@@ -17,6 +18,7 @@ export class C8oCallTask {
     private c8oResponseListener: C8oResponseListener;
     private c8oExceptionListener: C8oExceptionListener;
     private c8oCallUrl: string;
+    private _sha: string;
 
     public get parameters() {
         return this._parameters;
@@ -36,10 +38,25 @@ export class C8oCallTask {
     }
 
     // called execute() in others SDK...
-    public run() {
+    public run(fromLive = false) {
         try {
             this.handleRequest().then((response) => {
-                this.handleResponse(response);
+                try{
+                    // if run has been triggered from live, check that response changed before calling handle response
+                    if(fromLive){
+                        let newHash = sha256(JSON.stringify(response.rows));
+                        if(this._sha == undefined || this._sha != newHash){
+                            this._sha = newHash;
+                            this.handleResponse(response);
+                        }
+                    }
+                    else{
+                        this.handleResponse(response);
+                    }
+                }
+                catch(e){
+                    this.handleResponse(response);
+                }
             }).catch((error) => {
                 this.c8oExceptionListener.onException(error, this.parameters);
             });
@@ -51,7 +68,7 @@ export class C8oCallTask {
     public executeFromLive() {
         delete this.parameters[C8oCore.FS_LIVE];
         this.parameters[C8oCore.ENGINE_PARAMETER_FROM_LIVE] = true;
-        this.run();
+        this.run(true);
     }
 
     public async handleRequest(): Promise<any> {
@@ -111,7 +128,6 @@ export class C8oCallTask {
                                             // no entry
                                         } else {
                                             const localCacheResponse: C8oLocalCacheResponse = (result as C8oLocalCacheResponse);
-
                                             if (!localCacheResponse.isExpired()) {
                                                 if (responseType === C8oCore.RESPONSE_TYPE_JSON) {
                                                     resolve(C8oTranslator.stringToJSON(localCacheResponse.getResponse()));
