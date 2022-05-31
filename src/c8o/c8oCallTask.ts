@@ -51,6 +51,7 @@ export class C8oCallTask {
                         }
                     }
                     else{
+                        this._sha = sha256(JSON.stringify(response.rows));
                         this.handleResponse(response);
                     }
                 }
