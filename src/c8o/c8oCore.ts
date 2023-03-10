@@ -804,6 +804,10 @@ export abstract class C8oCore extends C8oBase {
                                 this.data = data;
                                 //noinspection TypeScriptUnresolvedVariable
                                 let remoteBase = data["remoteBase"].toString();
+                                // hmr in ngx mb
+                                if(window["webpackHotUpdateapp"]){
+                                    remoteBase = remoteBase.replace("://localhost", "://" + window.location.hostname);
+                                }
                                 let n = remoteBase.indexOf("/_private");
                                 this.endpoint = remoteBase.substring(0, n);
                                 this._automaticRemoveSplashsCreen = data["splashScreenRemoveMode"] !== "manual";
