@@ -187,20 +187,18 @@ export abstract class C8oHttpInterfaceCore {
      * @param resolve 
      * @param reject 
      */
-    public execHttpPosts(url: string, parameters: any, headers: any, resolve, reject, headers_return = false, doLogin = false) {
-        let _timeout = this.c8o.timeout;
-        if (parameters["_c8oTimeout"] != undefined) {
-            _timeout = +parameters["_c8oTimeout"];
-        }
+    public execHttpPosts(url: string, parameters: any, headers: any, resolve, reject, headers_return = false, doLogin = false,) {
+        let params = new URLSearchParams(parameters);
+        let _timeout = params.get('_c8oTimeout') ?? this.c8o.timeout;
+        let _retry = params.get('_c8oRetry') ?? this.c8o.retry;
+
         this.httpPostObservable(url, parameters, {
             headers: headers,
             withCredentials: true,
             observe: 'response'
         })
-            .pipe(timeout(_timeout))
-            .pipe(
-                retry(1)
-            )
+            .pipe(timeout((+_timeout)))
+            .pipe(retry((+_retry)))
             .subscribe(
                 response => {
                     this.handleResponseHttpPost(response, headers, resolve, url, parameters, headers, headers_return, reject, doLogin);

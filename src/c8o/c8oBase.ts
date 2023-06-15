@@ -4,6 +4,7 @@ export class C8oBase {
     /*HTTP*/
     protected _endpointSettings: string;
     protected _timeout: number = 3600000;
+    protected _retry: number = 1;
     // protected _trustAllCertificates: boolean = false;
     protected _cookies: Object = {};
     protected _clientCertificateFiles: Object;
@@ -116,6 +117,14 @@ export class C8oBase {
     }
 
     /**
+     * Gets the http connection attempt before failing.<br/>
+     * Default is <b>1</b>.
+     * @returns The timeout.
+     */
+    public get retry(): number {
+        return this._retry;
+    }
+    /**
      * Gets a value indicating whether https calls trust all certificates or not.<br/>
      * Default is <b>false</b>.
      * @returns <b>true</b> if https calls trust all certificates; otherwise, <b>false</b>.
@@ -211,6 +220,7 @@ export class C8oBase {
         if (c8oBase !== undefined) {
             /** HTTP **/
             this._timeout = c8oBase._timeout;
+            this._retry = c8oBase._retry;
             // this._trustAllCertificates = c8oBase._trustAllCertificates;
             if (this.cookies == null) {
                 this._cookies = {};

@@ -115,6 +115,20 @@ export class C8oSettings extends C8oBase {
         this._timeout = timeout;
         return this;
     }
+
+    /**
+     * Gets the http connection attempt before failing.<br/>
+     * Default is <b>1</b>.
+     * @param retry amount of http retry.
+     * @returns The current <b>C8oSettings</b>, for chaining.
+     */
+    public setRetry(retry: number): C8oSettings {
+        if (retry < 0) {
+            retry = 0
+        }
+        this._retry = retry;
+        return this;
+    }
     /**
      * Add a header
      * @param name The name of header.
