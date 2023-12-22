@@ -64,7 +64,7 @@ export class C8oLogger {
             } else {
                 this.c8o = c8o;
     
-                this.remoteLogUrl = c8o.endpointConvertigo + "/admin/services/logs.Add";
+                this.remoteLogUrl = c8o.endpointConvertigo + "/services/logs.Add";
                 this.remoteLogs = new Queue<JSON>();
                 this.alreadyRemoteLogging = [];
                 this.alreadyRemoteLogging.push(false);
@@ -409,7 +409,7 @@ export class C8oLogger {
             // We're using Angular Http provider to request the data,
             // then on the response it'll map the JSON data to a parsed JS object.
             // Next we process the data and resolve the promise with the new data.
-            // "/admin/services/logs.Add";
+            // "/services/logs.Add";
 
             // wait 5000 ms to group http request with severals logs and reduce http charge
             if(wait == null){
