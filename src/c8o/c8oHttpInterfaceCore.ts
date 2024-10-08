@@ -192,6 +192,7 @@ export abstract class C8oHttpInterfaceCore {
     public execHttpPosts(url: string, parameters: any, headers: any, resolve, reject, headers_return = false, doLogin = false,) {
         if(this.c8o.parrallelizeCallSequences){
             parameters += "&__context=" + this.randomForParrallelize + "_" + this.incrementForParrallelize + "&__removeContext=true";
+            this.incrementForParrallelize ++;
         }
         let params = new URLSearchParams(parameters);
         let _timeout = params.get('_c8oTimeout') ?? this.c8o.timeout;
