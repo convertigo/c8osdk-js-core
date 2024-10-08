@@ -51,6 +51,8 @@ export class C8oBase {
     protected _headers: Object = {};
     
     protected _initalLogLevel: Boolean;
+
+    protected _parrallelizeCallSequences: boolean = true;
     /** Getters **/
 
     /**
@@ -216,11 +218,16 @@ export class C8oBase {
         return this._headers;
     }
 
+    public get parrallelizeCallSequences (): boolean {
+        return this._parrallelizeCallSequences;
+    }
+
     public copy(c8oBase: C8oBase) {
         if (c8oBase !== undefined) {
             /** HTTP **/
             this._timeout = c8oBase._timeout;
             this._retry = c8oBase._retry;
+            this._parrallelizeCallSequences = c8oBase._parrallelizeCallSequences;
             // this._trustAllCertificates = c8oBase._trustAllCertificates;
             if (this.cookies == null) {
                 this._cookies = {};

@@ -28,6 +28,8 @@ export abstract class C8oHttpInterfaceCore {
     private requestLogin: any;
     private _loggedinSession: boolean;
     private _notifySessionLost: boolean;
+    private randomForParrallelize: string = (new Date()).getTime() + "_" + Math.floor(Math.random() * 1000000);
+    private incrementForParrallelize: number = 0;
 
     constructor(c8o: C8oCore, js: boolean = true) {
         /**
@@ -188,6 +190,9 @@ export abstract class C8oHttpInterfaceCore {
      * @param reject 
      */
     public execHttpPosts(url: string, parameters: any, headers: any, resolve, reject, headers_return = false, doLogin = false,) {
+        if(this.c8o.parrallelizeCallSequences){
+            parameters += "&__context=" + this.randomForParrallelize + "_" + this.incrementForParrallelize + "&__removeContext=true";
+        }
         let params = new URLSearchParams(parameters);
         let _timeout = params.get('_c8oTimeout') ?? this.c8o.timeout;
         let _retry = params.get('_c8oRetry') ?? this.c8o.retry;

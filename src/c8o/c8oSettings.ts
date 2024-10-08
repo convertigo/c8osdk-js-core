@@ -305,4 +305,9 @@ export class C8oSettings extends C8oBase {
         this._useEncryption = useEncryption;
         return this;
     }
+
+    public setParrallelizeCallSequences(parrallelizeCallSequences: boolean): C8oSettings {
+        this._parrallelizeCallSequences = parrallelizeCallSequences;
+        return this;
+    }
 }
