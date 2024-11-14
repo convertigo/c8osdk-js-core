@@ -5,7 +5,7 @@ import { FullSyncReplication } from "./fullSyncReplication";
 
 import PouchDB from "pouchdb-browser";
 import PouchDBFind from "pouchdb-find";
-import PouchDBQuickSearch from "pouchdb-quick-search";
+import PouchDBQuickSearch from "pouchdb-quick-search-convertigo";
 import PouchDBWorker from "worker-pouch";
 import PouchDBDebug from "pouchdb-debug";
 
