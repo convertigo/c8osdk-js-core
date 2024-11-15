@@ -43,7 +43,7 @@ export abstract class C8oHttpInterfaceCore {
                 this.from = rxjs.from;
                 c8o.log._trace("[C8oHttpInterfaceCore] Detect rxjs 6.x")
             }
-            else {                
+            else {
                 try{
                     //@ts-ignore
                     rxjs = rxjs1;//require('rxjs/observable/fromPromise');
@@ -182,12 +182,12 @@ export abstract class C8oHttpInterfaceCore {
     }
 
     /**
-     * Execute http Posts 
-     * @param url 
-     * @param parameters 
-     * @param headers 
-     * @param resolve 
-     * @param reject 
+     * Execute http Posts
+     * @param url
+     * @param parameters
+     * @param headers
+     * @param resolve
+     * @param reject
      */
     public execHttpPosts(url: string, parameters: any, headers: any, resolve, reject, headers_return = false, doLogin = false,) {
         if(this.c8o.parrallelizeCallSequences){
@@ -195,8 +195,8 @@ export abstract class C8oHttpInterfaceCore {
             this.incrementForParrallelize ++;
         }
         let params = new URLSearchParams(parameters);
-        let _timeout = params.get('_c8oTimeout') ?? this.c8o.timeout;
-        let _retry = params.get('_c8oRetry') ?? this.c8o.retry;
+        let _timeout = params.get('_c8oTimeout') != undefined ? params.get('_c8oTimeout') : this.c8o.timeout;
+        let _retry = params.get('_c8oRetry') != undefined ? params.get('_c8oRetry') : this.c8o.retry;
 
         this.httpPostObservable(url, parameters, {
             headers: headers,
@@ -217,9 +217,9 @@ export abstract class C8oHttpInterfaceCore {
 
     /**
      * Handle response of http Posts
-     * @param response 
-     * @param headers 
-     * @param resolve 
+     * @param response
+     * @param headers
+     * @param resolve
      */
     private handleResponseHttpPost(response: any, headers: any, resolve: any, urlReq: string, parametersReq: any, headersReq: any, returns_header = false, reject = null, doLogin = false) {
         //this.checkReachable();
@@ -255,8 +255,8 @@ export abstract class C8oHttpInterfaceCore {
 
     /**
      * Handle errors of http Posts
-     * @param error 
-     * @param reject 
+     * @param error
+     * @param reject
      */
     private handleErrorHttpPost(error: any, reject: any, url = undefined) {
         if (url != undefined) {
@@ -550,12 +550,12 @@ export abstract class C8oHttpInterfaceCore {
 
     /**
      * handle FileuploadResponses
-     * @param event 
-     * @param progress 
-     * @param parameters 
-     * @param c8oResponseListener 
-     * @param varNull 
-     * @param resolve 
+     * @param event
+     * @param progress
+     * @param parameters
+     * @param c8oResponseListener
+     * @param varNull
+     * @param resolve
      */
     public handleResponseFileUpload(event: any, progress: C8oProgress, parameters: Object, c8oResponseListener: C8oResponseListener, varNull: any, resolve): void {
         if (!this.js) {
@@ -577,8 +577,8 @@ export abstract class C8oHttpInterfaceCore {
 
     /**
      * Handle errors for file upload
-     * @param error 
-     * @param resolve 
+     * @param error
+     * @param resolve
      */
     private handleErrorFileUpload(error: any, resolve: any): void {
         resolve({ "error": (new C8oHttpRequestException(C8oExceptionMessage.runHttpRequest(), error)) });
