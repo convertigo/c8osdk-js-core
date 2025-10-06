@@ -226,6 +226,13 @@ export abstract class C8oCore extends C8oBase {
     public get logRemote(): boolean {
         return this._logRemote;
     }
+    public set forceFormData(value:boolean) {
+        this._forceFormData = value;
+    }
+
+    public get forceFormData(): boolean {
+        return this._forceFormData;
+    }
 
     public set logRemote(value: boolean) {
         this._initalLogLevel = value;

@@ -10,6 +10,7 @@ export class C8oBase {
     protected _clientCertificateFiles: Object;
     protected _clientCertificateBinaries: Object;
 
+    protected _forceFormData: boolean = false;
     /*Log*/
     protected _logRemote: boolean = true;
     protected _initialLogRemote: boolean = true;
@@ -244,6 +245,7 @@ export class C8oBase {
             this._logC8o = c8oBase.logC8o;
             this._logOnFail = c8oBase.logOnFail;
 
+            this._forceFormData = c8oBase._forceFormData;
             /** FullSync **/
             this._defaultDatabaseName = c8oBase.defaultDatabaseName;
             this._authenticationCookieValue = c8oBase.authenticationCookieValue;

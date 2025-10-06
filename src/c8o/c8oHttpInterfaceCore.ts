@@ -430,7 +430,13 @@ export abstract class C8oHttpInterfaceCore {
         }
         switch (this.checkFile(parameters)) {
             case 0: {
-                return this.httpPost(url, parameters);
+                if(this.c8o.forceFormData && url.endsWith(".json")){
+                    let form = this.transformRequestformdata(parameters);
+                    return this.uploadFileHttp(url, form, parameters, c8oResponseListener);
+                }
+                else{
+                    return this.httpPost(url, parameters);
+                }
             }
             case 1: {
                 let form = this.transformRequestformdata(parameters);
