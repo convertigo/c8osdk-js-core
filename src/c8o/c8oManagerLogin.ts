@@ -7,7 +7,7 @@ export class C8oManagerLogin {
     public c8o: C8oCore;
     private requestLogin;
     private mutexL : Semaphore;
-
+    
     constructor(c8o: C8oCore) {
         this.c8o = c8o;
         this.mutexL = new Semaphore(1);
@@ -40,7 +40,7 @@ export class C8oManagerLogin {
         );
         // store encrypted data
         window.localStorage.setItem("_c8o_secret", Buffer.from(encrypted_content).toString('utf-8'));
-        }
+        }    
     }
     public async defineRequestLogin(id){
         //if requestLogin is'nt into this.requestLogin, get it and assign it to requestLogin from local encrypted data.
@@ -66,7 +66,7 @@ export class C8oManagerLogin {
             this.c8o.log.error("[C8oManagerLogin][defineRequestLogin], failed to define request login", e);
         }
     }
-
+    
 
     public doLogin(): Promise<any>{
         return new Promise((res)=>{
@@ -75,7 +75,7 @@ export class C8oManagerLogin {
                 if(this.requestLogin !=  undefined){
                     let resolve = (response)=>{
                         if(response.headers.get("X-Convertigo-Authenticated") != undefined){
-                            this.c8o.log._debug("[C8oManagerLogin] Auto Logins worked");
+                            this.c8o.log._debug("[C8oManagerLogin] Auto Logins works");
                             this.c8o.subscriber_login.next({status:true, response: response.body, error: null})
                             res({status:true, urlReq:this.requestLogin.url, parameters:this.requestLogin.parameters, headers: this.requestLogin.headers, response: response.response});
                         }
@@ -86,7 +86,7 @@ export class C8oManagerLogin {
                             //this.c8o.subscriber_session.next();
                         }
                         this.mutexL.release();
-
+                        
                     }
                     let reject = (err)=>{
                         this.c8o.log._debug("[C8oManagerLogin] Auto Logins failed");
@@ -96,17 +96,17 @@ export class C8oManagerLogin {
                         this.mutexL.release();
                     }
                     this.c8o.httpInterface.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject, true);
-                }
+                } 
             }
             else{
                 this.c8o.log.warn("Into else");
             }
-
+             
         })
-
+         
     }
 
+    
 
-
-
+    
 }
