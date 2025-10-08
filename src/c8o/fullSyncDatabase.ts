@@ -126,6 +126,10 @@ export class C8oFullSyncDatabase {
         }
     }
 
+    public setRemoteBase(fullSyncBase: string): void {
+        this.c8oFullSyncDatabaseUrl = fullSyncBase + this.remotedatabaseName;
+    }
+
     public async remoteDatabaseVersion() {
         return new Promise((resolve)=>{
             let headersObject = { 'Accept': 'application/json', 'x-convertigo-sdk': this.c8o.sdkVersion };

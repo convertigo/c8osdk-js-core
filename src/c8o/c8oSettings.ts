@@ -1,4 +1,4 @@
-import {C8oBase} from "./c8oBase";
+import {C8oBase, C8oEndpointScope} from "./c8oBase";
 import {C8oLogLevel} from "./c8oLogLevel";
 import { Subject } from 'rxjs';
 
@@ -87,6 +87,16 @@ export class C8oSettings extends C8oBase {
      */
     public setEnablePrefixBase(prefixBase: boolean): C8oSettings {
         this._prefixBase = prefixBase;
+        return this;
+    }
+
+    /**
+     * Sets how the SDK resolves service/fullsync endpoints (`auto` by default).<br/>
+     * @param scope The endpoint scope to use.
+     * @returns The current <b>C8oSettings</b>, for chaining.
+     */
+    public setEndpointScope(scope: C8oEndpointScope): C8oSettings {
+        this._endpointScope = scope;
         return this;
     }
 

@@ -133,17 +133,23 @@ export abstract class C8oHttpInterfaceCore {
             if (observe) {
                 params["observe"] = "response";
             }
-            this.httpPostObservable(this.c8o.endpointConvertigo + "/services/user.Get", {}, params)
-                .pipe(
-                    retry(1)
-                )
-                .subscribe(
-                    response => {
-                        resolve(response);
-                    },
-                    error => {
-                        reject(error);
-                    })
+            const call = (allowFallback: boolean) => {
+                const url = this.c8o.buildServicesUrl("user.Get");
+                this.httpPostObservable(url, {}, params)
+                    .pipe(retry(1))
+                    .subscribe(
+                        response => {
+                            resolve(response);
+                        },
+                        error => {
+                            if (allowFallback && this.c8o.handleEndpointFallback("services", error)) {
+                                call(false);
+                            } else {
+                                reject(error);
+                            }
+                        });
+            };
+            call(true);
         })
 
     }
