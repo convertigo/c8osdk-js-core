@@ -938,8 +938,13 @@ export abstract class C8oCore extends C8oBase {
         }
         if (nullableEndpoint) {
             this.promiseConstructor = new Promise<void>((resolve) => {
-                // if project is running into web browser served by convertigo
-                // get the url from window.location
+                const webEndpoint = this.resolveBrowserEndpoint();
+                if (webEndpoint != null) {
+                    this.endpoint = webEndpoint;
+                    resolve();
+                    return;
+                }
+
                 if (window.location.href.startsWith("http") && window.location.href.indexOf("/DisplayObjects") != -1) {
                     let n = window.location.href.indexOf("/DisplayObjects");
                     this.endpoint = window.location.href.substring(0, n);
@@ -1027,6 +1032,26 @@ export abstract class C8oCore extends C8oBase {
             });
         });
         return this.promiseInit;
+    }
+
+    private resolveBrowserEndpoint(): string | null {
+        try {
+            if (typeof window === "undefined" || typeof document === "undefined") {
+                return null;
+            }
+            const base = document.querySelector("base[data-c8o-mode]") as HTMLBaseElement;
+            if (!base) {
+                return null;
+            }
+            const baseUri = document.baseURI;
+            if (!baseUri) {
+                return null;
+            }
+            const normalized = baseUri.replace(/\/+$/, "");
+            return normalized.length > 0 ? normalized : baseUri;
+        } catch (e) {
+            return null;
+        }
     }
 
     /**

@@ -30,5 +30,4 @@ Client SDK is available for:
 ## Endpoint scope configuration
 
 When a Convertigo project is exposed behind a reverse proxy without the `/projects/<project>/` segment visible in the public URL, the SDK can target project-scoped aliases provided by the engine (`/.services`, `/.fullsync`).
-Use `new C8oSettings().setEndpointScope("project")` to force alias usage, or keep the default `"auto"` detection which prefers global endpoints when `/projects/<project>/` is detected.
-If an alias returns a `404`, the SDK automatically falls back to the global endpoints and retries the request to stay compatible with classic deployments.
+Use `new C8oSettings().setEndpointScope("project")` to force alias usage, or keep the default `"auto"` detection which prefers global endpoints when `/projects/<project>/` is detected. When the hosting page exposes `<base data-c8o-mode="web">`, the SDK automatically interprets that it is running behind a Convertigo web proxy and resolves aliases from the current location. If an alias returns a `404`, it falls back to the global endpoints and retries the request to stay compatible with classic deployments.
