@@ -83,7 +83,7 @@ export class C8oManagerLogin {
                             this.c8o.log._debug("[C8oManagerLogin] Auto Logins failed");
                             res({status:false});
                             this.c8o.subscriber_login.next({status:false, response: response.body, error: "error, we are not authenticated"})
-                            //this.c8o.subscriber_session.next();
+                            this.c8o.subscriber_session.next(null);
                         }
                         this.mutexL.release();
                         
@@ -96,10 +96,20 @@ export class C8oManagerLogin {
                         this.mutexL.release();
                     }
                     this.c8o.httpInterface.execHttpPosts(this.requestLogin.url, this.requestLogin.parameters, this.requestLogin.headers, resolve, reject, true);
-                } 
+                }
+                else{
+                    this.c8o.log._debug("[C8oManagerLogin] Auto Logins failed: requestLogin is undefined");
+                    this.c8o.subscriber_login.next({status:false, response: null, error: "requestLogin is undefined"});
+                    this.c8o.subscriber_session.next(null);
+                    res({status:false, error: "requestLogin is undefined"});
+                    this.mutexL.release();
+                }
             }
             else{
-                this.c8o.log.warn("Into else");
+                this.c8o.log.warn("[C8oManagerLogin] Auto Logins skipped: already connected");
+                this.c8o.subscriber_login.next({status:false, response: null, error: "already connected"});
+                res({status:false, error: "already connected"});
+                this.mutexL.release();
             }
              
         })

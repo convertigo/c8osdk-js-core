@@ -432,7 +432,7 @@ export abstract class C8oHttpInterfaceCore {
             case 0: {
                 if(this.c8o.forceFormData && url.endsWith(".json")){
                     let form = this.transformRequestformdata(parameters);
-                    return this.uploadFileHttp(url, form, parameters, c8oResponseListener);
+                    return this.uploadFileHttp(url, form, parameters, c8oResponseListener, true);
                 }
                 else{
                     return this.httpPost(url, parameters);
@@ -505,50 +505,59 @@ export abstract class C8oHttpInterfaceCore {
      * @param {FormData} form
      * @param {Object} parameters
      * @param {C8oResponseListener} c8oResponseListener
+     * @param {boolean} enableSessionSort
      * @return {Promise<any>}
      */
-    uploadFileHttp(url: string, form: FormData, parameters: Object, c8oResponseListener: C8oResponseListener): Promise<any> {
+    uploadFileHttp(url: string, form: FormData, parameters: Object, c8oResponseListener: C8oResponseListener, enableSessionSort: boolean = false): Promise<any> {
         let headersObject = { 'Accept': 'application/json', 'x-convertigo-sdk': this.c8o.sdkVersion };
         Object.assign(headersObject, this.c8o.headers);
         let progress: C8oProgress = new C8oProgress();
         progress.pull = false;
         let varNull: JSON = null;
+        const shouldSortSession = enableSessionSort && url.indexOf(".json") !== -1;
+        const headersReq = shouldSortSession ? this.getHeaders(headersObject) : null;
+        const parametersReq = shouldSortSession ? this.transformRequest(parameters) : null;
+        const execUpload = (resolve) => {
+            const finalizeResponse = shouldSortSession ? (body: any, responseWithHeaders?: any) => {
+                if (responseWithHeaders == null || responseWithHeaders.headers == null || typeof responseWithHeaders.headers.get !== "function") {
+                    resolve(body);
+                    return;
+                }
+                this.c8o.session.sort(responseWithHeaders, headersReq, url, parametersReq, headersReq)
+                    .then((res) => {
+                        if (res != true || parametersReq[C8oCore.SEQ_AUTO_LOGIN_OFF] === true) {
+                            resolve(body);
+                        }
+                        else {
+                            execUpload(resolve);
+                        }
+                    });
+            } : undefined;
+
+            this.getuploadRequester(url, form, headersObject)
+                .subscribe(
+                    event => {
+                        this.handleResponseFileUpload(event, progress, parameters, c8oResponseListener, varNull, resolve, finalizeResponse);
+                    },
+                    error => {
+                        this.handleErrorFileUpload(error, resolve);
+                    });
+        };
 
         if (this.firstCall) {
             this.p1 = new Promise((resolve) => {
                 this.firstCall = false;
-                this.getuploadRequester(url, form, headersObject)
-                    .subscribe(
-                        event => {
-                            this.handleResponseFileUpload(event, progress, parameters, c8oResponseListener, varNull, resolve);
-                        },
-                        error => {
-                            this.handleErrorFileUpload(error, resolve);
-                        });
+                execUpload(resolve);
             });
             return this.p1;
         }
         else {
             return new Promise((resolve, reject) => {
                 Promise.all([this.p1]).then(() => {
-                    this.getuploadRequester(url, form, headersObject)
-                        .subscribe(
-                            event => {
-                                this.handleResponseFileUpload(event, progress, parameters, c8oResponseListener, varNull, resolve);
-                            },
-                            error => {
-                                this.handleErrorFileUpload(error, resolve);
-                            });
+                    execUpload(resolve);
                 })
                     .catch(() => {
-                        this.getuploadRequester(url, form, headersObject)
-                            .subscribe(
-                                event => {
-                                    this.handleResponseFileUpload(event, progress, parameters, c8oResponseListener, varNull, resolve);
-                                },
-                                error => {
-                                    this.handleErrorFileUpload(error, resolve);
-                                });
+                        execUpload(resolve);
                     });
             });
         }
@@ -563,12 +572,21 @@ export abstract class C8oHttpInterfaceCore {
      * @param varNull 
      * @param resolve 
      */
-    public handleResponseFileUpload(event: any, progress: C8oProgress, parameters: Object, c8oResponseListener: C8oResponseListener, varNull: any, resolve): void {
+    public handleResponseFileUpload(event: any, progress: C8oProgress, parameters: Object, c8oResponseListener: C8oResponseListener, varNull: any, resolve, finalizeResponse?: (body: any, responseWithHeaders?: any) => void): void {
+        const resolveResponse = (body: any, responseWithHeaders?: any) => {
+            if (finalizeResponse) {
+                finalizeResponse(body, responseWithHeaders);
+            }
+            else {
+                resolve(body);
+            }
+        };
+
         if (!this.js) {
             if (event.type === 1) {
                 this.handleProgress(event, progress, parameters, c8oResponseListener, varNull);
             } else if (this.isHttpResponse(event)) {
-                resolve(event.body);
+                resolveResponse(event.body, event);
             }
         }
         else {
@@ -576,7 +594,7 @@ export abstract class C8oHttpInterfaceCore {
                 this.handleProgress(event.response, progress, parameters, c8oResponseListener, varNull);
             }
             else {
-                resolve(event.response);
+                resolveResponse(event.response, event.response);
             }
         }
     }
