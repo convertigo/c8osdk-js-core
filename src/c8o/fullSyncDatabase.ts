@@ -5,12 +5,11 @@ import { FullSyncReplication } from "./fullSyncReplication";
 
 import PouchDB from "pouchdb-browser";
 import PouchDBFind from "pouchdb-find";
-import PouchDBQuickSearch from "pouchdb-quick-search-convertigo";
-import PouchDBWorker from "worker-pouch";
-import PouchDBDebug from "pouchdb-debug";
 
 import {C8oLoad} from "./c8oload";
 import { C8oUtilsCore } from "./c8oUtilsCore";
+import { registerPouchDbSearchPlugin } from "./pouchdbSearchPlugin";
+import { registerPouchDbWorkerAdapter } from "./pouchdbWorkerAdapter";
 
 
 /**
@@ -64,22 +63,28 @@ export class C8oFullSyncDatabase {
      */
     constructor(c8o: C8oCore, databaseName: string, fullSyncDatabases: string, localSuffix: string, localPrefix: string) {
         PouchDB.plugin(PouchDBFind);
-        PouchDB.plugin(PouchDBQuickSearch);
+        registerPouchDbSearchPlugin(PouchDB);
         var opts = {};
         if(c8o.usewroker){
-            //@ts-ignore
-            PouchDB.adapter('worker', PouchDBWorker);
-            opts["adapter"] = "worker";
-            c8o.log._debug("We will use experimental PouchDBWorker to speed up your requests. \n fs://.createIndex is not supported")
+            const workerReady = registerPouchDbWorkerAdapter(PouchDB);
+            if (workerReady) {
+                opts["adapter"] = "worker";
+                c8o.log._debug("Using internal PouchDB worker adapter.");
+            } else {
+                c8o.log._warn("PouchDB worker adapter is unavailable; using default adapter.");
+            }
         }
         
         let c8oload: C8oLoad = new C8oLoad(c8o);
-        PouchDB.plugin(PouchDBDebug);
         window["PouchDB"] =PouchDB;
         if(c8o.logPouchDB){
-            PouchDB.debug.enable('*');
+            if (PouchDB.debug?.enable) {
+                PouchDB.debug.enable('*');
+            } else {
+                c8o.log._warn("PouchDB debug plugin is unavailable; logPouchDB ignored.");
+            }
         }
-        else{
+        else if (PouchDB.debug?.disable){
             PouchDB.debug.disable();
         }
         this.c8o = c8o;
