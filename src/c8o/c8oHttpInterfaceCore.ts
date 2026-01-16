@@ -5,12 +5,7 @@ import { retry, timeout } from 'rxjs/operators';
 import { C8oHttpRequestException } from "./Exception/c8oHttpRequestException";
 
 import { C8oExceptionMessage } from "./Exception/c8oExceptionMessage";
-import { Observable } from "rxjs";
-
-// @ts-ignore
-import * as rxjs0 from "rxjs";
-// @ts-ignore
-import * as rxjs1 from "rxjs-compat/observable/fromPromise";
+import { Observable, from } from "rxjs";
 
 
 declare const require: any;
@@ -32,32 +27,7 @@ export abstract class C8oHttpInterfaceCore {
     private incrementForParrallelize: number = 0;
 
     constructor(c8o: C8oCore, js: boolean = true) {
-        /**
-         * As we must support Angular 5.x, 6.x and 7.x, they need as peerDependencies diffrent versions of Rxjs.
-         * We alson need rxjs, but switch version of rxjs methods and paths to import are diffrents.
-         * So we test presence or not of module in some paths into rxjs to define in which version we are and execute the good import.
-        */
-        let rxjs = rxjs0;//require('rxjs');
-        if (rxjs != undefined) {
-            if (rxjs.from != undefined) {
-                this.from = rxjs.from;
-                c8o.log._trace("[C8oHttpInterfaceCore] Detect rxjs 6.x")
-            }
-            else {                
-                try{
-                    //@ts-ignore
-                    rxjs = rxjs1;//require('rxjs/observable/fromPromise');
-                }
-                catch(e){
-
-                }
-                c8o.log._trace("[C8oHttpInterfaceCore] Detect rxjs 5.x")
-                if (rxjs != undefined) {
-                    // @ts-ignore
-                    this.from = rxjs.fromPromise;
-                }
-            }
-        }
+        this.from = from;
 
         this.c8o = c8o;
         this.timeout = this.c8o.timeout;
@@ -351,6 +321,14 @@ export abstract class C8oHttpInterfaceCore {
      */
     public transformRequestformdata(parameters: Object): FormData {
         let formdata: FormData = new FormData();
+        const appendBlob = (key: string, value: Blob) => {
+            const fileName = (value instanceof File && value.name) ? value.name : undefined;
+            if (fileName) {
+                formdata.append(key, value, fileName);
+            } else {
+                formdata.append(key, value);
+            }
+        };
         for (let p in parameters) {
             if (parameters[p] instanceof Array) {
                 for (let p1 in parameters[p]) {
@@ -360,7 +338,7 @@ export abstract class C8oHttpInterfaceCore {
                         }
                     }
                     else if (parameters[p][p1] instanceof File || parameters[p][p1] instanceof Blob) {
-                        formdata.append(p, parameters[p][p1], parameters[p][p1].name);
+                        appendBlob(p, parameters[p][p1]);
                     }
                     else {
                         formdata.append(p, parameters[p][p1])
@@ -374,7 +352,7 @@ export abstract class C8oHttpInterfaceCore {
                     }
                 }
                 else if (parameters[p] instanceof File || parameters[p] instanceof Blob) {
-                    formdata.append(p, parameters[p], parameters[p].name);
+                    appendBlob(p, parameters[p]);
                 }
                 else {
                     formdata.append(p, parameters[p]);

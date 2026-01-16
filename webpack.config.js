@@ -6,6 +6,7 @@ const helpers = require('./config/helpers'),
     webpack = require('webpack');
 
 module.exports = {
+    mode: 'production',
     resolve: {
         extensions: ['.ts', '.tsx', '.js']
     },
@@ -21,18 +22,18 @@ module.exports = {
     },
 
     // require those dependencies but don't bundle them
-    externals: [/^rxjs\//, 'pouchdb-browser'],
+    externals: [/^rxjs(\/.*)?$/, 'pouchdb-browser'],
 
     module: {
         rules: [{
-            enforce: 'pre',
-            test: /\.ts(x?)$/,
-            loader: 'tslint-loader',
-            exclude: [helpers.root('node_modules')]
-        }, {
-            test: /\.ts$/,
-            loader: 'awesome-typescript-loader?declaration=false',
-            exclude: [/\.e2e\.ts$/]
+            test: /\.tsx?$/,
+            use: [{
+                loader: 'ts-loader',
+                options: {
+                    configFile: helpers.root('tsconfig.json')
+                }
+            }],
+            exclude: /node_modules/
         }]
     }
 };

@@ -14,12 +14,12 @@
     "declaration": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
-    "target": "es5",
+    "target": "es2022",
     "lib": [
       "dom",
-      "es2015"
+      "es2022"
     ],
-    "module": "commonjs",
+    "module": "es2022",
     "moduleResolution": "node",
     "removeComments": true,
     "sourceMap": true,

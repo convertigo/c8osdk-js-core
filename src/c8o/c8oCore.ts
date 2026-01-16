@@ -828,15 +828,7 @@ export abstract class C8oCore extends C8oBase {
                                 } else {
                                     errMsg = `${error.status} - ${error.statusText || ""} ${error}`;
                                 }
-                                //@ts-ignore
-                                if(throwError != undefined){
-                                    //@ts-ignore
-                                    return throwError(errMsg);
-                                }
-                                else{
-                                    //@ts-ignore
-                                    return Observable.throw(errMsg);
-                                }
+                                return throwError(() => errMsg);
                                 
                             }
                         );
