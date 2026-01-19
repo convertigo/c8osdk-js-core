@@ -123,6 +123,9 @@ export class C8oFullSyncDatabase {
             } else {
                 PouchDB.plugin(c8oload.plugin);
 
+                if (opts["adapter"] === "worker" && !("originalName" in opts)) {
+                    opts["originalName"] = this.databaseName;
+                }
                 this.database = new PouchDB(this.databaseName, opts);
                 this.c8o.log._debug("PouchDb launched normally");
             }

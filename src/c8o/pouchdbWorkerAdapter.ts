@@ -16,8 +16,18 @@ export function registerPouchDbWorkerAdapter(PouchDB: any): boolean {
     try {
         const globalObj: any = typeof window !== "undefined" ? window : globalThis;
         if (!globalObj.workerPouch) {
+            const patchedBundle = workerPouchBundle
+                .replace(
+                    /document\.documentElement\.style/g,
+                    "(self.document && self.document.documentElement ? self.document.documentElement.style : {})"
+                )
+                .replace(/window\.console/g, "self.console")
+                .replace(
+                    /navigator\.userAgent/g,
+                    "(self.navigator && self.navigator.userAgent ? self.navigator.userAgent : '')"
+                );
             // eslint-disable-next-line no-new-func
-            const loader = new Function(workerPouchBundle);
+            const loader = new Function(patchedBundle);
             loader();
         }
         if (globalObj.workerPouch) {
