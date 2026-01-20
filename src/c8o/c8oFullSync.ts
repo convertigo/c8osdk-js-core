@@ -15,7 +15,6 @@ import { FullSyncRequestable } from "./fullSyncRequestable";
 import { FullSyncDefaultResponse, FullSyncDocumentOperationResponse } from "./fullSyncResponse";
 
 export class C8oFullSync {
-    private static FULL_SYNC_URL_PATH: string = "/fullsync/";
     /**
      * The project requestable value to execute a fullSync request.
      */
@@ -30,8 +29,19 @@ export class C8oFullSync {
 
     public constructor(c8o: C8oCore) {
         this.c8o = c8o;
-        this.fullSyncDatabaseUrlBase = c8o.endpointConvertigo + C8oFullSync.FULL_SYNC_URL_PATH;
+        this.fullSyncDatabaseUrlBase = this.normalizeFullSyncBase(c8o.fullSyncEndpoint);
         this.localSuffix = (c8o.fullSyncLocalSuffix !== null) ? c8o.fullSyncLocalSuffix : "_device";
+    }
+
+    protected normalizeFullSyncBase(base: string): string {
+        if (!base) {
+            return "";
+        }
+        return base.endsWith("/") ? base : `${base}/`;
+    }
+
+    public updateFullSyncEndpoint(base: string): void {
+        this.fullSyncDatabaseUrlBase = this.normalizeFullSyncBase(base);
     }
 
     /**
@@ -135,6 +145,19 @@ export class C8oFullSyncCbl extends C8oFullSync {
         this.fullSyncDatabases = {};
         if (window["C8oFullSyncCbl"] == undefined) {
             window["C8oFullSyncCbl"] = [];
+        }
+    }
+
+    public updateFullSyncEndpoint(base: string): void {
+        super.updateFullSyncEndpoint(base);
+        const normalizedBase = this.fullSyncDatabaseUrlBase;
+        for (const key in this.fullSyncDatabases) {
+            if (this.fullSyncDatabases.hasOwnProperty(key)) {
+                const db = this.fullSyncDatabases[key] as C8oFullSyncDatabase;
+                if (db && typeof db.setRemoteBase === "function") {
+                    db.setRemoteBase(normalizedBase);
+                }
+            }
         }
     }
 
@@ -600,7 +623,7 @@ export class C8oFullSyncCbl extends C8oFullSync {
             fullSyncDatabase.getdatabase.c8oload(parameters["data"],
 
                 {
-                    proxy: this.c8o.endpointConvertigo + "/fullsync/" + (fullSyncDatabase.getdatabseName).replace("_device", ""),
+                    proxy: this.c8o.buildFullSyncUrl((fullSyncDatabase.getdatabseName).replace("_device", "")),
                     fetch: (url, opts) => {
                         opts.credentials = 'include';
                         for (let key in header) {

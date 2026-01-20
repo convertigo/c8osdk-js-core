@@ -1,4 +1,4 @@
-import { C8oBase } from "./c8oBase";
+import { C8oBase, C8oEndpointScope } from "./c8oBase";
 import { C8oHttpInterfaceCore } from "./c8oHttpInterfaceCore";
 import { C8oLogger } from "./c8oLogger";
 import { C8oLogLevel } from "./c8oLogLevel";
@@ -155,6 +155,16 @@ export abstract class C8oCore extends C8oBase {
     protected _endpointHost: string;
     protected _endpointPort: string;
     protected _endpointProject: string;
+    protected _projectEndpoint: string;
+    protected _hasProjectsPrefix: boolean = false;
+    protected _servicesGlobalEndpoint: string;
+    protected _servicesProjectEndpoint: string;
+    protected _servicesEndpointResolved: string;
+    protected _fullSyncGlobalEndpoint: string;
+    protected _fullSyncProjectEndpoint: string;
+    protected _fullSyncEndpointResolved: string;
+    protected _resolvedEndpointScope: "global" | "project" = "global";
+    protected _aliasFallbackTriggered: boolean = false;
     protected _automaticRemoveSplashsCreen: boolean = true;
 
     /**
@@ -400,15 +410,155 @@ export abstract class C8oCore extends C8oBase {
         if (!C8oUtilsCore.isValidUrl(this.endpoint)) {
             throw new C8oException(C8oExceptionMessage.illegalArgumentInvalidURL(this.endpoint).toString());
         }
-        const matches = C8oCore.RE_ENDPOINT.exec(this.endpoint.toString());
-        if (matches === null) {
-            throw new C8oException(C8oExceptionMessage.illegalArgumentInvalidEndpoint(this.endpoint.toString()));
+        const endpointStr = this.endpoint.toString();
+        const matches = C8oCore.RE_ENDPOINT.exec(endpointStr);
+        const url = new URL(endpointStr);
+
+        this.endpointIsSecure = url.protocol === "https:";
+        this.endpointHost = url.hostname;
+        this.endpointPort = url.port ? `:${url.port}` : "";
+
+        if (matches !== null) {
+            this._hasProjectsPrefix = true;
+            this.endpointConvertigo = this.normalizeBaseUrl(matches[0].substring(0, (matches[0].indexOf("/projects"))));
+            this.endpointProject = matches[4];
+            this._projectEndpoint = this.normalizeBaseUrl(`${this.endpointConvertigo}/projects/${this.endpointProject}`);
+        } else {
+            this._hasProjectsPrefix = false;
+            const originPath = this.normalizeBaseUrl(url.origin + url.pathname);
+            this.endpointConvertigo = originPath;
+            this.endpointProject = "";
+            this._projectEndpoint = originPath;
         }
-        this.endpointConvertigo = matches[0].substring(0, (matches[0].indexOf("/projects")));
-        this.endpointIsSecure = matches[1] != null;
-        this.endpointHost = matches[2];
-        this.endpointPort = matches[3];
-        this.endpointProject = matches[4];
+
+        this.configureEndpointBases();
+    }
+
+    private configureEndpointBases(): void {
+        const convertigoBase = this.normalizeBaseUrl(this.endpointConvertigo);
+        const projectBase = this.normalizeBaseUrl(this._projectEndpoint || convertigoBase);
+
+        this._aliasFallbackTriggered = false;
+        this._servicesGlobalEndpoint = this.combineUrl(convertigoBase, "/services");
+        this._servicesProjectEndpoint = this.combineUrl(projectBase, "/.services");
+        this._fullSyncGlobalEndpoint = this.combineUrl(convertigoBase, "/fullsync");
+        this._fullSyncProjectEndpoint = this.combineUrl(projectBase, "/.fullsync");
+
+        const initialScope = this.determineInitialScope();
+        this.applyEndpointScope(initialScope, true);
+    }
+
+    private determineInitialScope(): "global" | "project" {
+        const scope: C8oEndpointScope = this._endpointScope || "auto";
+        if (scope === "global") {
+            return "global";
+        }
+        if (scope === "project") {
+            return "project";
+        }
+        return this._hasProjectsPrefix ? "global" : "project";
+    }
+
+    protected applyEndpointScope(scope: "global" | "project", force: boolean = false): void {
+        if (!force && this._resolvedEndpointScope === scope) {
+            return;
+        }
+        this._resolvedEndpointScope = scope;
+        this._servicesEndpointResolved = scope === "project" ? this._servicesProjectEndpoint : this._servicesGlobalEndpoint;
+        this._fullSyncEndpointResolved = scope === "project" ? this._fullSyncProjectEndpoint : this._fullSyncGlobalEndpoint;
+        this.onEndpointScopeChanged();
+    }
+
+    protected onEndpointScopeChanged(): void {
+        if (this.c8oLogger) {
+            this.c8oLogger.updateRemoteLogUrl();
+        }
+        if (this.c8oFullSync) {
+            this.c8oFullSync.updateFullSyncEndpoint(this.fullSyncEndpoint);
+        }
+    }
+
+    public get servicesEndpoint(): string {
+        return this._servicesEndpointResolved;
+    }
+
+    public get fullSyncEndpoint(): string {
+        return this._fullSyncEndpointResolved;
+    }
+
+    public get projectEndpoint(): string {
+        return this._projectEndpoint;
+    }
+
+    public buildServicesUrl(path: string): string {
+        return this.combineUrl(this.servicesEndpoint, path);
+    }
+
+    public buildFullSyncUrl(path: string): string {
+        return this.combineUrl(this.fullSyncEndpoint, path);
+    }
+
+    public handleEndpointFallback(kind: "services" | "fullsync", error: any): boolean {
+        if (this._resolvedEndpointScope !== "project") {
+            return false;
+        }
+        if (!this._hasProjectsPrefix) {
+            return false;
+        }
+        const status = this.extractStatusCode(error);
+        if (status !== 404) {
+            return false;
+        }
+        if (!this._aliasFallbackTriggered) {
+            this._aliasFallbackTriggered = true;
+            this.log._info("Fallback to global endpoints after alias returned 404");
+        }
+        this.applyEndpointScope("global");
+        return true;
+    }
+
+    private extractStatusCode(error: any): number | null {
+        if (!error) {
+            return null;
+        }
+        if (typeof error === "number") {
+            return error;
+        }
+        if (typeof error.status === "number") {
+            return error.status;
+        }
+        if (error.response && typeof error.response.status === "number") {
+            return error.response.status;
+        }
+        if (typeof error.statusCode === "number") {
+            return error.statusCode;
+        }
+        if (error.originalException) {
+            return this.extractStatusCode(error.originalException);
+        }
+        if (error.cause) {
+            return this.extractStatusCode(error.cause);
+        }
+        return null;
+    }
+
+    private combineUrl(base: string, path: string): string {
+        const sanitizedBase = this.normalizeBaseUrl(base);
+        if (!path) {
+            return sanitizedBase;
+        }
+        const trimmedPath = path.startsWith("/") ? path.substring(1) : path;
+        if (sanitizedBase.length === 0) {
+            return `/${trimmedPath}`;
+        }
+        return `${sanitizedBase}/${trimmedPath}`;
+    }
+
+    private normalizeBaseUrl(url: string): string {
+        if (!url) {
+            return "";
+        }
+        return url.replace(/\/+$/, "");
     }
 
 
@@ -788,8 +938,13 @@ export abstract class C8oCore extends C8oBase {
         }
         if (nullableEndpoint) {
             this.promiseConstructor = new Promise<void>((resolve) => {
-                // if project is running into web browser served by convertigo
-                // get the url from window.location
+                const webEndpoint = this.resolveBrowserEndpoint();
+                if (webEndpoint != null) {
+                    this.endpoint = webEndpoint;
+                    resolve();
+                    return;
+                }
+
                 if (window.location.href.startsWith("http") && window.location.href.indexOf("/DisplayObjects") != -1) {
                     let n = window.location.href.indexOf("/DisplayObjects");
                     this.endpoint = window.location.href.substring(0, n);
@@ -869,6 +1024,26 @@ export abstract class C8oCore extends C8oBase {
             });
         });
         return this.promiseInit;
+    }
+
+    private resolveBrowserEndpoint(): string | null {
+        try {
+            if (typeof window === "undefined" || typeof document === "undefined") {
+                return null;
+            }
+            const base = document.querySelector("base[data-c8o-mode]") as HTMLBaseElement;
+            if (!base) {
+                return null;
+            }
+            const baseUri = document.baseURI;
+            if (!baseUri) {
+                return null;
+            }
+            const normalized = baseUri.replace(/\/+$/, "");
+            return normalized.length > 0 ? normalized : baseUri;
+        } catch (e) {
+            return null;
+        }
     }
 
     /**

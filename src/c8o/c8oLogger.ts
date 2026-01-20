@@ -64,7 +64,7 @@ export class C8oLogger {
             } else {
                 this.c8o = c8o;
     
-                this.remoteLogUrl = c8o.endpointConvertigo + "/services/logs.Add";
+                this.updateRemoteLogUrl();
                 this.remoteLogs = new Queue<JSON>();
                 this.alreadyRemoteLogging = [];
                 this.alreadyRemoteLogging.push(false);
@@ -81,6 +81,12 @@ export class C8oLogger {
             }
         });
 
+    }
+
+    public updateRemoteLogUrl(): void {
+        if (this.c8o) {
+            this.remoteLogUrl = this.c8o.buildServicesUrl("logs.Add");
+        }
     }
 
     private isLoggableRemote(logLevel: C8oLogLevel): boolean {
@@ -318,6 +324,11 @@ export class C8oLogger {
                     }
                 })
                 .catch((error) => {
+                    if (this.c8o.handleEndpointFallback("services", error)) {
+                        this.updateRemoteLogUrl();
+                        this.logRemote(0);
+                        return;
+                    }
                     this.c8o.logRemote = false;
                     if (this.c8o.logOnFail != null) {
                         this.c8o.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail(), error), null);
@@ -384,6 +395,12 @@ export class C8oLogger {
                     resolve(true);
                 })
                 .catch((error) => {
+                    if (this.c8o.handleEndpointFallback("services", error)) {
+                        this.updateRemoteLogUrl();
+                        this.logRemote(0);
+                        resolve(false);
+                        return;
+                    }
                     reject(false);
                 });
             });
@@ -454,6 +471,11 @@ export class C8oLogger {
                     }
                 })
                 .catch((error) => {
+                    if (this.c8o.handleEndpointFallback("services", error)) {
+                        this.updateRemoteLogUrl();
+                        this.logRemote(0);
+                        return;
+                    }
                     this.c8o.logRemote = false;
                     if (this.c8o.logOnFail != null) {
                         this.c8o.logOnFail(new C8oException(C8oExceptionMessage.RemoteLogFail(), error), null);

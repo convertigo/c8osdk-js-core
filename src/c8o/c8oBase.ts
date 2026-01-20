@@ -1,5 +1,7 @@
 import {C8oLogLevel} from "./c8oLogLevel";
 
+export type C8oEndpointScope = "auto" | "global" | "project";
+
 export class C8oBase {
     /*HTTP*/
     protected _endpointSettings: string;
@@ -54,6 +56,7 @@ export class C8oBase {
     protected _initalLogLevel: Boolean;
 
     protected _parrallelizeCallSequences: boolean = true;
+    protected _endpointScope: C8oEndpointScope = "auto";
     /** Getters **/
 
     /**
@@ -223,6 +226,10 @@ export class C8oBase {
         return this._parrallelizeCallSequences;
     }
 
+    public get endpointScope(): C8oEndpointScope {
+        return this._endpointScope;
+    }
+
     public copy(c8oBase: C8oBase) {
         if (c8oBase !== undefined) {
             /** HTTP **/
@@ -268,6 +275,7 @@ export class C8oBase {
             this._prefixBase = c8oBase._prefixBase;
             this._errorConvertigoIntoFail = c8oBase._errorConvertigoIntoFail;
             this._useworker = c8oBase.usewroker;
+            this._endpointScope = c8oBase._endpointScope;
             
         }
     }
