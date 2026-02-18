@@ -38,7 +38,7 @@ export class C8oUtilsCore {
      */
     public static MD5ArrayBuffer(str): any{
         const MD5str = C8oUtilsCore.MD5(str);
-        return Buffer.from(MD5str, 'utf-8').slice(0,16);
+        return new TextEncoder().encode(MD5str).slice(0,16);
     }
     
     public static getNewGUIDString(): string {

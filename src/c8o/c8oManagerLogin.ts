@@ -2,7 +2,6 @@ import {C8oCore} from "./c8oCore";
 import { C8oSessionStatus } from "./c8oSessionStatus";
 import { Semaphore, C8oUtilsCore } from './c8oUtilsCore';
 declare const require: any;
-declare const Buffer;
 export class C8oManagerLogin {
     public c8o: C8oCore;
     private requestLogin;
@@ -12,6 +11,36 @@ export class C8oManagerLogin {
         this.c8o = c8o;
         this.mutexL = new Semaphore(1);
     }
+
+    private static toUint8Array(data: ArrayBuffer | ArrayBufferView): Uint8Array<ArrayBuffer>{
+        const source = data instanceof ArrayBuffer
+            ? new Uint8Array(data)
+            : data instanceof Uint8Array
+                ? data
+                : new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+        const normalized = new Uint8Array(source.byteLength);
+        normalized.set(source);
+        return normalized;
+    }
+
+    private static toBase64(data: ArrayBuffer | ArrayBufferView): string{
+        const bytes = C8oManagerLogin.toUint8Array(data);
+        let binary = "";
+        for(let i = 0; i < bytes.length; i++){
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return window.btoa(binary);
+    }
+
+    private static fromBase64(base64: string): Uint8Array<ArrayBuffer>{
+        const binary = window.atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for(let i = 0; i < binary.length; i++){
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes;
+    }
+
     public async setRequestLogin(url: string, parameters: Object, headers: Object, id: string){
         if(url != null && parameters != null && headers != null){
             this.requestLogin = {url: url, parameters: parameters, headers: headers};
@@ -20,10 +49,10 @@ export class C8oManagerLogin {
         /**  must encrypt and save requestLogin there **/
 
         //define buffer to save
-        const data = Buffer.from(JSON.stringify(this.requestLogin), 'utf-8');
+        const data = new TextEncoder().encode(JSON.stringify(this.requestLogin));
         // generate random iv and store it
-        const iv: any = crypto.getRandomValues(new Uint8Array(16));
-        window["localStorage"]["setItem"]("_c8o_iv", Buffer.from(iv).toString('utf-8'));
+        const iv = crypto.getRandomValues(new Uint8Array(16));
+        window["localStorage"]["setItem"]("_c8o_iv", C8oManagerLogin.toBase64(iv));
         // get key and hash it 128 bits
         const key = C8oUtilsCore.MD5ArrayBuffer(id);
         // defined key
@@ -39,16 +68,24 @@ export class C8oManagerLogin {
             data
         );
         // store encrypted data
-        window.localStorage.setItem("_c8o_secret", Buffer.from(encrypted_content).toString('utf-8'));
+        window.localStorage.setItem("_c8o_secret", C8oManagerLogin.toBase64(encrypted_content));
         }    
     }
     public async defineRequestLogin(id){
         //if requestLogin is'nt into this.requestLogin, get it and assign it to requestLogin from local encrypted data.
         try{
             if(this.requestLogin == undefined && window["localStorage"]["getItem"]("_c8o_secret") != undefined){
-                const iv: any = Buffer.from(window["localStorage"]["getItem"]("_c8o_iv"), 'utf-8');
+                const ivStored = window["localStorage"]["getItem"]("_c8o_iv");
+                if(ivStored == null){
+                    return;
+                }
+                const iv = C8oManagerLogin.fromBase64(ivStored);
                 const key = C8oUtilsCore.MD5ArrayBuffer(id);
-                const encrypted_content = Buffer.from(window.localStorage.getItem("_c8o_secret"), 'utf-8');
+                const encryptedStored = window.localStorage.getItem("_c8o_secret");
+                if(encryptedStored == null){
+                    return;
+                }
+                const encrypted_content = C8oManagerLogin.fromBase64(encryptedStored);
                 const key_encoded = await crypto.subtle.importKey(  "raw",    <any>key.buffer,   'AES-CTR' ,  false,   ["encrypt", "decrypt"]);
                 const decrypted_content: any  = await window.crypto.subtle.decrypt(
                     {
@@ -59,7 +96,7 @@ export class C8oManagerLogin {
                     key_encoded,
                     encrypted_content
                 );
-                this.requestLogin = JSON.parse(Buffer.from(decrypted_content).toString('utf-8'));
+                this.requestLogin = JSON.parse(new TextDecoder().decode(C8oManagerLogin.toUint8Array(decrypted_content)));
             }
         }
         catch(e){
